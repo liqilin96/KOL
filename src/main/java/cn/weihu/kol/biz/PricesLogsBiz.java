@@ -1,6 +1,10 @@
 package cn.weihu.kol.biz;
 
+import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.PricesLogs;
+import cn.weihu.kol.http.req.PricesLogsReq;
+import cn.weihu.kol.http.resp.PricesLogsBoResp;
+import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -13,4 +17,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface PricesLogsBiz extends IService<PricesLogs> {
 
+    PageResult<PricesLogsBoResp> pages(PricesLogsReq req);
 }

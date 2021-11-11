@@ -26,4 +26,12 @@ public class PricesLogsReq {
 
     @ApiModelProperty(value = "报价形式")
     private String pricesForm;
+
+    @ApiModelProperty(value = "页数")
+    private Integer pageNo = 1;
+
+    @ApiModelProperty(value = "条数")
+    private Integer pageSize = 10;
+
+
 }

@@ -6,6 +6,7 @@ import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.PricesLogsBiz;
 import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.req.ProjectReq;
+import cn.weihu.kol.http.resp.PricesLogsBoResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import cn.weihu.kol.http.resp.ProjectResp;
 import io.swagger.annotations.Api;
@@ -29,14 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(value = "报价记录管理", tags = "报价记录管理")
 public class PricesLogsController {
 
-
     @Autowired
     private PricesLogsBiz pricesLogsBiz;
 
-//    @ApiOperation(value = "查询", httpMethod = "GET", notes = "查询")
-//    @GetMapping(value = "/query/page")
-//    public ResultBean<PageResult<PricesLogsResp>> page(@RequestBody PricesLogsReq req) {
-//        return new ResultBean<>(pricesLogsBiz.pages(req));
-//    }
+    @ApiOperation(value = "查询", httpMethod = "GET", notes = "查询")
+    @GetMapping(value = "/query/page")
+    public ResultBean<PageResult<PricesLogsBoResp>> page(@RequestBody PricesLogsReq req) {
+        return new ResultBean<>(pricesLogsBiz.pages(req));
+    }
 }
 
