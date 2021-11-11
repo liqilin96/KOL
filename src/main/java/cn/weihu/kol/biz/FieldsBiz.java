@@ -1,7 +1,9 @@
 package cn.weihu.kol.biz;
 
+import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.Fields;
 import cn.weihu.kol.http.req.FieldsReq;
+import cn.weihu.kol.http.resp.FieldsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -14,6 +16,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface FieldsBiz extends IService<Fields> {
 
-    String create(FieldsReq req);
+    String createGroup(FieldsReq req);
 
+    String deleteGroup(FieldsReq req);
+
+    String updateGroup(FieldsReq req);
+
+    PageResult<FieldsResp> pageGroup(FieldsReq req);
+
+//    String create(FieldsReq req);
+
+//    String updateField(FieldsReq req);
 }
