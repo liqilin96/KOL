@@ -39,4 +39,5 @@ public interface UserBiz extends Biz<User> {
 
     Map<String, Object> token(String accessKeyId, String accessKeySecret);
 
+    void delToken(HttpServletRequest request);
 }

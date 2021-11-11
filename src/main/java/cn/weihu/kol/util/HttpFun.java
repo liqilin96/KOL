@@ -1,6 +1,5 @@
 package cn.weihu.kol.util;
 
-import cn.weihu.kol.push.PushRetryBo;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -30,17 +29,17 @@ public class HttpFun {
 
     public static final Logger log = LoggerFactory.getLogger(HttpFun.class);
 
-    public static String postAsyncSaveLog(PushRetryBo pushRetryBo) {
-        String result;
-        try {
-            log.info("uuid[" + pushRetryBo.getUuid() + "]post  url:" + pushRetryBo.getUrl() + " params:" + pushRetryBo.getParams());
-            result = HttpFun.post(pushRetryBo.getUuid(), pushRetryBo.getUrl(), pushRetryBo.getParams());
-        } catch(Exception e) {
-            log.error("uuid[" + pushRetryBo.getUuid() + "]请求失败:{}", e.getMessage());
-            result = "senderror:" + e.getMessage();
-        }
-        return result;
-    }
+//    public static String postAsyncSaveLog(PushRetryBo pushRetryBo) {
+//        String result;
+//        try {
+//            log.info("uuid[" + pushRetryBo.getUuid() + "]post  url:" + pushRetryBo.getUrl() + " params:" + pushRetryBo.getParams());
+//            result = HttpFun.post(pushRetryBo.getUuid(), pushRetryBo.getUrl(), pushRetryBo.getParams());
+//        } catch(Exception e) {
+//            log.error("uuid[" + pushRetryBo.getUuid() + "]请求失败:{}", e.getMessage());
+//            result = "senderror:" + e.getMessage();
+//        }
+//        return result;
+//    }
 
     /**
      * 发送HttpPost请求

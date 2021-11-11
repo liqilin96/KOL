@@ -254,6 +254,15 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         return tokenHandle(userInfo);
     }
 
+    @Override
+    public void delToken(HttpServletRequest request) {
+        String       token    = request.getHeader("Authorization");
+        UserInfo userInfo = redisUtils.getUserInfoByToken(token);
+        redisUtils.delUserInfoByToken(token);
+        if(userInfo != null) {
+            redisUtils.delUserInfoByUsername(userInfo.getUsername());
+        }
+    }
 
     private Map<String, Object> tokenHandle(UserInfo userInfo) {
         String token = UUID.randomUUID().toString();

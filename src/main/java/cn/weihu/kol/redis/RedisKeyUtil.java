@@ -9,7 +9,7 @@ public class RedisKeyUtil {
 
     public static String getKey(Object... tableName) {
         StringBuffer buffer = new StringBuffer();
-        buffer.append("obc:");
+        buffer.append("kol:");
         String s = StringUtils.join(tableName, ":");
         buffer.append(s);
         return buffer.toString();

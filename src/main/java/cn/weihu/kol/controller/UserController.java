@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -43,8 +42,9 @@ public class UserController {
 
     @ApiOperation(value = "登出", httpMethod = "POST", notes = "登出notes")
     @PostMapping(value = "/logout")
-    public ResultBean<String> logout() {
-        return null;
+    public ResultBean<String> logout(HttpServletRequest request) {
+        userBiz.delToken(request);
+        return new ResultBean();
     }
 
     @ApiOperation(value = "修改密码", httpMethod = "PUT", notes = "修改密码notes")

@@ -1,6 +1,7 @@
 package cn.weihu.kol.runner;
 
 
+import cn.weihu.kol.Version;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;

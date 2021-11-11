@@ -27,7 +27,7 @@ public class RedisUtils {
     @Autowired
     private EnhancedRedisService redisService;
     @Autowired
-    @Qualifier("redisTemplate")
+    @Qualifier("redisTemplateA")
     private StringRedisTemplate  redisTemplate;
 
     public void setUserInfoByUsername(String username, UserInfo userInfo) {
