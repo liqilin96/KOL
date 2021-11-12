@@ -48,8 +48,8 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
         LambdaQueryWrapper<PricesLogs> wrapper = new LambdaQueryWrapper<>();
 
         //SELECT * from obc_customer_header c where JSON_UNQUOTE(JSON_EXTRACT(c.params,"$.name"))='李四'
-        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%四%");
-        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.age\")) > {0}", "25");
+//        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%四%");
+//        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.age\")) > {0}", "25");
 
 
         if(StringUtils.isNotBlank(req.getStarName())) {

@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,10 +58,9 @@ public class MessageBizImpl extends ServiceImpl<MessageDao, Message> implements 
 
         List<Message> messages = this.baseMapper.selectList(wrapper);
 
+
         List<MessageResp> messageRespList = messages.stream().map(x -> {
-            MessageResp resp = new MessageResp();
-            BeanUtils.copyProperties(resp, x);
-            return resp;
+            return message2MessageResp(x);
         }).collect(Collectors.toList());
 
         return messageRespList;
@@ -73,10 +73,20 @@ public class MessageBizImpl extends ServiceImpl<MessageDao, Message> implements 
         if(msg == null) {
             throw new CheckException("消息不存在");
         }
-        MessageResp resp = new MessageResp();
         msg.setIsReceived(1);
-        BeanUtils.copyProperties(msg, resp);
         updateById(msg);
+        MessageResp resp = message2MessageResp(msg);
+        return resp;
+    }
+
+
+    public MessageResp message2MessageResp(Message x) {
+        MessageResp resp = new MessageResp();
+        resp.setId(x.getId().toString());
+        resp.setMessage(x.getMessage());
+        resp.setCtime(x.getCtime().toInstant(ZoneOffset.of("+8")).toEpochMilli());
+        resp.setUtime(x.getUtime().toInstant(ZoneOffset.of("+8")).toEpochMilli());
+        BeanUtils.copyProperties(x, resp);
         return resp;
     }
 }
