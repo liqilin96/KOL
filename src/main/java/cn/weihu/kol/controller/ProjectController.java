@@ -55,7 +55,7 @@ public class ProjectController {
 
     @ApiOperation(value = "项目查询", httpMethod = "GET", notes = "项目查询")
     @GetMapping(value = "/query/page")
-    public ResultBean<PageResult<ProjectResp>> page(@RequestBody ProjectReq req) {
+    public ResultBean<PageResult<ProjectResp>> page(ProjectReq req) {
         return new ResultBean<>(projectBiz.pages(req));
     }
 

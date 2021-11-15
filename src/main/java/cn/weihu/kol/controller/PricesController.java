@@ -31,7 +31,7 @@ public class PricesController {
 
     @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
     @GetMapping(value = "/star")
-    public ResultBean<PricesLogsBoResp> starPrice(@RequestBody PricesLogsReq req) {
+    public ResultBean<PricesLogsBoResp> starPrice(PricesLogsReq req) {
         return new ResultBean<>(pricesBiz.starPrice(req));
     }
 

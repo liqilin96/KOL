@@ -32,7 +32,7 @@ public class PricesLogsController {
 
     @ApiOperation(value = "报价记录", httpMethod = "GET", notes = "报价记录")
     @GetMapping(value = "/query/page")
-    public ResultBean<PageResult<PricesLogsBoResp>> page(@RequestBody PricesLogsReq req) {
+    public ResultBean<PageResult<PricesLogsBoResp>> page(PricesLogsReq req) {
         return new ResultBean<>(pricesLogsBiz.pages(req));
     }
 }

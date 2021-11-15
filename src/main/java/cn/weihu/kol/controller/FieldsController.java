@@ -46,7 +46,7 @@ public class FieldsController {
     }
 
     @ApiOperation(value = "删除字段组", httpMethod = "GET", notes = "删除字段组")
-    @GetMapping(value = "/query/group")
+    @DeleteMapping(value = "/query/group")
     public ResultBean<String> deleteGroup(@RequestBody FieldsReq req) {
         CheckUtil.notEmpty(req.getName(), "字段组id不能为空");
         return new ResultBean<>(fieldsBiz.deleteGroup(req));
@@ -54,7 +54,7 @@ public class FieldsController {
 
     @ApiOperation(value = "查询字段组", httpMethod = "GET", notes = "查询字段组")
     @GetMapping(value = "/query/page")
-    public ResultBean<PageResult<FieldsResp>> page(@RequestBody FieldsReq req) {
+    public ResultBean<PageResult<FieldsResp>> page(FieldsReq req) {
         return new ResultBean<>(fieldsBiz.pageGroup(req));
     }
 
