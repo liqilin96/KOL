@@ -3,6 +3,7 @@ package cn.weihu.kol.db.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -48,11 +49,6 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * 所属企业id
-     */
-    private String companyId;
-
-    /**
      * 插入时间
      */
     private Date ctime;
@@ -62,5 +58,10 @@ public class User implements Serializable {
      */
     private Date utime;
 
+    private Long createUserId;
 
+    /**
+     * 更新人id
+     */
+    private Long updateUserId;
 }

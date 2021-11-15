@@ -8,10 +8,11 @@ public class RoleConverter {
     public static RoleResp entity2RoleResp(Role role) {
         RoleResp resp = new RoleResp();
         resp.setId(role.getId().toString());
-        resp.setCompanyId(role.getCompanyId());
         resp.setName(role.getName());
         resp.setCtime(role.getCtime());
         resp.setUtime(role.getUtime());
+        resp.setCreateUserId(role.getCreateUserId());
+        resp.setUpdateUserId(role.getUpdateUserId());
         return resp;
     }
 }

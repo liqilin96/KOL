@@ -34,7 +34,7 @@ public class UserController {
 
     @ApiOperation(value = "登录", httpMethod = "POST", notes = "登录notes")
     @PostMapping(value = "/login")
-    public ResultBean<LoginResp> login(LoginReq req, HttpServletRequest request) {
+    public ResultBean<LoginResp> login(@RequestBody LoginReq req, HttpServletRequest request) {
         CheckUtil.notEmpty(req.getUsername(), "用户名不能为空");
         CheckUtil.notEmpty(req.getPassword(), "密码不能为空");
         return new ResultBean<>(userBiz.login(req, request));

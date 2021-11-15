@@ -9,13 +9,14 @@ public class UserConverter {
     public static UserResp entity2UserResp(User user) {
         UserResp resp = new UserResp();
         resp.setId(user.getId().toString());
-        resp.setCompanyId(user.getCompanyId());
         resp.setName(user.getName());
         resp.setUsername(user.getUsername());
         resp.setPassword(user.getPassword());
         resp.setStatus(user.getStatus());
         resp.setCtime(user.getCtime());
         resp.setUtime(user.getUtime());
+        resp.setCreateUserId(user.getCreateUserId());
+        resp.setUpdateUserId(user.getUpdateUserId());
         return resp;
     }
 

@@ -40,4 +40,10 @@ public class RoleResp {
 
     @ApiModelProperty(value = "权限id集")
     private List<String> permissionIds;
+
+    @ApiModelProperty(value = "创建人id")
+    private Long createUserId;
+
+    @ApiModelProperty(value = "更新人id")
+    private Long updateUserId;
 }

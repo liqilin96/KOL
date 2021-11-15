@@ -74,9 +74,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         if(StringUtils.isNotBlank(req.getUsername())) {
             wrapper.like(User::getUsername, req.getUsername() + "%");
         }
-        if(!UserInfoContext.getUserInfo().getIsAdmin()) {
-            wrapper.eq(User::getCompanyId, UserInfoContext.getCompanyId());
-        }
+
         Page<User> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<UserResp> respList = page.getRecords().stream().map(user -> {
             UserResp resp = UserConverter.entity2UserResp(user);
@@ -99,7 +97,6 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
             throw new CheckException(ErrorCode.USERNAME_ALREADY_EXISTED);
         }
         User user = UserConverter.userSaveReq2Entity(req);
-        user.setCompanyId(UserInfoContext.getCompanyId());
         user.setPassword(MD5Util.password(req.getPassword()));
         user.setCtime(DateUtil.date());
         save(user);
@@ -108,7 +105,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         roleUserDao.saveBatch(roleUsers);
         List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId().toString());
         List<PermissionResp> permissionResps = PermissionConverter.list2BoList(permissions);
-        UserInfo userInfo = new UserInfo(user.getCompanyId(), user.getId().toString(), user.getUsername(),
+        UserInfo userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId().toString(), user.getUsername(),
                                          user.getPassword(), user.getName(), permissionResps);
         redisUtils.setUserInfoByUsername(user.getUsername(), userInfo);
         log.info(">>> 新增用户:{},roleIds:{}", req.getUsername(), req.getRoleIds());
@@ -194,7 +191,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                 }
                 List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId().toString());
                 permissionResps = PermissionConverter.list2BoList(permissions);
-                userInfo = new UserInfo(user.getCompanyId(), user.getId().toString(), user.getUsername(),
+                userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId().toString(), user.getUsername(),
                                         user.getPassword(), user.getName(), permissionResps);
                 // 是否超级管理员
                 userInfo.setIsAdmin("admin".equals(req.getUsername()));
@@ -240,7 +237,6 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
     @Override
     public List<UserResp> userList() {
         List<User> users = baseMapper.selectList(new LambdaQueryWrapper<>(User.class)
-                                                         .eq(User::getCompanyId, UserInfoContext.getCompanyId())
                                                          .eq(User::getStatus, 0));
         if(!CollectionUtils.isEmpty(users)) {
             return users.stream().map(UserConverter::entity2UserResp).collect(Collectors.toList());

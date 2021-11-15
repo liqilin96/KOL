@@ -54,9 +54,8 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
     @Override
     public PageResult<RoleResp> rolePage(RoleListReq req) {
         LambdaQueryWrapper<Role> wrapper = Wrappers.lambdaQuery(Role.class);
-        wrapper.eq(Role::getCompanyId, UserInfoContext.getCompanyId());
         if(StringUtils.isNotBlank(req.getName())) {
-            wrapper.like(Role::getName, "%" + req.getName() + "%");
+            wrapper.like(Role::getName, req.getName());
         }
         wrapper.orderByDesc(Role::getId);
         Page<Role> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
@@ -72,8 +71,7 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
 
     @Override
     public List<RoleResp> roleAll() {
-        List<Role> roles = baseMapper.selectList(new LambdaQueryWrapper<>(Role.class)
-                                                         .eq(Role::getCompanyId, UserInfoContext.getCompanyId()));
+        List<Role> roles = baseMapper.selectList(new LambdaQueryWrapper<>(Role.class));
         List<RoleResp> respList = null;
         if(!roles.isEmpty()) {
             respList = roles.stream()
@@ -87,13 +85,11 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
     public String roleAdd(RoleSaveReq req) {
         // 校验名称
         Role role = getOne(new LambdaQueryWrapper<>(Role.class)
-                                   .eq(Role::getCompanyId, UserInfoContext.getCompanyId())
                                    .eq(Role::getName, req.getName()));
         if(Objects.nonNull(role)) {
             throw new CheckException(ErrorCode.ROLE_NAME_IS_EXIST);
         }
         role = new Role();
-        role.setCompanyId(UserInfoContext.getCompanyId());
         role.setName(req.getName());
         role.setCtime(DateUtil.date());
         role.setUtime(DateUtil.date());
@@ -110,7 +106,6 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
     public String roleEdit(String id, RoleSaveReq req) {
         // 校验名称
         Role role = getOne(new LambdaQueryWrapper<>(Role.class)
-                                   .eq(Role::getCompanyId, UserInfoContext.getCompanyId())
                                    .eq(Role::getName, req.getName())
                                    .ne(Role::getId, id));
         if(Objects.nonNull(role)) {

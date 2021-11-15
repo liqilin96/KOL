@@ -71,4 +71,14 @@ public class Permission implements Serializable {
      * 顺序
      */
     private Integer level;
+
+    /**
+     * 创建人id
+     */
+    private Long createUserId;
+
+    /**
+     * 更新人id
+     */
+    private Long updateUserId;
 }

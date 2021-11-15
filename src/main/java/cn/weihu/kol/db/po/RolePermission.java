@@ -46,6 +46,14 @@ public class RolePermission implements Serializable {
      * 更新时间
      */
     private Date utime;
+    /**
+     * 创建人id
+     */
+    private Long createUserId;
 
+    /**
+     * 更新人id
+     */
+    private Long updateUserId;
 
 }

@@ -38,12 +38,6 @@ public class UserResp {
     private String password;
 
     /**
-     * 所属企业id
-     */
-    @ApiModelProperty(value = "所属企业ID")
-    private String companyId;
-
-    /**
      * 角色ID
      */
     @ApiModelProperty(value = "角色ID")
@@ -66,4 +60,10 @@ public class UserResp {
      */
     @ApiModelProperty(value = "更新时间")
     private Date utime;
+
+    @ApiModelProperty(value = "创建人id")
+    private Long createUserId;
+
+    @ApiModelProperty(value = "更新人id")
+    private Long updateUserId;
 }
