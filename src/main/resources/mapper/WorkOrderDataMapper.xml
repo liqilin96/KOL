@@ -5,7 +5,7 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="cn.weihu.kol.db.po.WorkOrderData">
         <id column="id" property="id" />
-        <result column="fileds_id" property="filedsId" />
+        <result column="fields_id" property="fieldsId" />
         <result column="project_id" property="projectId" />
         <result column="work_order_id" property="workOrderId" />
         <result column="status" property="status" />
@@ -18,7 +18,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, fileds_id, project_id, work_order_id, status, data, ctime, utime, create_user_id, update_user_id
+        id, fields_id, project_id, work_order_id, status, data, ctime, utime, create_user_id, update_user_id
     </sql>
 
 </mapper>

@@ -82,8 +82,8 @@ public class SQLGenerator {
 //        strategy.setFieldPrefix("A_");
         strategy.setNaming(NamingStrategy.underline_to_camel);// 表名生成策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);// 允许字段策略独立设置，默认为 naming 策略
-        strategy.setInclude("obc_notice_task_log");
-        strategy.setTablePrefix("base_", "dict_", "occ_", "obc_", "hpl_","kol");// 表前缀
+        strategy.setInclude("kol_work_order_log");
+        strategy.setTablePrefix("base_", "dict_", "occ_", "obc_", "hpl_","kol_");// 表前缀
 //        strategy.setExclude("base");
         strategy.setEntityLombokModel(true);
 //        strategy.setInclude("^base_*", "^dict_*", "ok"); // 需要生成的表，支持正则表达式

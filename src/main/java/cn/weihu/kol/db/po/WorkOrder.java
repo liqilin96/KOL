@@ -28,11 +28,17 @@ public class WorkOrder implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    private String orderSn;
+
+    private String name;
+
     @ApiModelProperty(value = "工单类型")
     private Long type;
 
     @ApiModelProperty(value = "项目id")
     private Long projectId;
+
+    private String projectName;
 
     @ApiModelProperty(value = "父工单id")
     private Long parentId;

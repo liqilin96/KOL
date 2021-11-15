@@ -1,6 +1,9 @@
 package cn.weihu.kol.biz;
 
+import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.WorkOrder;
+import cn.weihu.kol.http.req.WorkOrderReq;
+import cn.weihu.kol.http.resp.WorkOrderResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface WorkOrderBiz extends IService<WorkOrder> {
 
+    PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req);
 }

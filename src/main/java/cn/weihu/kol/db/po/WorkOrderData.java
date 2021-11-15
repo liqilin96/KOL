@@ -29,7 +29,7 @@ public class WorkOrderData implements Serializable {
     private Long id;
 
     @ApiModelProperty(value = "字段组id")
-    private Long filedsId;
+    private Long fieldsId;
 
     @ApiModelProperty(value = "项目id")
     private Long projectId;
