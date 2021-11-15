@@ -171,10 +171,10 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 
     @Override
     public LoginResp login(LoginReq req, HttpServletRequest request) {
-        if(StringUtils.isNotBlank(req.getShortName())) {
-            // 座席登录
-            req.setUsername(req.getUsername() + "@" + req.getShortName());
-        }
+//        if(StringUtils.isNotBlank(req.getShortName())) {
+//            // 座席登录
+//            req.setUsername(req.getUsername() + "@" + req.getShortName());
+//        }
         UserInfo             userInfo = redisUtils.getUserInfoByUsername(req.getUsername());
         User                 user;
         List<PermissionResp> permissionResps;

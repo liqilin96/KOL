@@ -14,6 +14,6 @@ public class LoginReq {
     @ApiModelProperty(value = "密码")
     private String password;
 
-    @ApiModelProperty(value = "企业简称")
-    private String shortName;
+//    @ApiModelProperty(value = "企业简称")
+//    private String shortName;
 }

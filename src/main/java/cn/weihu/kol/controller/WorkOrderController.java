@@ -45,6 +45,12 @@ public class WorkOrderController {
         return new ResultBean<>(workOrderBiz.workOrderPage(req));
     }
 
+    @ApiOperation(value = "工单模板下载", httpMethod = "GET", notes = "工单模板下载")
+    @GetMapping(value = "/template")
+    public void downloadTemplate(HttpServletResponse response) {
+        workOrderBiz.exportTemplate(response);
+    }
+
 
 }
 

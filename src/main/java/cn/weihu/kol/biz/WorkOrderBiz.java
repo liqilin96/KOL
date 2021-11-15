@@ -22,4 +22,6 @@ public interface WorkOrderBiz extends IService<WorkOrder> {
 
     ResultBean<WorkOrderResp> ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
     PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req);
+
+    void exportTemplate(HttpServletResponse response);
 }

@@ -59,4 +59,13 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     public PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req) {
         return null;
     }
+
+    @Override
+    public void exportTemplate(HttpServletResponse response) {
+        try {
+            ExcelUtils.downloadLocal(response);
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
