@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.weihu.kol.db.dao.WorkOrderLogDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.weihu.kol.db.po.WorkOrderLog">
+        <id column="id" property="id" />
+        <result column="data" property="data" />
+        <result column="old_data" property="oldData" />
+        <result column="work_order_id" property="workOrderId" />
+        <result column="type" property="type" />
+        <result column="project_id" property="projectId" />
+        <result column="parent_id" property="parentId" />
+        <result column="status" property="status" />
+        <result column="to_user" property="toUser" />
+        <result column="ctime" property="ctime" />
+        <result column="utime" property="utime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="update_user_id" property="updateUserId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, data, old_data, work_order_id, type, project_id, parent_id, status, to_user, ctime, utime, create_user_id, update_user_id
+    </sql>
+
+</mapper>
