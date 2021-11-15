@@ -51,14 +51,15 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.platform\")) like {0}", "%" + req.getPlatform() + "%");
         }
         //TODO 条件多了可以修改
-        Prices prices = baseMapper.selectOne(wrapper);
-
-        PricesLogsResp resp = new PricesLogsResp();
-        BeanUtils.copyProperties(resp, prices);
-
-//        List<Prices> prices = baseMapper.selectList(wrapper);
         List<PricesLogsResp> resps = new ArrayList<>();
-        resps.add(resp);
+
+        Prices prices = baseMapper.selectOne(wrapper);
+        if(prices!=null) {
+            PricesLogsResp resp = new PricesLogsResp();
+            BeanUtils.copyProperties(resp, prices);
+            resps.add(resp);
+        }
+//        List<Prices> prices = baseMapper.selectList(wrapper);
 
         PricesLogsBoResp bo = new PricesLogsBoResp(resps, fieldList);
         return bo;
