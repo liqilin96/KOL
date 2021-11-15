@@ -7,7 +7,7 @@ public class RoleConverter {
 
     public static RoleResp entity2RoleResp(Role role) {
         RoleResp resp = new RoleResp();
-        resp.setId(role.getId());
+        resp.setId(role.getId().toString());
         resp.setCompanyId(role.getCompanyId());
         resp.setName(role.getName());
         resp.setCtime(role.getCtime());

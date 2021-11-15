@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.weihu.kol.db.dao.MessageDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.weihu.kol.db.po.Message">
+        <result column="id" property="id" />
+        <result column="message" property="message" />
+        <result column="type" property="type" />
+        <result column="to_user_id" property="toUserId" />
+        <result column="is_received" property="isReceived" />
+        <result column="ctime" property="ctime" />
+        <result column="utime" property="utime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="update_user_id" property="updateUserId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, message, type, to_user_id, is_received, ctime, utime, create_user_id, update_user_id
+    </sql>
+
+</mapper>

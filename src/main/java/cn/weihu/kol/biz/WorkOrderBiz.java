@@ -1,10 +1,14 @@
 package cn.weihu.kol.biz;
 
 import cn.weihu.base.result.PageResult;
+import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.db.po.WorkOrder;
 import cn.weihu.kol.http.req.WorkOrderReq;
 import cn.weihu.kol.http.resp.WorkOrderResp;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -16,5 +20,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface WorkOrderBiz extends IService<WorkOrder> {
 
+    ResultBean<WorkOrderResp> ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
     PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req);
 }

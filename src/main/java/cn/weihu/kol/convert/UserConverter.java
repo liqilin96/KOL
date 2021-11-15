@@ -8,7 +8,7 @@ public class UserConverter {
 
     public static UserResp entity2UserResp(User user) {
         UserResp resp = new UserResp();
-        resp.setId(user.getId());
+        resp.setId(user.getId().toString());
         resp.setCompanyId(user.getCompanyId());
         resp.setName(user.getName());
         resp.setUsername(user.getUsername());
