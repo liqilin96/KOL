@@ -39,18 +39,17 @@ public class WorkOrderController {
         return workOrderBiz.ImportData(file, req, response);
     }
 
-    @ApiOperation(value = "列表", httpMethod = "GET", notes = "列表")
-    @GetMapping(value = "/page")
-    public ResultBean<PageResult<WorkOrderResp>> workOrderPage(WorkOrderReq req) {
-        return new ResultBean<>(workOrderBiz.workOrderPage(req));
-    }
-
     @ApiOperation(value = "工单模板下载", httpMethod = "GET", notes = "工单模板下载")
     @GetMapping(value = "/template")
     public void downloadTemplate(HttpServletResponse response) {
         workOrderBiz.exportTemplate(response);
     }
 
+    @ApiOperation(value = "列表", httpMethod = "GET", notes = "列表")
+    @GetMapping(value = "/page")
+    public ResultBean<PageResult<WorkOrderResp>> workOrderPage(WorkOrderReq req) {
+        return new ResultBean<>(workOrderBiz.workOrderPage(req));
+    }
 
 }
 

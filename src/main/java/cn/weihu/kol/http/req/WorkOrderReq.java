@@ -22,10 +22,13 @@ public class WorkOrderReq {
     private Integer pageSize = 10;
 
     @ApiModelProperty(value = "项目id")
-    private String id;
+    private String projectId;
 
     @ApiModelProperty(value = "工单编号/名称")
     private String name;
+
+    @ApiModelProperty(value = "状态")
+    private String status;
 
     @ApiModelProperty(value = "开始时间,13位毫秒级时间戳")
     private Long startTime;

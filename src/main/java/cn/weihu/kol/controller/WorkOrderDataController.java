@@ -9,6 +9,7 @@ import cn.weihu.kol.http.req.WorkOrderDataReq;
 import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "workorder/data")
+@Api(value = "工单数据管理", tags = "工单数据管理")
 public class WorkOrderDataController {
 
     @Autowired

@@ -2,6 +2,7 @@ package cn.weihu.kol.biz.impl;
 
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
+import cn.weihu.kol.convert.WorkOrderConverter;
 import cn.weihu.kol.db.dao.WorkOrderDataDao;
 import cn.weihu.kol.db.po.WorkOrderData;
 import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
@@ -9,11 +10,14 @@ import cn.weihu.kol.http.req.WorkOrderDataReq;
 import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -29,7 +33,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
-        return null;
+        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        List<WorkOrderData> list = list(wrapper);
+        return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
 
     @Override

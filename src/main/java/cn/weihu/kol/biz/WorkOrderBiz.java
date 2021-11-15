@@ -21,7 +21,22 @@ import javax.servlet.http.HttpServletResponse;
 public interface WorkOrderBiz extends IService<WorkOrder> {
 
     ResultBean<WorkOrderResp> ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
-    PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req);
 
     void exportTemplate(HttpServletResponse response);
+
+    /**
+     * 列表
+     *
+     * @param req
+     * @return
+     */
+    PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req);
+
+    /**
+     * 创建
+     *
+     * @param workOrder
+     * @return
+     */
+    Long create(WorkOrder workOrder);
 }

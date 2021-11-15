@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * <p>
@@ -33,7 +33,7 @@ public class WorkOrder implements Serializable {
     private String name;
 
     @ApiModelProperty(value = "工单类型")
-    private Long type;
+    private Integer type;
 
     @ApiModelProperty(value = "项目id")
     private Long projectId;
@@ -50,10 +50,10 @@ public class WorkOrder implements Serializable {
     private Long toUser;
 
     @ApiModelProperty(value = "插入时间")
-    private LocalDateTime ctime;
+    private Date ctime;
 
     @ApiModelProperty(value = "更新时间")
-    private LocalDateTime utime;
+    private Date utime;
 
     @ApiModelProperty(value = "创建人id")
     private String createUserId;
