@@ -7,7 +7,7 @@ import cn.weihu.kol.db.dao.WorkOrderDao;
 import cn.weihu.kol.db.po.WorkOrder;
 import cn.weihu.kol.http.req.WorkOrderReq;
 import cn.weihu.kol.http.resp.WorkOrderResp;
-import cn.weihu.kol.util.ExcelUtil;
+import cn.weihu.kol.util.ExcelUtils;
 import cn.weihu.kol.util.ExceptionUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -40,13 +40,10 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 throw new IOException(file.getOriginalFilename() + "不是excel文件");
             }
 
-            List<String> data = ExcelUtil.readLines("Excel", file.getInputStream());
-            //读取到的表头
-            String excel = data.get(0);
+            List<Object> data = ExcelUtils.readMoreThan1000Row(file.getInputStream());
 
-
-//            List<Map<String, Object>> list = ExcelExport.ExcelReadMap(file, englishHeader);
-
+//            //读取到的表头
+//            String excel = data.get(0);
 
         } catch(Exception e) {
             resultBean.setData(null);
@@ -54,7 +51,6 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             resultBean.setMsg(ExceptionUtil.getMessage(e));
             return resultBean;
         }
-
 
         return null;
     }

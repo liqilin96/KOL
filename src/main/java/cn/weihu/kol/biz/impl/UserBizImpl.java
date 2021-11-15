@@ -7,8 +7,14 @@ import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.biz.UserBiz;
 import cn.weihu.kol.convert.PermissionConverter;
 import cn.weihu.kol.convert.UserConverter;
-import cn.weihu.kol.db.dao.*;
-import cn.weihu.kol.db.po.*;
+import cn.weihu.kol.db.dao.PermissionDao;
+import cn.weihu.kol.db.dao.RoleDao;
+import cn.weihu.kol.db.dao.RoleUserDao;
+import cn.weihu.kol.db.dao.UserDao;
+import cn.weihu.kol.db.po.Permission;
+import cn.weihu.kol.db.po.Role;
+import cn.weihu.kol.db.po.RoleUser;
+import cn.weihu.kol.db.po.User;
 import cn.weihu.kol.http.req.LoginReq;
 import cn.weihu.kol.http.req.ModifyPasswordReq;
 import cn.weihu.kol.http.req.UserListReq;
@@ -49,13 +55,13 @@ import java.util.stream.Collectors;
 public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 
     @Autowired
-    private RedisUtils       redisUtils;
+    private RedisUtils    redisUtils;
     @Resource
-    private RoleUserDao      roleUserDao;
+    private RoleUserDao   roleUserDao;
     @Resource
-    private RoleDao          roleDao;
+    private RoleDao       roleDao;
     @Resource
-    private PermissionDao    permissionDao;
+    private PermissionDao permissionDao;
 
 
     @Override
@@ -256,7 +262,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 
     @Override
     public void delToken(HttpServletRequest request) {
-        String       token    = request.getHeader("Authorization");
+        String   token    = request.getHeader("Authorization");
         UserInfo userInfo = redisUtils.getUserInfoByToken(token);
         redisUtils.delUserInfoByToken(token);
         if(userInfo != null) {
