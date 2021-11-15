@@ -75,7 +75,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         List<UserResp> respList = page.getRecords().stream().map(user -> {
             UserResp resp = UserConverter.entity2UserResp(user);
             // 角色
-            List<Role> roles = roleDao.getRolesByUserId(user.getId());
+            List<Role> roles = roleDao.getRolesByUserId(user.getId().toString());
             resp.setRoleIds(roles.stream().map(role -> String.valueOf(role.getId()))
                                     .collect(Collectors.joining(";")));
             resp.setRoleNames(roles.stream().map(Role::getName)
@@ -98,15 +98,15 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         user.setCtime(DateUtil.date());
         save(user);
 
-        List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId());
+        List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());
         roleUserDao.saveBatch(roleUsers);
-        List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId());
+        List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId().toString());
         List<PermissionResp> permissionResps = PermissionConverter.list2BoList(permissions);
-        UserInfo userInfo = new UserInfo(user.getCompanyId(), user.getId(), user.getUsername(),
+        UserInfo userInfo = new UserInfo(user.getCompanyId(), user.getId().toString(), user.getUsername(),
                                          user.getPassword(), user.getName(), permissionResps);
         redisUtils.setUserInfoByUsername(user.getUsername(), userInfo);
         log.info(">>> 新增用户:{},roleIds:{}", req.getUsername(), req.getRoleIds());
-        return user.getId();
+        return user.getId().toString();
     }
 
     @Override
@@ -118,13 +118,13 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
             throw new CheckException(ErrorCode.USERNAME_ALREADY_EXISTED);
         }
         User user = UserConverter.userSaveReq2Entity(req);
-        user.setId(id);
+        user.setId(Long.parseLong(id));
         user.setUtime(DateUtil.date());
         updateById(user);
 
         // 删除历史用户与角色绑定记录
         roleUserDao.delete(new LambdaUpdateWrapper<>(RoleUser.class).eq(RoleUser::getUserId, id));
-        List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId());
+        List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());
         roleUserDao.saveBatch(roleUsers);
         // 删除用户登录缓存,以重新登录获取最新角色权限
         redisUtils.delUserInfoByUsername(req.getUsername());
@@ -137,7 +137,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         RoleUser       roleUser;
         for(String roleId : roleIds) {
             roleUser = new RoleUser();
-            roleUser.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+//            roleUser.setId(UUID.randomUUID().toString().replaceAll("-", ""));
             roleUser.setRoleId(roleId);
             roleUser.setUserId(userId);
             roleUser.setCtime(DateUtil.date());
@@ -186,9 +186,9 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                 if(!MD5Util.password(req.getPassword()).equals(user.getPassword())) {
                     throw new CheckException(ErrorCode.USERNAME_OR_PASSWORD_INVALID);
                 }
-                List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId());
+                List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId().toString());
                 permissionResps = PermissionConverter.list2BoList(permissions);
-                userInfo = new UserInfo(user.getCompanyId(), user.getId(), user.getUsername(),
+                userInfo = new UserInfo(user.getCompanyId(), user.getId().toString(), user.getUsername(),
                                         user.getPassword(), user.getName(), permissionResps);
                 // 是否超级管理员
                 userInfo.setIsAdmin("admin".equals(req.getUsername()));
@@ -219,7 +219,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         String password = MD5Util.password(req.getPassword());
         // 更新数据库
         User user = new User();
-        user.setId(userInfo.getUserId());
+//        user.setId(userInfo.getUserId());
         user.setPassword(password);
         user.setUtime(DateUtil.date());
         updateById(user);

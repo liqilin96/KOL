@@ -63,7 +63,7 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
         List<RoleResp> respList = page.getRecords().stream()
                 .map(role -> {
                     RoleResp resp = RoleConverter.entity2RoleResp(role);
-                    resp.setPermissionIds(rolePermissionDao.getPermissionIdsByRoleId(role.getId()));
+                    resp.setPermissionIds(rolePermissionDao.getPermissionIdsByRoleId(role.getId().toString()));
                     return resp;
                 })
                 .collect(Collectors.toList());
@@ -100,9 +100,9 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
         save(role);
         if(!CollectionUtils.isEmpty(req.getPermissionIds())) {
             // 添加角色与权限的绑定关系记录
-            bindPermissions(role.getId(), req.getPermissionIds());
+            bindPermissions(role.getId().toString(), req.getPermissionIds());
         }
-        return role.getId();
+        return role.getId().toString();
     }
 
     @Override
@@ -117,7 +117,7 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
             throw new CheckException(ErrorCode.ROLE_NAME_IS_EXIST);
         }
         role = new Role();
-        role.setId(id);
+        role.setId(Long.parseLong(id));
         role.setName(req.getName());
         role.setUtime(DateUtil.date());
         updateById(role);
@@ -125,7 +125,7 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
         rolePermissionDao.delByRoleId(id);
         if(!CollectionUtils.isEmpty(req.getPermissionIds())) {
             // 添加角色与权限的绑定关系记录
-            bindPermissions(role.getId(), req.getPermissionIds());
+            bindPermissions(role.getId().toString(), req.getPermissionIds());
         }
         // 删除此角色下的所有用户登录缓存,以重新登录获取最新角色权限
         List<User> users = roleUserDao.getUsersByRoleId(id);
