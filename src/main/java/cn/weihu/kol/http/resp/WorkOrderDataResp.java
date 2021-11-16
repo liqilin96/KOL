@@ -30,4 +30,7 @@ public class WorkOrderDataResp {
 
     @ApiModelProperty(value = "更新时间")
     private Date utime;
+
+    @ApiModelProperty(value = "是否库内,0:否,1:是")
+    private Integer inbound;
 }

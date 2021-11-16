@@ -54,6 +54,7 @@ public class WorkOrderDataController {
     @ApiOperation(value = "询价&询档", httpMethod = "POST", notes = "询价&询档")
     @PutMapping(value = "/enquiry")
     public ResultBean<String> enquiry(@RequestBody WorkOrderBatchUpdateReq req) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
         return new ResultBean<>(dataBiz.enquiry(req));
     }
 

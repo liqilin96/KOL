@@ -56,10 +56,10 @@ public class WorkOrder implements Serializable {
     private Date utime;
 
     @ApiModelProperty(value = "创建人id")
-    private String createUserId;
+    private Long createUserId;
 
     @ApiModelProperty(value = "更新人id")
-    private String updateUserId;
+    private Long updateUserId;
 
 
 }

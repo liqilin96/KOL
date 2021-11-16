@@ -2,9 +2,13 @@ package cn.weihu.kol.db.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
+
 import java.util.Date;
+
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -79,12 +83,12 @@ public class WorkOrderLog implements Serializable {
     /**
      * 创建人id
      */
-    private String createUserId;
+    private Long createUserId;
 
     /**
      * 更新人id
      */
-    private String updateUserId;
+    private Long updateUserId;
 
 
 }

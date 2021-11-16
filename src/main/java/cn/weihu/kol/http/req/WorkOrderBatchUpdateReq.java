@@ -10,6 +10,9 @@ import java.util.List;
 @ApiModel(value = "批量更新工单数据请求实体类", description = "描述")
 public class WorkOrderBatchUpdateReq {
 
+    @ApiModelProperty(value = "需求工单ID")
+    private Long workOrderId;
+
     @ApiModelProperty(value = "更新工单数据列表")
     private List<WorkOrderDataUpdateReq> list;
 }
