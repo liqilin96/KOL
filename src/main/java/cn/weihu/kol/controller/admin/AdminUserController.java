@@ -20,7 +20,7 @@ public class AdminUserController {
     @Autowired
     private UserBiz userBiz;
 
-    @ApiOperation(value = "用户列表", httpMethod = "GET", notes = "用户列表notes")
+    @ApiOperation(value = "用户列表-分页", httpMethod = "GET", notes = "用户列表notes-分页")
     @GetMapping(value = "/user/page")
     public ResultBean<PageResult<UserResp>> userPage(UserListReq req) {
         return new ResultBean<>(userBiz.userPage(req));

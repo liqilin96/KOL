@@ -55,7 +55,7 @@ public class UserController {
         return new ResultBean<>(userBiz.modifyPassword(req));
     }
 
-    @ApiOperation(value = "列表", httpMethod = "GET", notes = "列表")
+    @ApiOperation(value = "列表-不分页", httpMethod = "GET", notes = "列表-不分页")
     @GetMapping(value = "/user/list")
     public ResultBean<List<UserResp>> userList() {
         return new ResultBean<>(userBiz.userList());
