@@ -58,7 +58,6 @@ public class FieldsController {
         return new ResultBean<>(fieldsBiz.pageGroup(req));
     }
 
-//给我错误引导写的错误代码，浪费我时间的代码
 
 //    @ApiOperation(value = "删除字段组", httpMethod = "GET", notes = "删除字段组")
 //    @GetMapping(value = "/query/group")

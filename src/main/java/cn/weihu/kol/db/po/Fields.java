@@ -37,8 +37,8 @@ public class Fields implements Serializable {
     @ApiModelProperty(value = "字段列表")
     private String fieldList;
 
-    @ApiModelProperty(value = "字段类型1账号类型，2报价形式")
-    private Integer type;
+//    @ApiModelProperty(value = "字段类型1账号类型，2报价形式")
+//    private Integer type;
 
     @ApiModelProperty(value = "插入时间")
     private LocalDateTime ctime;
