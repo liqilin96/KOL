@@ -40,8 +40,8 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
     @Override
     public PricesLogsBoResp pages(PricesLogsReq req) {
 
-        //1 是资源库组
-        Fields fields    = fieldsBiz.getById(1);
+        //4 是报价历史
+        Fields fields    = fieldsBiz.getById(4);
         String fieldList = fields.getFieldList();
 
 
