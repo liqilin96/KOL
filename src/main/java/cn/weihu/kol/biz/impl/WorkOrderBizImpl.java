@@ -4,7 +4,6 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.base.result.PageResult;
-import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.FieldsBiz;
 import cn.weihu.kol.biz.ProjectBiz;
 import cn.weihu.kol.biz.WorkOrderBiz;
@@ -20,8 +19,8 @@ import cn.weihu.kol.db.po.WorkOrderData;
 import cn.weihu.kol.http.req.WorkOrderReq;
 import cn.weihu.kol.http.resp.WorkOrderResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
-import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.EasyExcelUtil;
+import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -36,7 +35,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +66,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     @Transactional(rollbackFor = Exception.class)
     public String ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
 
-        WorkOrder     workOrder     = new WorkOrder();
+        WorkOrder workOrder = new WorkOrder();
 
         try {
             //校验文件类型
@@ -82,11 +80,12 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             String        name          = "示例数据";
             WorkOrderData workOrderData = null;
 
-            if(orderBos!=null) {
+            if(orderBos != null) {
                 String uuid = UUID.randomUUID().toString();
                 workOrder.setOrderSn(uuid);
                 workOrder.setName(req.getName());
-                workOrder.setType(3);
+                //1是需求工单
+                workOrder.setType(1);
                 workOrder.setProjectId(Long.parseLong(req.getProjectId()));
                 Project project = projectBiz.getById(req.getProjectId());
                 workOrder.setProjectName(project.getName());
@@ -98,7 +97,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrderBiz.save(workOrder);
             }
             for(Object orderBo : orderBos) {
-                LinkedHashMap<Integer, String> bo            = (LinkedHashMap<Integer, String>) orderBo;
+                LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBo;
                 /**具体配置如下
                  *
                  *  0     -----》序号
@@ -140,12 +139,17 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
                 }.getType());
 
-                Map<String, String> map = new HashMap<>();
-                List<String> title = excelTitle();
+                Map<String, String> map   = new HashMap<>();
+                List<String>        title = excelTitle();
                 for(int i = 0; i < fieldsBos.size(); i++) {
-                    if(title.contains(fieldsBos.get(i).getName())) {
-                        map.put(fieldsBos.get(i).getVariable(), bo.get(i));
+                    for(int j = 0; j < title.size(); j++) {
+                        if(title.get(j).equalsIgnoreCase(fieldsBos.get(i).getTitle())) {
+                            map.put(fieldsBos.get(i).getDataIndex(), bo.get(j));
+                        }
                     }
+//                    if(title.contains(fieldsBos.get(i).getTitle())) {
+//                        map.put(fieldsBos.get(i).getDataIndex(), bo.get(i));
+//                    }
                 }
                 workOrderData.setData(GsonUtils.gson.toJson(map));
                 workOrderData.setCtime(new Date());
