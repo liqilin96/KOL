@@ -23,7 +23,7 @@ public class UserInfo {
     /**
      * 用户ID
      */
-    private String               userId;
+    private Long               userId;
     /**
      * 用户名
      */
@@ -64,7 +64,7 @@ public class UserInfo {
     public UserInfo() {
     }
 
-    public UserInfo(String companyId, String userId, String username, String password,
+    public UserInfo(String companyId, Long userId, String username, String password,
                     String name, List<PermissionResp> permissions) {
         this.companyId = companyId;
         this.userId = userId;

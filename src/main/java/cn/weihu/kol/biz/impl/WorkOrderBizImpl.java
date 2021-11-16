@@ -154,8 +154,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrderData.setData(GsonUtils.gson.toJson(map));
                 workOrderData.setCtime(new Date());
                 workOrderData.setUtime(new Date());
-                workOrderData.setCreateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
-                workOrderData.setUpdateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
+                workOrderData.setCreateUserId(UserInfoContext.getUserId());
+                workOrderData.setUpdateUserId(UserInfoContext.getUserId());
                 workOrderDataBiz.save(workOrderData);
             }
 

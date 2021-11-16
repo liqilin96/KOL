@@ -13,7 +13,7 @@ public class UserInfoContext {
         return ((UserInfo) USER_CONTEXT.get()).getCompanyId();
     }
 
-    public static String getUserId() {
+    public static Long getUserId() {
         return ((UserInfo) USER_CONTEXT.get()).getUserId();
     }
 

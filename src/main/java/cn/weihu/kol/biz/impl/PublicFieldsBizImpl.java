@@ -37,8 +37,8 @@ public class PublicFieldsBizImpl extends BaseBiz<PublicFieldsDao, PublicFields> 
         fields.setFieldList(req.getFieldList());
         fields.setCtime(new Date());
         fields.setUtime(new Date());
-        fields.setCreateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
-        fields.setUpdateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
+        fields.setCreateUserId(UserInfoContext.getUserId());
+        fields.setUpdateUserId(UserInfoContext.getUserId());
         this.save(fields);
         return fields.getId().toString();
     }
@@ -54,7 +54,7 @@ public class PublicFieldsBizImpl extends BaseBiz<PublicFieldsDao, PublicFields> 
             fields.setFieldList(req.getFieldList());
         }
         fields.setUtime(new Date());
-        fields.setUpdateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
+        fields.setUpdateUserId(UserInfoContext.getUserId());
         updateById(fields);
         return fields.getId().toString();
     }

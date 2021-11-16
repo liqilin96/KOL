@@ -50,8 +50,8 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         project.setDescs(req.getDesc());
         project.setCtime(LocalDateTime.now());
         project.setUtime(LocalDateTime.now());
-        project.setCreateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
-        project.setUpdateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
+        project.setCreateUserId(UserInfoContext.getUserId());
+        project.setUpdateUserId(UserInfoContext.getUserId());
         this.baseMapper.insert(project);
 
         //创建工单

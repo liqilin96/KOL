@@ -22,5 +22,5 @@ public interface PermissionDao extends MyMapper<Permission> {
             "select distinct rp.permission_id from base_role_permission rp,base_role_user ru " +
             "where rp.role_id = ru.role_id and ru.user_id = #{userId} " +
             ") order by level")
-    List<Permission> getPermissionsByUserId(@Param("userId") String userId);
+    List<Permission> getPermissionsByUserId(@Param("userId") Long userId);
 }

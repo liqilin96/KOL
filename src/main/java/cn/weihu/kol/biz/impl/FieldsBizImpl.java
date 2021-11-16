@@ -36,8 +36,8 @@ public class FieldsBizImpl extends ServiceImpl<FieldsDao, Fields> implements Fie
         fields.setFieldList(req.getFieldList());
         fields.setCtime(LocalDateTime.now());
         fields.setUtime(LocalDateTime.now());
-        fields.setCreateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
-        fields.setUpdateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
+        fields.setCreateUserId(UserInfoContext.getUserId());
+        fields.setUpdateUserId(UserInfoContext.getUserId());
         this.save(fields);
         return null;
     }
@@ -53,7 +53,7 @@ public class FieldsBizImpl extends ServiceImpl<FieldsDao, Fields> implements Fie
             fields.setFieldList(req.getFieldList());
         }
         fields.setUtime(LocalDateTime.now());
-        fields.setUpdateUserId(Long.valueOf(UserInfoContext.getUserId() == null ? "-1" : UserInfoContext.getUserId()));
+        fields.setUpdateUserId(UserInfoContext.getUserId());
         updateById(fields);
         return null;
     }

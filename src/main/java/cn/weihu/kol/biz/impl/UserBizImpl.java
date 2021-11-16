@@ -103,9 +103,9 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 
         List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());
         roleUserDao.saveBatch(roleUsers);
-        List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId().toString());
+        List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId());
         List<PermissionResp> permissionResps = PermissionConverter.list2BoList(permissions);
-        UserInfo userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId().toString(), user.getUsername(),
+        UserInfo userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
                                          user.getPassword(), user.getName(), permissionResps);
         redisUtils.setUserInfoByUsername(user.getUsername(), userInfo);
         log.info(">>> 新增用户:{},roleIds:{}", req.getUsername(), req.getRoleIds());
@@ -189,9 +189,9 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                 if(!MD5Util.password(req.getPassword()).equals(user.getPassword())) {
                     throw new CheckException(ErrorCode.USERNAME_OR_PASSWORD_INVALID);
                 }
-                List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId().toString());
+                List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId());
                 permissionResps = PermissionConverter.list2BoList(permissions);
-                userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId().toString(), user.getUsername(),
+                userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
                                         user.getPassword(), user.getName(), permissionResps);
                 // 是否超级管理员
                 userInfo.setIsAdmin("admin".equals(req.getUsername()));
