@@ -61,8 +61,6 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
                 WorkOrder workOrder = new WorkOrder();
 
                 //TODO  创建工单和工单详情没做，待续，没时间做！！！
-                workOrder.setType(0L);
-                workOrder.setCtime(LocalDateTime.now());
                 workOrder.setProjectId(project.getId());
                 workOrderBiz.save(workOrder);
             });
@@ -83,7 +81,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         project = new Project();
 
         project.setId(Long.parseLong(req.getId()));
-        project.setName(req.getNewName());
+        project.setName(req.getName());
         this.baseMapper.updateById(project);
         return null;
     }

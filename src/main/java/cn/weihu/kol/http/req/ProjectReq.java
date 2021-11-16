@@ -24,8 +24,8 @@ public class ProjectReq {
     @ApiModelProperty(value = "项目说明")
     private String desc;
 
-    @ApiModelProperty(value = "项目新名")
-    private String newName;
+//    @ApiModelProperty(value = "项目新名")
+//    private String newName;
 
     @ApiModelProperty(value = "工单配置")
     private WorkOrderReq workOrderReq;

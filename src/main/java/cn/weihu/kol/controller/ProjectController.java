@@ -41,7 +41,7 @@ public class ProjectController {
     @PatchMapping(value = "/update")
     public ResultBean<String> update(@RequestBody ProjectReq req) {
         CheckUtil.notEmpty(req.getId(), "要修改的项目id不能为空");
-        CheckUtil.notEmpty(req.getNewName(), "要修改的项目名不能为空");
+//        CheckUtil.notEmpty(req.getNewName(), "要修改的项目名不能为空");
         return new ResultBean<>(projectBiz.updateProjectName(req));
     }
 

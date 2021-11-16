@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface WorkOrderBiz extends IService<WorkOrder> {
 
-    ResultBean<WorkOrderResp> ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
+    ResultBean ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
 
     void exportTemplate(HttpServletResponse response);
 

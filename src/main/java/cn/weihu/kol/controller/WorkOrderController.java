@@ -34,8 +34,9 @@ public class WorkOrderController {
 
     @ApiOperation(value = "导入", httpMethod = "POST", notes = "导入")
     @PostMapping("/import")
-    public ResultBean<WorkOrderResp> ImportData(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+    public ResultBean ImportData(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
         CheckUtil.notNull(file, "上传的Excel数据文件为空");
+//        CheckUtil.notNull(req.getProjectId(), "项目id不能为空");
         return workOrderBiz.ImportData(file, req, response);
     }
 
