@@ -38,7 +38,7 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
 
 
     @Override
-    public PageResult<PricesLogsBoResp> pages(PricesLogsReq req) {
+    public PricesLogsBoResp pages(PricesLogsReq req) {
 
         //1 是资源库组
         Fields fields    = fieldsBiz.getById(1);
@@ -73,8 +73,9 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
         }).collect(Collectors.toList());
 
         List<PricesLogsBoResp> all = new ArrayList<>();
-        all.add(new PricesLogsBoResp(pricesLogsRespList, fieldList));
-        return new PageResult<>(logsPage.getTotal(), all);
+
+        PricesLogsBoResp bo = new PricesLogsBoResp(pricesLogsRespList, fieldList);
+        return bo;
     }
 
 //    public PricesLogsResp pricesLogs2PricesLogsResp(PricesLogs pricesLogs) {

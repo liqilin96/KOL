@@ -17,5 +17,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface PricesLogsBiz extends IService<PricesLogs> {
 
-    PageResult<PricesLogsBoResp> pages(PricesLogsReq req);
+    PricesLogsBoResp pages(PricesLogsReq req);
 }
