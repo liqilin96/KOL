@@ -82,19 +82,21 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             String        name          = "示例数据";
             WorkOrderData workOrderData = null;
 
-            String uuid = UUID.randomUUID().toString();
-            workOrder.setOrderSn(uuid);
-            workOrder.setName(req.getName());
-            workOrder.setType(3);
-            workOrder.setProjectId(Long.parseLong(req.getProjectId()));
-            Project project = projectBiz.getById(req.getProjectId());
-            workOrder.setProjectName(project.getName());
-            workOrder.setCtime(new Date());
-            workOrder.setUtime(new Date());
-            workOrder.setCreateUserId(UserInfoContext.getUserId());
-            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+            if(orderBos!=null) {
+                String uuid = UUID.randomUUID().toString();
+                workOrder.setOrderSn(uuid);
+                workOrder.setName(req.getName());
+                workOrder.setType(3);
+                workOrder.setProjectId(Long.parseLong(req.getProjectId()));
+                Project project = projectBiz.getById(req.getProjectId());
+                workOrder.setProjectName(project.getName());
+                workOrder.setCtime(new Date());
+                workOrder.setUtime(new Date());
+                workOrder.setCreateUserId(UserInfoContext.getUserId());
+                workOrder.setUpdateUserId(UserInfoContext.getUserId());
 
-            workOrderBiz.save(workOrder);
+                workOrderBiz.save(workOrder);
+            }
             for(Object orderBo : orderBos) {
                 LinkedHashMap<Integer, String> bo            = (LinkedHashMap<Integer, String>) orderBo;
                 /**具体配置如下
