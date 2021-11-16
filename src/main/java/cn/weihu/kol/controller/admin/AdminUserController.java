@@ -29,9 +29,9 @@ public class AdminUserController {
     @ApiOperation(value = "添加用户", httpMethod = "POST", notes = "添加用户notes")
     @PostMapping(value = "/user")
     public ResultBean<String> addUser(@RequestBody UserSaveReq req) {
-        CheckUtil.notEmpty(req.getName(), "用户姓名不能为空");
+//        CheckUtil.notEmpty(req.getName(), "用户姓名不能为空");
         CheckUtil.notEmpty(req.getUsername(), "用户名不能为空");
-        CheckUtil.notEmpty(req.getPassword(), "密码不能为空");
+//        CheckUtil.notEmpty(req.getPassword(), "密码不能为空");
         CheckUtil.notNull(req.getRoleIds(), "角色不能为空");
         return new ResultBean<>(userBiz.addUser(req));
     }

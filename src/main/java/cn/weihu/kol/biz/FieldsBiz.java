@@ -24,6 +24,8 @@ public interface FieldsBiz extends IService<Fields> {
 
     PageResult<FieldsResp> pageGroup(FieldsReq req);
 
+    FieldsResp queryOne(String id);
+
 //    String create(FieldsReq req);
 
 //    String updateField(FieldsReq req);

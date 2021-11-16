@@ -59,6 +59,14 @@ public class FieldsController {
     }
 
 
+
+    @ApiOperation(value = "查询某个字段组", httpMethod = "GET", notes = "查询某个字段组")
+    @GetMapping(value = "/query/{id}")
+    public ResultBean<FieldsResp> page(@PathVariable("id") String id) {
+        return new ResultBean<>(fieldsBiz.queryOne(id));
+    }
+
+
 //    @ApiOperation(value = "删除字段组", httpMethod = "GET", notes = "删除字段组")
 //    @GetMapping(value = "/query/group")
 //    public ResultBean<String> deleteGroup(@RequestBody FieldsReq req) {

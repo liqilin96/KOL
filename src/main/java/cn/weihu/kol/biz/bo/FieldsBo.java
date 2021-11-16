@@ -21,7 +21,7 @@ public class FieldsBo implements Comparable<FieldsBo> {
     private boolean      isRequire;
     private boolean      isFilter;
     private boolean      isEffact;
-    private List<String> options;
+    private List<Opt> options;
     private Integer      id;
 
 
@@ -56,4 +56,10 @@ public class FieldsBo implements Comparable<FieldsBo> {
     public int compareTo(FieldsBo bo) {
         return this.id - bo.getId();
     }
+}
+
+@Setter
+@Getter
+class Opt {
+    private String value;
 }

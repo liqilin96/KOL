@@ -97,7 +97,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
             throw new CheckException(ErrorCode.USERNAME_ALREADY_EXISTED);
         }
         User user = UserConverter.userSaveReq2Entity(req);
-        user.setPassword(MD5Util.password(req.getPassword()));
+        user.setPassword(MD5Util.password("123456"));
         user.setCtime(DateUtil.date());
         save(user);
 
@@ -140,7 +140,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         RoleUser       roleUser;
         for(String roleId : roleIds) {
             roleUser = new RoleUser();
-//            roleUser.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+            roleUser.setId(UUID.randomUUID().toString().replaceAll("-", ""));
             roleUser.setRoleId(roleId);
             roleUser.setUserId(userId);
             roleUser.setCtime(DateUtil.date());

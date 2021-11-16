@@ -80,6 +80,17 @@ public class FieldsBizImpl extends ServiceImpl<FieldsDao, Fields> implements Fie
         return new PageResult<>(fieldsPage.getTotal(), fieldsResps);
     }
 
+    @Override
+    public FieldsResp queryOne(String id) {
+
+        Fields fields = getById(id);
+        FieldsResp resp = new FieldsResp();
+        resp.setId(fields.getId().toString());
+        resp.setName(fields.getName());
+        resp.setFieldList(fields.getFieldList());
+        return resp;
+    }
+
 
     @Override
     public String deleteGroup(FieldsReq req) {
