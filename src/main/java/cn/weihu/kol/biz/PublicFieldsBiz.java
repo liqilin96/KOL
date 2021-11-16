@@ -2,6 +2,11 @@ package cn.weihu.kol.biz;
 
 import cn.weihu.kol.db.po.PublicFields;
 import cn.weihu.kol.biz.Biz;
+import cn.weihu.kol.http.req.FieldsReq;
+import cn.weihu.kol.http.req.PublicFieldsReq;
+import cn.weihu.kol.http.resp.FieldsResp;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +18,11 @@ import cn.weihu.kol.biz.Biz;
  */
 public interface PublicFieldsBiz extends Biz<PublicFields> {
 
+    String create(PublicFieldsReq req);
+
+    String update(FieldsReq req);
+
+    String delete(FieldsReq req);
+
+    List<FieldsResp> query(FieldsReq req);
 }

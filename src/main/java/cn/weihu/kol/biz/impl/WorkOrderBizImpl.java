@@ -66,8 +66,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResultBean ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
-        ResultBean resultBean = new ResultBean<>();
+    public String ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+
+        WorkOrder     workOrder     = new WorkOrder();
 
         try {
             //校验文件类型
@@ -79,8 +80,21 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             List<Object> orderBos = EasyExcelUtil.readExcel(file.getInputStream());
 
             String        name          = "示例数据";
-            WorkOrder     workOrder     = null;
             WorkOrderData workOrderData = null;
+
+            String uuid = UUID.randomUUID().toString();
+            workOrder.setOrderSn(uuid);
+            workOrder.setName(req.getName());
+            workOrder.setType(3);
+            workOrder.setProjectId(Long.parseLong(req.getProjectId()));
+            Project project = projectBiz.getById(req.getProjectId());
+            workOrder.setProjectName(project.getName());
+            workOrder.setCtime(new Date());
+            workOrder.setUtime(new Date());
+            workOrder.setCreateUserId(UserInfoContext.getUserId());
+            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+
+            workOrderBiz.save(workOrder);
             for(Object orderBo : orderBos) {
                 LinkedHashMap<Integer, String> bo            = (LinkedHashMap<Integer, String>) orderBo;
                 /**具体配置如下
@@ -112,22 +126,6 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 if(name.equalsIgnoreCase(accountName)) {
                     continue;
                 }
-
-                workOrder = new WorkOrder();
-
-                String uuid = UUID.randomUUID().toString();
-                workOrder.setOrderSn(uuid);
-                workOrder.setName(req.getName());
-                workOrder.setType(3);
-                workOrder.setProjectId(Long.parseLong(req.getProjectId()));
-                Project project = projectBiz.getById(req.getProjectId());
-                workOrder.setProjectName(project.getName());
-                workOrder.setCtime(new Date());
-                workOrder.setUtime(new Date());
-                workOrder.setCreateUserId(UserInfoContext.getUserId());
-                workOrder.setUpdateUserId(UserInfoContext.getUserId());
-                workOrderBiz.save(workOrder);
-
                 workOrderData = new WorkOrderData();
 
                 workOrderData.setProjectId(workOrder.getProjectId());
@@ -159,7 +157,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             throw new CheckException("系统错误异常");
         }
 
-        return resultBean;
+        return workOrder.getId().toString();
     }
 
     @Override
