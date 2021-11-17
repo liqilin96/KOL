@@ -60,8 +60,8 @@ public class PublicFieldsBizImpl extends BaseBiz<PublicFieldsDao, PublicFields> 
     }
 
     @Override
-    public String delete(FieldsReq req) {
-        this.baseMapper.deleteById(req.getId());
+    public String delete(String id) {
+        this.baseMapper.deleteById(id);
         return null;
     }
 

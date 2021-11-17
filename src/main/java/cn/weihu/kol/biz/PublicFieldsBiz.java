@@ -22,7 +22,7 @@ public interface PublicFieldsBiz extends Biz<PublicFields> {
 
     String update(FieldsReq req);
 
-    String delete(FieldsReq req);
+    String delete(String id);
 
     List<FieldsResp> query(FieldsReq req);
 }

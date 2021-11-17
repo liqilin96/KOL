@@ -18,7 +18,7 @@ public interface FieldsBiz extends IService<Fields> {
 
     String createGroup(FieldsReq req);
 
-    String deleteGroup(FieldsReq req);
+    String deleteGroup(String id);
 
     String updateGroup(FieldsReq req);
 

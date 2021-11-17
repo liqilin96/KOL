@@ -93,12 +93,12 @@ public class FieldsBizImpl extends ServiceImpl<FieldsDao, Fields> implements Fie
 
 
     @Override
-    public String deleteGroup(FieldsReq req) {
+    public String deleteGroup(String id) {
 //        Fields fields = this.baseMapper.selectById(req.getId());
 //        if(fields == null) {
 //            throw new CheckException("要删除的字段组不存在");
 //        }
-        this.baseMapper.deleteById(req.getId());
+        this.baseMapper.deleteById(id);
         return null;
     }
 

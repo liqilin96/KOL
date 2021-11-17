@@ -45,11 +45,11 @@ public class FieldsController {
         return new ResultBean<>(fieldsBiz.updateGroup(req));
     }
 
-    @ApiOperation(value = "删除字段组", httpMethod = "GET", notes = "删除字段组")
-    @DeleteMapping(value = "/delete/group")
-    public ResultBean<String> deleteGroup(@RequestBody FieldsReq req) {
-        CheckUtil.notEmpty(req.getName(), "字段组id不能为空");
-        return new ResultBean<>(fieldsBiz.deleteGroup(req));
+    @ApiOperation(value = "删除字段组", httpMethod = "DELETE", notes = "删除字段组")
+    @DeleteMapping(value = "/delete/group/{id}")
+    public ResultBean<String> deleteGroup(@PathVariable("id") String id) {
+        CheckUtil.notEmpty(id, "字段组id不能为空");
+        return new ResultBean<>(fieldsBiz.deleteGroup(id));
     }
 
     @ApiOperation(value = "查询字段组", httpMethod = "GET", notes = "查询字段组")

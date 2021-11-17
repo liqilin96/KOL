@@ -49,11 +49,11 @@ public class PublicFieldsController {
         return new ResultBean<>(publicFieldsBiz.update(req));
     }
 
-    @ApiOperation(value = "删除公共字段", httpMethod = "GET", notes = "删除公共字段")
-    @DeleteMapping(value = "/delete")
-    public ResultBean<String> delete(@RequestBody FieldsReq req) {
-        CheckUtil.notEmpty(req.getName(), "公共字段组id不能为空");
-        return new ResultBean<>(publicFieldsBiz.delete(req));
+    @ApiOperation(value = "删除公共字段", httpMethod = "DELETE", notes = "删除公共字段")
+    @DeleteMapping(value = "/delete/{id}")
+    public ResultBean<String> delete(@PathVariable("id") String id) {
+        CheckUtil.notEmpty(id, "公共字段组id不能为空");
+        return new ResultBean<>(publicFieldsBiz.delete(id));
     }
 
     @ApiOperation(value = "查询公共字段", httpMethod = "GET", notes = "查询公共字段")
