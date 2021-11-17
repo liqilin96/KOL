@@ -62,6 +62,10 @@ public class PublicFieldsController {
         return new ResultBean<>(publicFieldsBiz.query(req));
     }
 
-
+    @ApiOperation(value = "查询某个公共字段", httpMethod = "GET", notes = "查询某个公共字段")
+    @GetMapping(value = "/query/{id}")
+    public ResultBean<FieldsResp> page(@PathVariable("id") String id) {
+        return new ResultBean<>(publicFieldsBiz.queryOne(id));
+    }
 }
 

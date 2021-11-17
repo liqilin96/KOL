@@ -66,6 +66,17 @@ public class PublicFieldsBizImpl extends BaseBiz<PublicFieldsDao, PublicFields> 
     }
 
     @Override
+    public FieldsResp queryOne(String id) {
+
+        PublicFields fields = getById(id);
+        FieldsResp resp = new FieldsResp();
+        resp.setId(fields.getId().toString());
+        resp.setName(fields.getName());
+        resp.setFieldList(fields.getFieldList());
+        return resp;
+    }
+
+    @Override
     public List<FieldsResp> query(FieldsReq req) {
         LambdaQueryWrapper<PublicFields> wrapper = new LambdaQueryWrapper<>();
         if(StringUtils.isNotBlank(req.getName())) {

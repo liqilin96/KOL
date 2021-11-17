@@ -25,4 +25,6 @@ public interface PublicFieldsBiz extends Biz<PublicFields> {
     String delete(String id);
 
     List<FieldsResp> query(FieldsReq req);
+
+    FieldsResp queryOne(String id);
 }
