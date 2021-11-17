@@ -83,4 +83,13 @@ public class UserInfo {
         this.isAdmin = false;
     }
 
+    public UserInfo(Long userId, String username, String password,
+                    String name, List<PermissionResp> permissions) {
+        this.userId = userId;
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.permissions = permissions;
+    }
+
 }
