@@ -54,6 +54,7 @@ public class LoginFilter implements Filter {
                || StringUtils.startsWithAny(req.getRequestURI(), "/v2/api-docs")
                || StringUtils.startsWithAny(req.getRequestURI(), "/file")
                || StringUtils.startsWithAny(req.getRequestURI(), "/callback")
+               || StringUtils.startsWithAny(req.getRequestURI(), "/logout")
             ) {
                 chain.doFilter(request, response);
             } else {

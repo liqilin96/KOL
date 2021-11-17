@@ -197,7 +197,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                                         user.getPassword(), user.getName(), permissionResps);
                 userInfo.setRoleIds(roles);
                 // 是否超级管理员
-                userInfo.setIsAdmin("admin".equals(req.getUsername()));
+                userInfo.setIsAdmin("admin".equalsIgnoreCase(req.getUsername()));
             }
         } else {
             if(!MD5Util.password(req.getPassword()).equals(userInfo.getPassword())) {
