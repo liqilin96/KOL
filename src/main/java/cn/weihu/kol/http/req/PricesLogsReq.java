@@ -21,8 +21,8 @@ public class PricesLogsReq {
     @ApiModelProperty(value = "媒体平台")
     private String platform;
 
-    @ApiModelProperty(value = "关联项目")
-    private String project;
+    @ApiModelProperty(value = "账号类型")
+    private String accountType;
 
     @ApiModelProperty(value = "报价形式")
     private String pricesForm;

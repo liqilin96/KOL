@@ -155,7 +155,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         if(Objects.isNull(user)) {
             throw new CheckException(ErrorCode.USER_NOT_FOUND);
         }
-        String newPassword = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8);
+        String newPassword = "123456";
         // 更新数据库
         user.setPassword(MD5Util.password(newPassword));
         user.setUtime(DateUtil.date());

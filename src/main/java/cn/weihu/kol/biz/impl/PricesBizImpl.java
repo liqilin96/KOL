@@ -43,18 +43,36 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
 
+        //达人名称
         if(StringUtils.isNotBlank(req.getStarName())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%" + req.getStarName() + "%");
         }
 
+        //媒体平台
         if(StringUtils.isNotBlank(req.getPlatform())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.platform\")) like {0}", "%" + req.getPlatform() + "%");
         }
-        //TODO 条件多了可以修改
+        //账号类型
+        if(StringUtils.isNotBlank(req.getAccountType())) {
+            String[] split = req.getAccountType().split(",");
+            for(int i = 0; i < split.length; i++) {
+                String type = split[i];
+                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.accountType\")) like {0}", "%" + type + "%");
+            }
+        }
+        //报价形式
+        if(StringUtils.isNotBlank(req.getPricesForm())) {
+            String[] split = req.getPricesForm().split(",");
+            for(int i = 0; i < split.length; i++) {
+                String priceForm = split[i];
+                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.pricesForm\")) like {0}", "%" + priceForm + "%");
+            }
+        }
+
         List<PricesLogsResp> resps = new ArrayList<>();
 
         Prices prices = baseMapper.selectOne(wrapper);
-        if(prices!=null) {
+        if(prices != null) {
             PricesLogsResp resp = new PricesLogsResp();
             BeanUtils.copyProperties(resp, prices);
             resps.add(resp);
