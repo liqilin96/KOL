@@ -38,7 +38,7 @@ public class AdminUserController {
 
     @ApiOperation(value = "编辑用户", httpMethod = "PUT", notes = "编辑用户notes")
     @PutMapping(value = "/user/{id}")
-    public ResultBean<String> editUser(@PathVariable String id, @RequestBody UserSaveReq req) {
+    public ResultBean<String> editUser(@PathVariable("id") String id, @RequestBody UserSaveReq req) {
         CheckUtil.notEmpty(req.getUsername(), "用户名不能为空");
         CheckUtil.notNull(req.getRoleIds(), "角色不能为空");
         return new ResultBean<>(userBiz.editUser(id, req));

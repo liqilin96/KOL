@@ -162,9 +162,11 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         updateById(user);
         // 更新Redis
         UserInfo userInfo = redisUtils.getUserInfoByUsername(user.getUsername());
-        userInfo.setPassword(user.getPassword());
-        redisUtils.setUserInfoByUsername(user.getUsername(), userInfo);
-        redisUtils.delUserInfoByToken(userInfo.getAuth());
+        if(userInfo != null) {
+            userInfo.setPassword(user.getPassword());
+            redisUtils.setUserInfoByUsername(user.getUsername(), userInfo);
+            redisUtils.delUserInfoByToken(userInfo.getAuth());
+        }
         log.info(">>> 重置密码:{}", user.getUsername());
         return newPassword;
     }
