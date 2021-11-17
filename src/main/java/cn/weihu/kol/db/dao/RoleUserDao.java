@@ -3,6 +3,7 @@ package cn.weihu.kol.db.dao;
 import cn.weihu.kol.db.po.Role;
 import cn.weihu.kol.db.po.RoleUser;
 import cn.weihu.kol.db.po.User;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -32,4 +33,7 @@ public interface RoleUserDao extends MyMapper<RoleUser> {
 
     @Select("select u.name from base_role u,base_role_user ru where u.id=ru.role_id and ru.user_id = #{userId}")
     List<String> getRoelByUserId(@Param("userId") String userId);
+
+    @Delete("delete from base_role_user where role_id = #{roleId}")
+    void delByRoleId(@Param("roleId") String roleId);
 }

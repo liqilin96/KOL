@@ -16,7 +16,6 @@ import cn.weihu.kol.http.req.RoleListReq;
 import cn.weihu.kol.http.req.RoleSaveReq;
 import cn.weihu.kol.http.resp.RoleResp;
 import cn.weihu.kol.redis.RedisUtils;
-import cn.weihu.kol.userinfo.UserInfoContext;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -71,7 +70,7 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
 
     @Override
     public List<RoleResp> roleAll() {
-        List<Role> roles = baseMapper.selectList(new LambdaQueryWrapper<>(Role.class));
+        List<Role>     roles    = baseMapper.selectList(new LambdaQueryWrapper<>(Role.class));
         List<RoleResp> respList = null;
         if(!roles.isEmpty()) {
             respList = roles.stream()
@@ -144,7 +143,11 @@ public class RoleBizImpl extends BaseBiz<RoleDao, Role> implements RoleBiz {
     }
 
     @Override
+    @Transactional
     public String roleDel(String id) {
+        rolePermissionDao.delByRoleId(id);
+        roleUserDao.delByRoleId(id);
+        removeById(id);
         return null;
     }
 }
