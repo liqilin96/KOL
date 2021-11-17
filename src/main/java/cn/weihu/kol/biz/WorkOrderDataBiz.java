@@ -23,13 +23,13 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req);
 
-    String updateWorkOrder(WorkOrderBatchUpdateReq req);
+    Long updateWorkOrderData(WorkOrderBatchUpdateReq req);
 
     WorkOrderDataScreeningResp screening(@RequestBody WorkOrderBatchUpdateReq req);
 
-    String enquiry(@RequestBody WorkOrderBatchUpdateReq req);
+    Long enquiry(@RequestBody WorkOrderBatchUpdateReq req);
 
-    String quote(@RequestBody WorkOrderBatchUpdateReq req);
+    Long quote(@RequestBody WorkOrderBatchUpdateReq req);
 
-    String review(@RequestBody WorkOrderDataReviewReq req);
+    Long review(@RequestBody WorkOrderDataReviewReq req);
 }

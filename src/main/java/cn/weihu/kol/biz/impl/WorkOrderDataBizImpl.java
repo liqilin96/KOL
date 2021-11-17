@@ -21,6 +21,7 @@ import cn.weihu.kol.userinfo.UserInfoContext;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -56,7 +57,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-    public String updateWorkOrder(WorkOrderBatchUpdateReq req) {
+    public Long updateWorkOrderData(WorkOrderBatchUpdateReq req) {
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("更新内容不能为空");
         }
@@ -74,6 +75,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         WorkOrderDataResp       workOrderDataResp;
         for(WorkOrderDataUpdateReq updateReq : req.getList()) {
             // 根据 媒体、账号、资源位置 匹配相同需求数据
+            // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
             List<Prices> collect = pricesList.stream()
                     .filter(prices -> 0 != prices.getInbound())
 //                    .filter()
@@ -94,7 +96,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-    public String enquiry(WorkOrderBatchUpdateReq req) {
+    public Long enquiry(WorkOrderBatchUpdateReq req) {
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("询价&询档内容不能为空");
         }
@@ -126,6 +128,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         WorkOrderData       workOrderData;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
+            workOrderData.setId(workOrderDataUpdateReq.getId());
             if(1 == workOrderDataUpdateReq.getAskType()) {
                 // 询价
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
@@ -139,22 +142,68 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
-        return askWorkOrder.getOrderSn();
+        return null;
     }
 
     @Override
-    public String quote(WorkOrderBatchUpdateReq req) {
+    public Long quote(WorkOrderBatchUpdateReq req) {
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("报价工单数据不能为空");
+        }
+        // 更新工单数据状态
+        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+        WorkOrderData       workOrderData;
+        for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
+            workOrderData = new WorkOrderData();
+            workOrderData.setId(workOrderDataUpdateReq.getId());
+            workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW);
+            workOrderData.setData(workOrderDataUpdateReq.getData());
+            workOrderData.setUtime(DateUtil.date());
+            workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderDataList.add(workOrderData);
+        }
+        updateBatchById(workOrderDataList);
+        // 插入报价记录表
+
+        // 更新工单状态
+        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
+        List<WorkOrderData> list = list(wrapper);
+        if(CollectionUtils.isEmpty(list)) {
+            // 更新工单状态为 审核
+            WorkOrder workOrder = new WorkOrder();
+            workOrder.setId(req.getWorkOrderId());
+            workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
+            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+            workOrder.setUtime(DateUtil.date());
+            workOrderDao.updateById(workOrder);
         }
         return null;
     }
 
     @Override
-    public String review(WorkOrderDataReviewReq req) {
+    public Long review(WorkOrderDataReviewReq req) {
         if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
             throw new CheckException("审核工单数据不能为空");
         }
+        if(!StringUtils.equalsAny(req.getStatus(), Constants.WORK_ORDER_DATA_REVIEW_PASS,
+                                  Constants.WORK_ORDER_DATA_REVIEW_REJECT)) {
+            throw new CheckException("审核状态不合法");
+        }
+        // 更新工单数据状态
+        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+        WorkOrderData       workOrderData;
+        for(Long workOrderDataId : req.getWorkOrderDataIds()) {
+            workOrderData = new WorkOrderData();
+            workOrderData.setId(workOrderDataId);
+            workOrderData.setStatus(req.getStatus());
+            workOrderData.setUtime(DateUtil.date());
+            workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderDataList.add(workOrderData);
+        }
+        updateBatchById(workOrderDataList);
+        //
         return null;
     }
 }
