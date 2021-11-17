@@ -1,5 +1,6 @@
 package cn.weihu.kol.db.dao;
 
+import cn.weihu.kol.db.po.Role;
 import cn.weihu.kol.db.po.RoleUser;
 import cn.weihu.kol.db.po.User;
 import org.apache.ibatis.annotations.Insert;
@@ -28,4 +29,7 @@ public interface RoleUserDao extends MyMapper<RoleUser> {
 
     @Select("select u.* from base_user u,base_role_user ru where ru.role_id = #{roleId}")
     List<User> getUsersByRoleId(@Param("roleId") String roleId);
+
+    @Select("select u.name from base_role u,base_role_user ru where u.id=ru.role_id and ru.user_id = #{userId}")
+    List<String> getRoelByUserId(@Param("userId") String userId);
 }

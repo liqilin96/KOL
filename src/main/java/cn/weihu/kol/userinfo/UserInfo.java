@@ -23,7 +23,7 @@ public class UserInfo {
     /**
      * 用户ID
      */
-    private Long               userId;
+    private Long                 userId;
     /**
      * 用户名
      */
@@ -60,7 +60,9 @@ public class UserInfo {
      * 是否 超级管理员
      */
     private Boolean              isAdmin;
-    private String desKey;
+    private String               desKey;
+    private List<String>         roleIds;
+
     public UserInfo() {
     }
 

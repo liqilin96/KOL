@@ -177,6 +177,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 //        }
         UserInfo             userInfo = redisUtils.getUserInfoByUsername(req.getUsername());
         User                 user;
+        List<String>         roles    = null;
         List<PermissionResp> permissionResps;
         if(Objects.isNull(userInfo)) {
             user = baseMapper.selectOne(new LambdaQueryWrapper<>(User.class).eq(User::getUsername, req.getUsername()));
@@ -189,6 +190,8 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                 if(!MD5Util.password(req.getPassword()).equals(user.getPassword())) {
                     throw new CheckException(ErrorCode.USERNAME_OR_PASSWORD_INVALID);
                 }
+                roles = roleUserDao.getRoelByUserId(user.getId().toString());
+                userInfo.setRoleIds(roles);
                 List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId());
                 permissionResps = PermissionConverter.list2BoList(permissions);
                 userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
@@ -202,6 +205,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
             }
             permissionResps = userInfo.getPermissions();
         }
+
         String auth = UUID.randomUUID().toString();
         userInfo.setAuth(auth);
         String msgKey = userInfo.getCompanyId();
@@ -210,7 +214,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         redisUtils.setUserInfoByToken(auth, userInfo);
         log.info(">>> 用户登录:{}", req.getUsername());
         request.getSession().setAttribute("userInfo", userInfo);
-        return new LoginResp(userInfo.getCompanyId(), auth, msgKey, permissionResps, 0);
+        return new LoginResp(req.getUsername(), roles, auth, msgKey, permissionResps);
     }
 
     @Override
