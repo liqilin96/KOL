@@ -26,7 +26,7 @@ public class PermissionBizImpl extends BaseBiz<PermissionDao, Permission> implem
     @Override
     public List<PermissionResp> permissionList() {
         List<Permission> permissions;
-        if(UserInfoContext.getUserInfo().getIsAdmin()) {
+        if(UserInfoContext.getUserInfo().getIsAdmin() == null ? false : UserInfoContext.getUserInfo().getIsAdmin()) {
             permissions = baseMapper.selectList(new LambdaQueryWrapper<>(Permission.class).orderByAsc(Permission::getLevel));
         } else {
             permissions = baseMapper.getPermissionsByUserId(UserInfoContext.getUserId());
