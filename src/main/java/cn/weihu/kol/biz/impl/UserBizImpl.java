@@ -191,11 +191,11 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                     throw new CheckException(ErrorCode.USERNAME_OR_PASSWORD_INVALID);
                 }
                 roles = roleUserDao.getRoelByUserId(user.getId().toString());
-                userInfo.setRoleIds(roles);
                 List<Permission> permissions = permissionDao.getPermissionsByUserId(user.getId());
                 permissionResps = PermissionConverter.list2BoList(permissions);
                 userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
                                         user.getPassword(), user.getName(), permissionResps);
+                userInfo.setRoleIds(roles);
                 // 是否超级管理员
                 userInfo.setIsAdmin("admin".equals(req.getUsername()));
             }
