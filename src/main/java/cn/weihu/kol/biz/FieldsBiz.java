@@ -29,4 +29,6 @@ public interface FieldsBiz extends IService<Fields> {
 //    String create(FieldsReq req);
 
 //    String updateField(FieldsReq req);
+
+    Fields getOneByType(Integer type);
 }

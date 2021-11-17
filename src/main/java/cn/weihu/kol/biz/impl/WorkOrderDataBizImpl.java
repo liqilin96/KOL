@@ -2,12 +2,15 @@ package cn.weihu.kol.biz.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
+import cn.weihu.kol.biz.FieldsBiz;
 import cn.weihu.kol.biz.PricesBiz;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
+import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.convert.WorkOrderConverter;
 import cn.weihu.kol.db.dao.WorkOrderDao;
 import cn.weihu.kol.db.dao.WorkOrderDataDao;
+import cn.weihu.kol.db.po.Fields;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.db.po.WorkOrder;
 import cn.weihu.kol.db.po.WorkOrderData;
@@ -18,17 +21,22 @@ import cn.weihu.kol.http.req.WorkOrderDataUpdateReq;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
+import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -40,9 +48,13 @@ import java.util.stream.Collectors;
  * @author Lql
  * @since 2021-11-10
  */
+@Slf4j
 @Service
 public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrderData> implements WorkOrderDataBiz {
 
+
+    @Autowired
+    private FieldsBiz    fieldsBiz;
     @Autowired
     private PricesBiz    pricesBiz;
     @Resource
@@ -78,21 +90,104 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
             List<Prices> collect = pricesList.stream()
                     .filter(prices -> 0 != prices.getInbound())
-//                    .filter()
+                    .filter(prices -> screeningBasis(prices.getActorData(), updateReq.getData()))
+                    .filter(prices -> screeningOther(prices.getActorData(), updateReq.getData()))
                     .collect(Collectors.toList());
             workOrderDataResp = new WorkOrderDataResp();
             if(collect.isEmpty()) {
                 // 非库内数据
+                workOrderDataResp.setWorkOrderDataId(updateReq.getId());
+                workOrderDataResp.setFieldsId(updateReq.getFieldsId());
+                workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
+                workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
+                workOrderDataResp.setData(updateReq.getData());
                 workOrderDataResp.setInbound(0);
             } else {
                 // 库内数据
+                workOrderDataResp.setWorkOrderDataId(updateReq.getId());
+                workOrderDataResp.setFieldsId(updateReq.getFieldsId());
+                workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
+                workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
+                workOrderDataResp.setData(collect.get(0).getActorData());
                 workOrderDataResp.setInbound(1);
             }
             list.add(workOrderDataResp);
         }
         WorkOrderDataScreeningResp resp = new WorkOrderDataScreeningResp();
+        // 标题
+        Fields fields = fieldsBiz.getOneByType(Constants.FIELD_TYPE_DEMAND);
+        Type type = new TypeToken<List<FieldsBo>>() {
+        }.getType();
+        List<FieldsBo> titles = GsonUtils.gson.fromJson(fields.getFieldList(), type);
+        resp.setTitles(titles);
+        // 数据
         resp.setList(list);
         return resp;
+    }
+
+    private boolean screeningBasis(String inbound, String outbound) {
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        log.info(">>> inbound:{}", inbound);
+        log.info(">>> outbound:{}", outbound);
+        Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
+        Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
+        if(!inboundMap.get(Constants.TITLE_MEDIA).equals(outboundMap.get(Constants.TITLE_MEDIA))) {
+            return false;
+        }
+        log.info(">>> 媒体匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_MEDIA), outboundMap.get(Constants.TITLE_MEDIA));
+        if(!inboundMap.get(Constants.TITLE_ACCOUNT).equals(outboundMap.get(Constants.TITLE_ACCOUNT))) {
+            return false;
+        }
+        log.info(">>> 账号匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_ACCOUNT), outboundMap.get(Constants.TITLE_ACCOUNT));
+        if(!inboundMap.get(Constants.TITLE_RESOURCE_LOCATION).equals(outboundMap.get(Constants.TITLE_RESOURCE_LOCATION))) {
+            return false;
+        }
+        log.info(">>> 资源位置匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_RESOURCE_LOCATION), outboundMap.get(Constants.TITLE_RESOURCE_LOCATION));
+        return true;
+    }
+
+    private boolean screeningOther(String inbound, String outbound) {
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        log.info(">>> inbound:{}", inbound);
+        log.info(">>> outbound:{}", outbound);
+        Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
+        Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
+        if("否".equals(inboundMap.get(Constants.TITLE_PRICE)) && "是".equals(outboundMap.get(Constants.TITLE_PRICE))) {
+            return false;
+        }
+        log.info(">>> 含电商链接单价匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_PRICE), outboundMap.get(Constants.TITLE_PRICE));
+        if("否".equals(inboundMap.get(Constants.TITLE_AT)) && "是".equals(outboundMap.get(Constants.TITLE_AT))) {
+            return false;
+        }
+        log.info(">>> AT匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_AT), outboundMap.get(Constants.TITLE_AT));
+        if("否".equals(inboundMap.get(Constants.TITLE_TOPIC)) && "是".equals(outboundMap.get(Constants.TITLE_TOPIC))) {
+            return false;
+        }
+        log.info(">>> 话题匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_TOPIC), outboundMap.get(Constants.TITLE_TOPIC));
+        if("否".equals(inboundMap.get(Constants.TITLE_PORTRAITURE)) && "是".equals(outboundMap.get(Constants.TITLE_PORTRAITURE))) {
+            return false;
+        }
+        log.info(">>> 电商肖像权匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_PORTRAITURE), outboundMap.get(Constants.TITLE_PORTRAITURE));
+        if("否".equals(inboundMap.get(Constants.TITLE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_AUTH))) {
+            return false;
+        }
+        log.info(">>> 品牌双微转发授权匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_AUTH), outboundMap.get(Constants.TITLE_AUTH));
+        if("否".equals(inboundMap.get(Constants.TITLE_MICROTASK)) && "是".equals(outboundMap.get(Constants.TITLE_MICROTASK))) {
+            return false;
+        }
+        log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",
+                 inboundMap.get(Constants.TITLE_MICROTASK), outboundMap.get(Constants.TITLE_MICROTASK));
+        return true;
     }
 
     @Override

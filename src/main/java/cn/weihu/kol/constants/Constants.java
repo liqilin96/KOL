@@ -30,4 +30,33 @@ public interface Constants {
     String WORK_ORDER_DATA_REVIEW_PASS   = "REVIEW_PASS";
     String WORK_ORDER_DATA_REVIEW_REJECT = "REVIEW_REJECT";
     String WORK_ORDER_DATA_ORDER         = "ORDER";
+
+    /**
+     * 供应商
+     */
+    String SUPPLIER_XINYI = "新意";
+    String SUPPLIER_WEIGE = "维格";
+
+    /**
+     * 属性筛选标题
+     * 媒体、账号、资源位置
+     * 含电商链接单价、@、话题、电商肖像权、品牌双微转发授权、微任务
+     */
+    String TITLE_MEDIA             = "media";
+    String TITLE_ACCOUNT           = "account";
+    String TITLE_RESOURCE_LOCATION = "address";
+    String TITLE_PRICE             = "price";
+    String TITLE_AT                = "at";
+    String TITLE_TOPIC             = "topic";
+    String TITLE_PORTRAITURE       = "portraiture";
+    String TITLE_AUTH              = "auth";
+    String TITLE_MICROTASK         = "microTask";
+
+    /**
+     * 字段组类型
+     * 1:KOL,2:需求单,3:报价单
+     */
+    int FIELD_TYPE_KOL    = 1;
+    int FIELD_TYPE_DEMAND = 2;
+    int FIELD_TYPE_QUOTE  = 3;
 }

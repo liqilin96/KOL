@@ -83,12 +83,17 @@ public class FieldsBizImpl extends ServiceImpl<FieldsDao, Fields> implements Fie
     @Override
     public FieldsResp queryOne(String id) {
 
-        Fields fields = getById(id);
-        FieldsResp resp = new FieldsResp();
+        Fields     fields = getById(id);
+        FieldsResp resp   = new FieldsResp();
         resp.setId(fields.getId().toString());
         resp.setName(fields.getName());
         resp.setFieldList(fields.getFieldList());
         return resp;
+    }
+
+    @Override
+    public Fields getOneByType(Integer type) {
+        return getOne(new LambdaQueryWrapper<>(Fields.class).eq(Fields::getType, type));
     }
 
 
