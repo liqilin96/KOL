@@ -20,6 +20,7 @@ import cn.weihu.kol.http.req.WorkOrderReq;
 import cn.weihu.kol.http.resp.WorkOrderResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
 import cn.weihu.kol.util.EasyExcelUtil;
+import cn.weihu.kol.util.ExceptionUtil;
 import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -96,31 +97,40 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
                 workOrderBiz.save(workOrder);
             }
-            for(Object orderBo : orderBos) {
-                LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBo;
+            for(int x = 0; x < orderBos.size(); x++) {
+                LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBos.get(x);
+                //Excel表头处理
+                if(x == 0) {
+                    List<String> list       = bo.values().stream().collect(Collectors.toList());
+                    String       excelTitle = list.toString();
+
+                    List<String> selfTitle = excelTitle();
+                    if(!selfTitle.toString().equalsIgnoreCase(excelTitle)) {
+                        throw new CheckException("模板顺序不可修改");
+                    }
+                    continue;
+                }
                 /**具体配置如下
                  *
                  *  0     -----》序号
                  *  1     -----》媒体
                  *  2     -----》账号
-                 *  3     -----》账号Id或链接
+                 *  3     -----》账号ID或链接
                  *  4     -----》账号类型
                  *  5     -----》粉丝数
                  *  6     -----》资源位置
                  *  7     -----》数量
                  *  8     -----》发布开始时间
                  *  9     -----》发布结束时间
-                 *  10    -----》发布结束时间
-                 *  11    -----》含电商链接单价
-                 *  12    -----》@
-                 *  13    -----》话题
-                 *  14    -----》电商肖像授权
-                 *  15    -----》品牌双微转发授权
-                 *  16    -----》微任务（针对微博）
-                 *  17    -----》其他特殊说明
-                 *  18    -----》产品提供方
-                 *  19    -----》发布内容brief概述
-                 *
+                 *  10    -----》含电商链接单价
+                 *  11    -----》@
+                 *  12    -----》话题
+                 *  13    -----》电商肖像授权
+                 *  14    -----》品牌双微转发授权
+                 *  15    -----》微任务
+                 *  16    -----》其他
+                 *  17    -----》产品提供方
+                 *  18    -----》发布内容brief概述
                  */
                 //获取第一条数据的账号，如果等于示例数据则跳过
                 String accountName = bo.get(2);
@@ -132,9 +142,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrderData.setProjectId(workOrder.getProjectId());
                 workOrderData.setWorkOrderId(workOrder.getId());
                 //字段组2为工单
-                workOrderData.setFieldsId(2L);
+                workOrderData.setFieldsId(1L);
 
-                Fields fields = fieldsBiz.getById(2);
+                Fields fields = fieldsBiz.getById(1);
                 //获取字段列表
                 List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
                 }.getType());
@@ -158,8 +168,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrderData.setUpdateUserId(UserInfoContext.getUserId());
                 workOrderDataBiz.save(workOrderData);
             }
-
         } catch(Exception e) {
+            log.error(ExceptionUtil.getMessage(e));
             throw new CheckException("系统错误异常");
         }
 
@@ -220,8 +230,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     public List<String> excelTitle() {
-        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "粉丝数(个)", "资源位置", "数量", "发布开始时间",
-                             "发布结束时间", "含电商链接单价", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务（针对微博）",
-                             "其他特殊说明", "产品提供方", "发布内容brief概述");
+        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "粉丝数", "资源位置", "数量", "发布开始时间",
+                             "发布结束时间", "含电商链接单价", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",
+                             "产品提供方", "发布内容brief概述");
     }
 }

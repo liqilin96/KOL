@@ -1,10 +1,12 @@
 package cn.weihu.kol.controller;
 
 
+import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.PricesBiz;
 import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.resp.PricesLogsBoResp;
+import cn.weihu.kol.http.resp.PricesLogsResp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +31,23 @@ public class PricesController {
     @Autowired
     private PricesBiz pricesBiz;
 
-    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
+//    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
+//    @GetMapping(value = "/star")
+//    public ResultBean<PricesLogsBoResp> starPrice(PricesLogsReq req) {
+//        return new ResultBean<>(pricesBiz.starPrice(req));
+//    }
+
+    @ApiOperation(value = "达人信息-分页", httpMethod = "GET", notes = "达人信息-分页")
     @GetMapping(value = "/star")
-    public ResultBean<PricesLogsBoResp> starPrice(PricesLogsReq req) {
-        return new ResultBean<>(pricesBiz.starPrice(req));
+    public ResultBean<PageResult<PricesLogsResp>> starPage(PricesLogsReq req) {
+        return new ResultBean<>(pricesBiz.starPage(req));
     }
 
 
-
-
-//    @ApiOperation(value = "报价记录", httpMethod = "GET", notes = "报价记录")
-//    @GetMapping(value = "/query/page")
-//    public ResultBean<PageResult<PricesLogsBoResp>> page(@RequestBody PricesLogsReq req) {
-//        return new ResultBean<>(pricesBiz.pages(req));
-//    }
+    @ApiOperation(value = "达人报价详情-分页", httpMethod = "GET", notes = "达人报价详情-分页")
+    @GetMapping(value = "/star/page")
+    public ResultBean<PageResult<PricesLogsResp>> starPricePage(PricesLogsReq req) {
+        return new ResultBean<>(pricesBiz.starPricePage(req));
+    }
 }
 

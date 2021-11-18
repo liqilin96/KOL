@@ -9,11 +9,29 @@ public class PageResult<T> implements Serializable {
 
     private List<T> records;
 
-    public PageResult(){}
+    //字段列表，KOL资源库使用
+    private String fieldList;
+
+    public PageResult() {
+    }
 
     public PageResult(Long total, List<T> records) {
         this.total = total;
         this.records = records;
+    }
+
+    public PageResult(Long total, List<T> records, String fieldList) {
+        this.total = total;
+        this.records = records;
+        this.fieldList = fieldList;
+    }
+
+    public String getFieldList() {
+        return fieldList;
+    }
+
+    public void setFieldList(String fieldList) {
+        this.fieldList = fieldList;
     }
 
     public Long getTotal() {

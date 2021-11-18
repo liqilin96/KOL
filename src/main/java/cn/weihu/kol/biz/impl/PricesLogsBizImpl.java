@@ -38,7 +38,7 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
 
 
     @Override
-    public PricesLogsBoResp pages(PricesLogsReq req) {
+    public PageResult<PricesLogsResp> pages(PricesLogsReq req) {
 
         //4 是报价历史
         Fields fields    = fieldsBiz.getById(4);
@@ -51,7 +51,6 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
 //        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%四%");
 //        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.age\")) > {0}", "25");
 
-
         if(StringUtils.isNotBlank(req.getStarName())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%" + req.getStarName() + "%");
         }
@@ -60,8 +59,6 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.platform\")) like {0}", "%" + req.getPlatform() + "%");
         }
         //TODO 条件多了再说！！！！
-//        List<PricesLogs> pricesLogs = this.baseMapper.selectList(wrapper);
-
 
         Page<PricesLogs> logsPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
@@ -71,19 +68,7 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
             BeanUtils.copyProperties(resp, x);
             return resp;
         }).collect(Collectors.toList());
-
-        List<PricesLogsBoResp> all = new ArrayList<>();
-
-        PricesLogsBoResp bo = new PricesLogsBoResp(pricesLogsRespList, fieldList);
-        return bo;
+        return new PageResult<>(logsPage.getTotal(),pricesLogsRespList,fieldList);
     }
-
-//    public PricesLogsResp pricesLogs2PricesLogsResp(PricesLogs pricesLogs) {
-//
-//        PricesLogsResp resp = new PricesLogsResp();
-//
-//
-//        return resp;
-//    }
 
 }

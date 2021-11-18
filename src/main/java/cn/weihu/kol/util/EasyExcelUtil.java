@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lql
@@ -107,6 +108,16 @@ public class EasyExcelUtil {
         }
          */
         }
+
+        @Override
+        public void invokeHead(Map headMap, AnalysisContext context) {
+            dataList.add(headMap);
+        }
+
+//        @Override
+//        public void invokeHeadMap(Map headMap, AnalysisContext context) {
+//
+//        }
 
         @Override
         public void doAfterAllAnalysed(AnalysisContext context) {
