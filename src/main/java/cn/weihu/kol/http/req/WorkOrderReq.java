@@ -38,7 +38,4 @@ public class WorkOrderReq {
 
     @ApiModelProperty(value = "指向用户ID")
     private Long toUser;
-
-    @ApiModelProperty(value = "指向用户ID")
-    private String type;
 }

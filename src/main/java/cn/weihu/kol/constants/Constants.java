@@ -49,12 +49,21 @@ public interface Constants {
     String TITLE_MEDIA             = "media";
     String TITLE_ACCOUNT           = "account";
     String TITLE_RESOURCE_LOCATION = "address";
-    String TITLE_PRICE             = "price";
+    String TITLE_LINK_PRICE        = "linkPrice";
     String TITLE_AT                = "at";
     String TITLE_TOPIC             = "topic";
-    String TITLE_PORTRAITURE       = "portraiture";
-    String TITLE_AUTH              = "auth";
-    String TITLE_MICROTASK         = "microTask";
+    String TITLE_STORE_AUTH        = "storeAuth";
+    String TITLE_SHARE_AUTH        = "shareAuth";
+    String TITLE_MICRO_TASK        = "microTask";
+
+    /**
+     * 达人
+     * 佣金、价格、供应商、报价到期时间
+     */
+    String ACTOR_COMMISSION = "commission";
+    String ACTOR_PRICE      = "quotation";
+    String ACTOR_PROVIDER   = "supplier";
+    String ACTOR_INSURE     = "engTime";
 
     /**
      * 字段组类型

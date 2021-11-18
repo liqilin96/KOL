@@ -4,16 +4,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.kol.biz.FieldsBiz;
 import cn.weihu.kol.biz.PricesBiz;
+import cn.weihu.kol.biz.PricesLogsBiz;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
 import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.convert.WorkOrderConverter;
 import cn.weihu.kol.db.dao.WorkOrderDao;
 import cn.weihu.kol.db.dao.WorkOrderDataDao;
-import cn.weihu.kol.db.po.Fields;
-import cn.weihu.kol.db.po.Prices;
-import cn.weihu.kol.db.po.WorkOrder;
-import cn.weihu.kol.db.po.WorkOrderData;
+import cn.weihu.kol.db.po.*;
 import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
 import cn.weihu.kol.http.req.WorkOrderDataReq;
 import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
@@ -54,11 +52,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
 
     @Autowired
-    private FieldsBiz    fieldsBiz;
+    private FieldsBiz     fieldsBiz;
     @Autowired
-    private PricesBiz    pricesBiz;
+    private PricesBiz     pricesBiz;
+    @Autowired
+    private PricesLogsBiz pricesLogsBiz;
     @Resource
-    private WorkOrderDao workOrderDao;
+    private WorkOrderDao  workOrderDao;
 
     @Override
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
@@ -158,11 +158,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         log.info(">>> outbound:{}", outbound);
         Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
         Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
-        if("否".equals(inboundMap.get(Constants.TITLE_PRICE)) && "是".equals(outboundMap.get(Constants.TITLE_PRICE))) {
+        if("否".equals(inboundMap.get(Constants.TITLE_LINK_PRICE)) && "是".equals(outboundMap.get(Constants.TITLE_LINK_PRICE))) {
             return false;
         }
         log.info(">>> 含电商链接单价匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_PRICE), outboundMap.get(Constants.TITLE_PRICE));
+                 inboundMap.get(Constants.TITLE_LINK_PRICE), outboundMap.get(Constants.TITLE_LINK_PRICE));
         if("否".equals(inboundMap.get(Constants.TITLE_AT)) && "是".equals(outboundMap.get(Constants.TITLE_AT))) {
             return false;
         }
@@ -173,21 +173,21 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         log.info(">>> 话题匹配成功...inbound:{},outbound:{}",
                  inboundMap.get(Constants.TITLE_TOPIC), outboundMap.get(Constants.TITLE_TOPIC));
-        if("否".equals(inboundMap.get(Constants.TITLE_PORTRAITURE)) && "是".equals(outboundMap.get(Constants.TITLE_PORTRAITURE))) {
+        if("否".equals(inboundMap.get(Constants.TITLE_STORE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_STORE_AUTH))) {
             return false;
         }
         log.info(">>> 电商肖像权匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_PORTRAITURE), outboundMap.get(Constants.TITLE_PORTRAITURE));
-        if("否".equals(inboundMap.get(Constants.TITLE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_AUTH))) {
+                 inboundMap.get(Constants.TITLE_STORE_AUTH), outboundMap.get(Constants.TITLE_STORE_AUTH));
+        if("否".equals(inboundMap.get(Constants.TITLE_SHARE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_SHARE_AUTH))) {
             return false;
         }
         log.info(">>> 品牌双微转发授权匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_AUTH), outboundMap.get(Constants.TITLE_AUTH));
-        if("否".equals(inboundMap.get(Constants.TITLE_MICROTASK)) && "是".equals(outboundMap.get(Constants.TITLE_MICROTASK))) {
+                 inboundMap.get(Constants.TITLE_SHARE_AUTH), outboundMap.get(Constants.TITLE_SHARE_AUTH));
+        if("否".equals(inboundMap.get(Constants.TITLE_MICRO_TASK)) && "是".equals(outboundMap.get(Constants.TITLE_MICRO_TASK))) {
             return false;
         }
         log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_MICROTASK), outboundMap.get(Constants.TITLE_MICROTASK));
+                 inboundMap.get(Constants.TITLE_MICRO_TASK), outboundMap.get(Constants.TITLE_MICRO_TASK));
         return true;
     }
 
@@ -278,7 +278,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         // 更新工单数据状态
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
+        List<PricesLogs>    pricesLogsList    = new ArrayList<>();
         WorkOrderData       workOrderData;
+        PricesLogs          pricesLogs;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
@@ -287,17 +289,20 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             workOrderDataList.add(workOrderData);
+
+            pricesLogs = WorkOrderConverter.workOrderData2PricesLogs(workOrderDataUpdateReq);
+            pricesLogsList.add(pricesLogs);
         }
         updateBatchById(workOrderDataList);
         // 插入报价记录表
-        
+        pricesLogsBiz.saveBatch(pricesLogsList);
         // 更新工单状态
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
         List<WorkOrderData> list = list(wrapper);
         if(CollectionUtils.isEmpty(list)) {
-            // 更新工单状态为 审核
+            // 更新工单状态为 已报价
             WorkOrder workOrder = new WorkOrder();
             workOrder.setId(req.getWorkOrderId());
             workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
@@ -329,7 +334,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
-        //
+        // 下单
+        if(Constants.WORK_ORDER_DATA_REVIEW_PASS.equals(req.getStatus())) {
+            // 审核通过处理
+            List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+                                                    .in(WorkOrderData::getId, req.getWorkOrderDataIds()));
+            if(!CollectionUtils.isEmpty(list)) {
+                // 判断库内外 库内更新 库外新增
+
+            }
+        } else {
+            // TODO: 2021/11/18   审核驳回处理
+
+        }
         return null;
     }
 }

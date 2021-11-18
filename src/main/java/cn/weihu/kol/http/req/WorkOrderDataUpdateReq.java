@@ -25,4 +25,7 @@ public class WorkOrderDataUpdateReq {
 
     @ApiModelProperty(value = "1:询价,2:询档")
     private Integer askType;
+
+    @ApiModelProperty(value = "是否库内,0:否,1:是")
+    private Integer inbound;
 }
