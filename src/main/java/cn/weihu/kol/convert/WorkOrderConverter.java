@@ -10,12 +10,12 @@ import cn.weihu.kol.http.req.WorkOrderDataUpdateReq;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderResp;
 import cn.weihu.kol.util.GsonUtils;
+import cn.weihu.kol.util.MD5Util;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.UUID;
 
 public class WorkOrderConverter {
 
@@ -46,12 +46,17 @@ public class WorkOrderConverter {
 
     public static PricesLogs workOrderData2PricesLogs(WorkOrderDataUpdateReq workOrderData) {
         PricesLogs pricesLogs = new PricesLogs();
-        pricesLogs.setActorSn(UUID.randomUUID().toString());
-        pricesLogs.setActorData(workOrderData.getData());
-        pricesLogs.setInbound(workOrderData.getInbound());
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
         Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), type);
+        // 达人编号
+        String join = StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                       map.get(Constants.TITLE_ACCOUNT),
+                                       map.get(Constants.TITLE_RESOURCE_LOCATION));
+        pricesLogs.setActorSn(MD5Util.getMD5(join));
+        //
+        pricesLogs.setActorData(workOrderData.getData());
+        pricesLogs.setInbound(workOrderData.getInbound());
         pricesLogs.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
                                  Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : 0);
         pricesLogs.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?

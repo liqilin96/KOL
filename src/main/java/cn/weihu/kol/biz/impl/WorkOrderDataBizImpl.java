@@ -1,5 +1,6 @@
 package cn.weihu.kol.biz.impl;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.kol.biz.FieldsBiz;
@@ -20,6 +21,7 @@ import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
 import cn.weihu.kol.util.GsonUtils;
+import cn.weihu.kol.util.MD5Util;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -83,9 +85,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             throw new CheckException("筛选内容不能为空");
         }
         // 获取所有达人信息
-        List<Prices>            pricesList = pricesBiz.list();
-        List<WorkOrderDataResp> list       = new ArrayList<>();
+        List<Prices> pricesList = pricesBiz.list();
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        List<WorkOrderDataResp> list = new ArrayList<>();
         WorkOrderDataResp       workOrderDataResp;
+        Map<String, String>     map;
         for(WorkOrderDataUpdateReq updateReq : req.getList()) {
             // 根据 媒体、账号、资源位置 匹配相同需求数据
             // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
@@ -109,16 +114,16 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderDataResp.setFieldsId(updateReq.getFieldsId());
                 workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
-                workOrderDataResp.setData(collect.get(0).getActorData());
+                map = GsonUtils.gson.fromJson(collect.get(0).getActorData(), type);
+                map.put(Constants.ACTOR_DATA_SN, String.valueOf(collect.get(0).getActorSn()));
+                workOrderDataResp.setData(GsonUtils.gson.toJson(map));
                 workOrderDataResp.setInbound(1);
             }
             list.add(workOrderDataResp);
         }
         WorkOrderDataScreeningResp resp = new WorkOrderDataScreeningResp();
         // 标题
-        Fields fields = fieldsBiz.getOneByType(Constants.FIELD_TYPE_DEMAND);
-        Type type = new TypeToken<List<FieldsBo>>() {
-        }.getType();
+        Fields         fields = fieldsBiz.getOneByType(Constants.FIELD_TYPE_DEMAND);
         List<FieldsBo> titles = GsonUtils.gson.fromJson(fields.getFieldList(), type);
         resp.setTitles(titles);
         // 数据
@@ -335,13 +340,65 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         updateBatchById(workOrderDataList);
         // 下单
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
         if(Constants.WORK_ORDER_DATA_REVIEW_PASS.equals(req.getStatus())) {
             // 审核通过处理
             List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
                                                     .in(WorkOrderData::getId, req.getWorkOrderDataIds()));
             if(!CollectionUtils.isEmpty(list)) {
-                // 判断库内外 库内更新 库外新增
-
+                // 判断库内外,库内更新,库外新增,工单数据更新记录
+                List<Prices>        updateList = new ArrayList<>();
+                List<Prices>        insertList = new ArrayList<>();
+                Prices              update;
+                Prices              insert;
+                Map<String, String> map;
+                for(WorkOrderData data : list) {
+                    map = GsonUtils.gson.fromJson(data.getData(), type);
+                    String actorSn = map.get(Constants.ACTOR_DATA_SN);
+                    if(StringUtils.isNotBlank(actorSn)) {
+                        update = pricesBiz.getOneByActorSn(actorSn);
+                        update.setActorData(data.getData());
+                        update.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                             Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : 0);
+                        update.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                        Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
+                        update.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                        update.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
+                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATETIME_PATTERN) : null);
+                        update.setUtime(DateUtil.date());
+                        update.setUpdateUserId(UserInfoContext.getUserId());
+                        updateList.add(update);
+                    } else {
+                        insert = new Prices();
+                        actorSn = StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                                   map.get(Constants.TITLE_ACCOUNT),
+                                                   map.get(Constants.TITLE_RESOURCE_LOCATION));
+                        insert.setActorSn(MD5Util.getMD5(actorSn));
+                        insert.setActorData(data.getData());
+                        insert.setInbound(1);
+                        insert.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                             Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : 0);
+                        insert.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                        Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
+                        insert.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                        insert.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
+                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATETIME_PATTERN) : null);
+                        insert.setCtime(DateUtil.date());
+                        insert.setUtime(DateUtil.date());
+                        insert.setCreateUserId(UserInfoContext.getUserId());
+                        insert.setUpdateUserId(UserInfoContext.getUserId());
+                        insertList.add(insert);
+                    }
+                }
+                if(!CollectionUtils.isEmpty(updateList)) {
+                    // 更新
+                    pricesBiz.updateBatchById(updateList);
+                }
+                if(!CollectionUtils.isEmpty(insertList)) {
+                    // 新增
+                    pricesBiz.saveBatch(insertList);
+                }
             }
         } else {
             // TODO: 2021/11/18   审核驳回处理

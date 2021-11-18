@@ -7,7 +7,6 @@ import cn.weihu.kol.db.dao.PricesDao;
 import cn.weihu.kol.db.po.Fields;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
-import cn.weihu.kol.http.resp.PricesLogsBoResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,7 +16,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -127,5 +125,10 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
 
         return new PageResult<>(pricesPage.getTotal(), respList, fieldList);
+    }
+
+    @Override
+    public Prices getOneByActorSn(String actorSn) {
+        return getOne(new LambdaQueryWrapper<>(Prices.class).eq(Prices::getActorSn, actorSn));
     }
 }

@@ -61,9 +61,10 @@ public interface Constants {
      * 佣金、价格、供应商、报价到期时间
      */
     String ACTOR_COMMISSION = "commission";
-    String ACTOR_PRICE      = "quotation";
+    String ACTOR_PRICE      = "implPrice";
     String ACTOR_PROVIDER   = "supplier";
-    String ACTOR_INSURE     = "engTime";
+    String ACTOR_INSURE     = "priceTime";
+    String ACTOR_DATA_SN    = "actorSn";
 
     /**
      * 字段组类型

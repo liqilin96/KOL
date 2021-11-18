@@ -51,9 +51,6 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
 
     @Autowired
-    private WorkOrderBiz workOrderBiz;
-
-    @Autowired
     private WorkOrderDataBiz workOrderDataBiz;
 
     @Autowired
@@ -82,20 +79,10 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             WorkOrderData workOrderData = null;
 
             if(orderBos != null) {
-                String uuid = UUID.randomUUID().toString();
-                workOrder.setOrderSn(uuid);
-                workOrder.setName(req.getName());
-                //1是需求工单
-                workOrder.setType(1);
-                workOrder.setProjectId(Long.parseLong(req.getProjectId()));
                 Project project = projectBiz.getById(req.getProjectId());
+                workOrder.setProjectId(project.getId());
                 workOrder.setProjectName(project.getName());
-                workOrder.setCtime(new Date());
-                workOrder.setUtime(new Date());
-                workOrder.setCreateUserId(UserInfoContext.getUserId());
-                workOrder.setUpdateUserId(UserInfoContext.getUserId());
-
-                workOrderBiz.save(workOrder);
+                create(workOrder);
             }
             for(int x = 0; x < orderBos.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBos.get(x);
