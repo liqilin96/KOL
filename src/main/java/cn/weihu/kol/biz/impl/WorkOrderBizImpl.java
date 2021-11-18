@@ -177,16 +177,24 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
     @Override
     public PageResult<WorkOrderResp> workOrderPage(WorkOrderReq req) {
+        if(StringUtils.isNotBlank(req.getType()) &&
+           !StringUtils.equalsAny(req.getType(), Constants.WORK_ORDER_NEW, Constants.WORK_ORDER_ASK, Constants.WORK_ORDER_QUOTE,
+                                  Constants.WORK_ORDER_REVIEW, Constants.WORK_ORDER_ORDER)) {
+            throw new CheckException("工单类型不合法");
+        }
         LambdaQueryWrapper<WorkOrder> wrapper = Wrappers.lambdaQuery(WorkOrder.class);
         wrapper.eq(Objects.nonNull(req.getProjectId()), WorkOrder::getProjectId, req.getProjectId())
                 .and(StringUtils.isNotBlank(req.getName()), workOrderLambdaQueryWrapper -> workOrderLambdaQueryWrapper
                         .like(WorkOrder::getName, "%" + req.getName() + "%")
                         .or()
                         .eq(WorkOrder::getOrderSn, req.getName()))
-                .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, req.getStatus())
-                .between(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime()),
-                         WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
-        wrapper.eq(WorkOrder::getType, 1);
+                .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, req.getStatus());
+        if(StringUtils.isNotBlank(req.getType())) {
+            wrapper.eq(WorkOrder::getType, req.getType());
+        }
+        if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
+            wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
+        }
         Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<WorkOrderResp> respList = page.getRecords().stream()
                 .map(WorkOrderConverter::entity2WorkOrderResp)

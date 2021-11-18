@@ -12,10 +12,11 @@ public interface Constants {
 
     /**
      * 工单状态
-     * 新建、询价、审核、下单
+     * 新建、询价中、已报价、审核中、已下单
      */
     String WORK_ORDER_NEW    = "NEW";
     String WORK_ORDER_ASK    = "ASK";
+    String WORK_ORDER_QUOTE  = "QUOTE";
     String WORK_ORDER_REVIEW = "REVIEW";
     String WORK_ORDER_ORDER  = "ORDER";
 
@@ -34,8 +35,11 @@ public interface Constants {
     /**
      * 供应商
      */
-    String SUPPLIER_XINYI = "新意";
-    String SUPPLIER_WEIGE = "维格";
+    String SUPPLIER_FIELD      = "supplier";
+    String SUPPLIER_XINYI      = "新意";
+    String SUPPLIER_WEIGE      = "维格";
+    long   SUPPLIER_USER_XINYI = 2;
+    long   SUPPLIER_USER_WEIGE = 3;
 
     /**
      * 属性筛选标题

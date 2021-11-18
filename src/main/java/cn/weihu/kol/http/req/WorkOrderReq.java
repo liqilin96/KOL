@@ -35,4 +35,10 @@ public class WorkOrderReq {
 
     @ApiModelProperty(value = "结束时间,13位毫秒级时间戳")
     private Long endTime;
+
+    @ApiModelProperty(value = "指向用户ID")
+    private Long toUser;
+
+    @ApiModelProperty(value = "指向用户ID")
+    private String type;
 }

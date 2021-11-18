@@ -63,7 +63,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Override
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                .like(StringUtils.isNotBlank(req.getSupplier()), WorkOrderData::getData, req.getSupplier());
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
@@ -199,36 +200,37 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(Objects.isNull(workOrder)) {
             throw new CheckException("需求工单不存在");
         }
-        // 更新需求工单状态
-        workOrder.setStatus(Constants.WORK_ORDER_ASK);
-        workOrder.setUpdateUserId(UserInfoContext.getUserId());
-        workOrder.setUtime(DateUtil.date());
-        workOrderDao.updateById(workOrder);
-        // 生成 询价/询档工单
-        WorkOrder askWorkOrder = new WorkOrder();
-        askWorkOrder.setOrderSn(workOrder.getOrderSn());
-        askWorkOrder.setName(workOrder.getName());
-        askWorkOrder.setType(Constants.WORK_ORDER_ENQUIRY);
-        askWorkOrder.setProjectId(workOrder.getProjectId());
-        askWorkOrder.setProjectName(workOrder.getProjectName());
-        askWorkOrder.setParentId(workOrder.getId());
-        askWorkOrder.setStatus(Constants.WORK_ORDER_ASK);
-        askWorkOrder.setCtime(DateUtil.date());
-        askWorkOrder.setUtime(DateUtil.date());
-        askWorkOrder.setCreateUserId(UserInfoContext.getUserId());
-        askWorkOrder.setUpdateUserId(UserInfoContext.getUserId());
-        workOrderDao.insert(workOrder);
         // 更新工单数据
-        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        List<WorkOrderData> workOrderDataList    = new ArrayList<>();
+        List<WorkOrderData> workOrderDataListNew = new ArrayList<>();
         WorkOrderData       workOrderData;
+        WorkOrderData       workOrderDataNew;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
             if(1 == workOrderDataUpdateReq.getAskType()) {
                 // 询价
+                // 不存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
+                Map<String, String> map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
+                map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XINYI);
+                workOrderData.setData(GsonUtils.gson.toJson(map));
+                // 同步新增一条数据
+                workOrderDataNew = new WorkOrderData();
+                workOrderDataNew.setFieldsId(workOrderDataUpdateReq.getFieldsId());
+                workOrderDataNew.setProjectId(workOrderDataUpdateReq.getProjectId());
+                workOrderDataNew.setWorkOrderId(workOrderDataUpdateReq.getWorkOrderId());
+                workOrderDataNew.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
+                map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEIGE);
+                workOrderDataNew.setData(GsonUtils.gson.toJson(map));
+                workOrderDataNew.setCtime(DateUtil.date());
+                workOrderDataNew.setUtime(DateUtil.date());
+                workOrderDataListNew.add(workOrderDataNew);
             } else {
                 // 询档
+                // 存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_DATE);
                 workOrderData.setData(workOrderData.getData());
             }
@@ -237,7 +239,36 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
+        if(!workOrderDataListNew.isEmpty()) {
+            saveBatch(workOrderDataListNew);
+            // 生成 询价/询档工单
+            createPointWorkOrder(workOrder, Constants.SUPPLIER_USER_WEIGE);
+        }
+        // 生成 询价/询档工单
+        createPointWorkOrder(workOrder, Constants.SUPPLIER_USER_XINYI);
+        // 更新需求工单状态
+        workOrder.setStatus(Constants.WORK_ORDER_ASK);
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrder.setUtime(DateUtil.date());
+        workOrderDao.updateById(workOrder);
         return null;
+    }
+
+    private void createPointWorkOrder(WorkOrder workOrder, Long userId) {
+        WorkOrder askWorkOrder = new WorkOrder();
+        askWorkOrder.setOrderSn(workOrder.getOrderSn());
+        askWorkOrder.setName(workOrder.getName());
+        askWorkOrder.setType(Constants.WORK_ORDER_ENQUIRY);
+        askWorkOrder.setProjectId(workOrder.getProjectId());
+        askWorkOrder.setProjectName(workOrder.getProjectName());
+        askWorkOrder.setParentId(workOrder.getId());
+        askWorkOrder.setStatus(Constants.WORK_ORDER_ASK);
+        askWorkOrder.setToUser(userId);
+        askWorkOrder.setCtime(DateUtil.date());
+        askWorkOrder.setUtime(DateUtil.date());
+        askWorkOrder.setCreateUserId(UserInfoContext.getUserId());
+        askWorkOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrderDao.insert(workOrder);
     }
 
     @Override
@@ -251,7 +282,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
-            workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW);
+            workOrderData.setStatus(Constants.WORK_ORDER_QUOTE);
             workOrderData.setData(workOrderDataUpdateReq.getData());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
@@ -259,7 +290,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         updateBatchById(workOrderDataList);
         // 插入报价记录表
-
+        
         // 更新工单状态
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
@@ -269,7 +300,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             // 更新工单状态为 审核
             WorkOrder workOrder = new WorkOrder();
             workOrder.setId(req.getWorkOrderId());
-            workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
+            workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
             workOrder.setUpdateUserId(UserInfoContext.getUserId());
             workOrder.setUtime(DateUtil.date());
             workOrderDao.updateById(workOrder);

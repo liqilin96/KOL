@@ -13,4 +13,7 @@ public class WorkOrderDataReq {
 
     @ApiModelProperty(value = "账号或媒体名称")
     private String name;
+
+    @ApiModelProperty(value = "供应商:新意/维格")
+    private String supplier;
 }
