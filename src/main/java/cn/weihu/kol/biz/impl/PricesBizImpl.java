@@ -37,7 +37,6 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public PageResult<PricesLogsResp> starPage(PricesLogsReq req) {
 
-
         //1 是资源库组
         Fields fields    = fieldsBiz.getById(1);
         String fieldList = fields.getFieldList();
@@ -66,10 +65,10 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         }
         //达人名称
         if(StringUtils.isNotBlank(req.getStarName())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.talent\")) like {0}", "%" + req.getStarName() + "%");
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.talent\")) like \"%" + req.getStarName() + "%\"");
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
+            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.account\")) like \"%" + req.getStarName() + "%\"");
         } else {
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.talent\"))");
+            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.account\"))");
         }
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
@@ -86,35 +85,10 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         //1 是资源库组
         Fields fields    = fieldsBiz.getById(1);
         String fieldList = fields.getFieldList();
-
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
 
         //达人名称
-        if(StringUtils.isNotBlank(req.getStarName())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.talent\")) like {0}", "%" + req.getStarName() + "%");
-        }
-
-        //媒体平台
-        if(StringUtils.isNotBlank(req.getPlatform())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.plat\")) like {0}", "%" + req.getPlatform() + "%");
-        }
-        //账号类型
-        if(StringUtils.isNotBlank(req.getAccountType())) {
-            String[] split = req.getAccountType().split(",");
-            for(int i = 0; i < split.length; i++) {
-                String type = split[i];
-                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.accountType\")) like {0}", "%" + type + "%");
-            }
-        }
-        //报价形式
-        if(StringUtils.isNotBlank(req.getPricesForm())) {
-            String[] split = req.getPricesForm().split(",");
-            for(int i = 0; i < split.length; i++) {
-                String priceForm = split[i];
-                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.priceType\")) like {0}", "%" + priceForm + "%");
-            }
-        }
-
+        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.talent\")) like {0}", req.getStarName());
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
         List<PricesLogsResp> respList = pricesPage.getRecords().stream().map(x -> {
@@ -122,8 +96,6 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             BeanUtils.copyProperties(x, resp);
             return resp;
         }).collect(Collectors.toList());
-
-
         return new PageResult<>(pricesPage.getTotal(), respList, fieldList);
     }
 

@@ -1,6 +1,7 @@
 package cn.weihu.kol.controller;
 
 
+import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.PricesBiz;
@@ -47,6 +48,7 @@ public class PricesController {
     @ApiOperation(value = "达人报价详情-分页", httpMethod = "GET", notes = "达人报价详情-分页")
     @GetMapping(value = "/star/page")
     public ResultBean<PageResult<PricesLogsResp>> starPricePage(PricesLogsReq req) {
+        CheckUtil.notEmpty(req.getStarName(), "达人名称不能为空");
         return new ResultBean<>(pricesBiz.starPricePage(req));
     }
 }

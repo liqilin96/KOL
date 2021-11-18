@@ -43,29 +43,31 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
         //4 是报价历史
         Fields fields    = fieldsBiz.getById(4);
         String fieldList = fields.getFieldList();
-
-
         LambdaQueryWrapper<PricesLogs> wrapper = new LambdaQueryWrapper<>();
 
-        //SELECT * from obc_customer_header c where JSON_UNQUOTE(JSON_EXTRACT(c.params,"$.name"))='李四'
-//        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%四%");
-//        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.age\")) > {0}", "25");
-
-        if(StringUtils.isNotBlank(req.getStarName())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.name\")) like {0}", "%" + req.getStarName() + "%");
-        }
-
+        //媒体平台
         if(StringUtils.isNotBlank(req.getPlatform())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.platform\")) like {0}", "%" + req.getPlatform() + "%");
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.plat\")) like {0}", "%" + req.getPlatform() + "%");
         }
-        //TODO 条件多了再说！！！！
+        //账号类型
+        if(StringUtils.isNotBlank(req.getAccountType())) {
+            String[] split = req.getAccountType().split(",");
+            for(int i = 0; i < split.length; i++) {
+                String type = split[i];
+                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.accountType\")) like {0}", "%" + type + "%");
+            }
+        }
+        //达人名称
+        if(StringUtils.isNotBlank(req.getStarName())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
+        }
 
         Page<PricesLogs> logsPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
         List<PricesLogsResp> pricesLogsRespList = logsPage.getRecords().stream().map(x -> {
 
             PricesLogsResp resp = new PricesLogsResp();
-            BeanUtils.copyProperties(resp, x);
+            BeanUtils.copyProperties(x, resp);
             return resp;
         }).collect(Collectors.toList());
         return new PageResult<>(logsPage.getTotal(),pricesLogsRespList,fieldList);
