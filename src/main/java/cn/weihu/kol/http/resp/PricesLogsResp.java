@@ -2,8 +2,11 @@ package cn.weihu.kol.http.resp;
 
 import cn.weihu.kol.db.po.PricesLogs;
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Map;
 
 /**
  * @author lql

@@ -6,6 +6,7 @@ import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.PricesBiz;
 import cn.weihu.kol.http.req.PricesLogsReq;
+import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsBoResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import io.swagger.annotations.Api;
@@ -32,11 +33,17 @@ public class PricesController {
     @Autowired
     private PricesBiz pricesBiz;
 
-//    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
+    //    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
 //    @GetMapping(value = "/star")
 //    public ResultBean<PricesLogsBoResp> starPrice(PricesLogsReq req) {
 //        return new ResultBean<>(pricesBiz.starPrice(req));
 //    }
+    @ApiOperation(value = "达人在保详情", httpMethod = "GET", notes = "达人信息-分页")
+    @GetMapping(value = "/star/detail")
+    public ResultBean<PricesDetailsResp> starDetail(PricesLogsReq req) {
+        return new ResultBean<>(pricesBiz.starDetail(req));
+    }
+
 
     @ApiOperation(value = "达人信息-分页", httpMethod = "GET", notes = "达人信息-分页")
     @GetMapping(value = "/star")
@@ -50,6 +57,13 @@ public class PricesController {
     public ResultBean<PageResult<PricesLogsResp>> starPricePage(PricesLogsReq req) {
         CheckUtil.notEmpty(req.getStarName(), "达人名称不能为空");
         return new ResultBean<>(pricesBiz.starPricePage(req));
+    }
+
+    @ApiOperation(value = "达人报价详情导出", httpMethod = "GET", notes = "达人报价详情导出")
+    @GetMapping(value = "/star/export")
+    public void export(PricesLogsReq req) {
+        CheckUtil.notEmpty(req.getStarName(), "达人名称不能为空");
+        pricesBiz.starPricePage(req);
     }
 }
 

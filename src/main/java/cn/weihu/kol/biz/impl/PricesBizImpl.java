@@ -7,7 +7,9 @@ import cn.weihu.kol.db.dao.PricesDao;
 import cn.weihu.kol.db.po.Fields;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
+import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
+import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,7 +18,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -83,12 +88,12 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public PageResult<PricesLogsResp> starPricePage(PricesLogsReq req) {
         //1 是资源库组
-        Fields fields    = fieldsBiz.getById(1);
-        String fieldList = fields.getFieldList();
-        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+        Fields                     fields    = fieldsBiz.getById(1);
+        String                     fieldList = fields.getFieldList();
+        LambdaQueryWrapper<Prices> wrapper   = new LambdaQueryWrapper<>();
 
         //达人名称
-        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.talent\")) like {0}", req.getStarName());
+        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", req.getStarName());
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
         List<PricesLogsResp> respList = pricesPage.getRecords().stream().map(x -> {
@@ -102,5 +107,19 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public Prices getOneByActorSn(String actorSn) {
         return getOne(new LambdaQueryWrapper<>(Prices.class).eq(Prices::getActorSn, actorSn));
+    }
+
+    @Override
+    public PricesDetailsResp starDetail(PricesLogsReq req) {
+        PageResult<PricesLogsResp> pageResult = starPricePage(req);
+        List<PricesLogsResp>       resps      = pageResult.getRecords();
+        Map<String, String>        map        = new HashMap<>();
+
+        long sum = resps.stream().filter(x -> x.getInsureEndtime().after(new Date())).map(x -> {
+
+            HashMap<String,String> hashMap = GsonUtils.gson.fromJson(x.getActorData(), HashMap.class);
+            return map.put(hashMap.get("address"), x.getPrice().toString());
+        }).count();
+        return new PricesDetailsResp(sum, map);
     }
 }

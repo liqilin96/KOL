@@ -47,7 +47,7 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
 
         //媒体平台
         if(StringUtils.isNotBlank(req.getPlatform())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.plat\")) like {0}", "%" + req.getPlatform() + "%");
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
         }
         //账号类型
         if(StringUtils.isNotBlank(req.getAccountType())) {
