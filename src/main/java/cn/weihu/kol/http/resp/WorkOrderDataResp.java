@@ -33,4 +33,7 @@ public class WorkOrderDataResp {
 
     @ApiModelProperty(value = "是否库内,0:否,1:是")
     private Integer inbound;
+
+    @ApiModelProperty(value = "比价数据标识")
+    private String compareFlag;
 }

@@ -5,8 +5,10 @@ import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
 import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
+import cn.weihu.kol.http.req.WorkOrderDataOrderReq;
 import cn.weihu.kol.http.req.WorkOrderDataReq;
 import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
+import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import io.swagger.annotations.Api;
@@ -63,6 +65,20 @@ public class WorkOrderDataController {
     public ResultBean<Long> quote(@RequestBody WorkOrderBatchUpdateReq req) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
         return new ResultBean<>(dataBiz.quote(req));
+    }
+
+    @ApiOperation(value = "报价待确认列表", httpMethod = "GET", notes = "报价待确认列表")
+    @GetMapping(value = "/quote/list")
+    public ResultBean<WorkOrderDataCompareResp> quoteList(WorkOrderDataReq req) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        return new ResultBean<>(dataBiz.quoteList(req));
+    }
+
+    @ApiOperation(value = "提审&下单", httpMethod = "POST", notes = "提审&下单")
+    @PostMapping(value = "/order")
+    public ResultBean<Long> order(@RequestBody WorkOrderDataOrderReq req) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        return new ResultBean<>(dataBiz.order(req));
     }
 
     @ApiOperation(value = "审核", httpMethod = "POST", notes = "审核")
