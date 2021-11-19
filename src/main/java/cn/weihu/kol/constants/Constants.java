@@ -36,11 +36,9 @@ public interface Constants {
     /**
      * 供应商
      */
-    String SUPPLIER_FIELD      = "supplier";
-    String SUPPLIER_XINYI      = "新意";
-    String SUPPLIER_WEIGE      = "维格";
-    long   SUPPLIER_USER_XINYI = 2;
-    long   SUPPLIER_USER_WEIGE = 3;
+    String SUPPLIER_FIELD  = "supplier";
+    String SUPPLIER_XIN_YI = "新意";
+    String SUPPLIER_WEI_GE = "维格";
 
     /**
      * 属性筛选标题

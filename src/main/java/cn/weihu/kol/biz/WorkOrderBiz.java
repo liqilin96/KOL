@@ -1,7 +1,6 @@
 package cn.weihu.kol.biz;
 
 import cn.weihu.base.result.PageResult;
-import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.db.po.WorkOrder;
 import cn.weihu.kol.http.req.WorkOrderReq;
 import cn.weihu.kol.http.resp.WorkOrderResp;
@@ -36,7 +35,17 @@ public interface WorkOrderBiz extends IService<WorkOrder> {
      * 创建
      *
      * @param workOrder
+     * @param type
+     * @param status
      * @return
      */
-    Long create(WorkOrder workOrder);
+    Long create(WorkOrder workOrder, Integer type, String status);
+
+    /**
+     * 待报价列表
+     *
+     * @param req
+     * @return
+     */
+    PageResult<WorkOrderResp> waitWorkOrderPage(WorkOrderReq req);
 }

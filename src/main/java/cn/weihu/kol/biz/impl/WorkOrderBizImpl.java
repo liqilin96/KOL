@@ -82,7 +82,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 Project project = projectBiz.getById(req.getProjectId());
                 workOrder.setProjectId(project.getId());
                 workOrder.setProjectName(project.getName());
-                create(workOrder);
+                create(workOrder, Constants.WORK_ORDER_DEMAND, Constants.WORK_ORDER_NEW);
             }
             for(int x = 0; x < orderBos.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBos.get(x);
@@ -148,6 +148,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 //                        map.put(fieldsBos.get(i).getDataIndex(), bo.get(i));
 //                    }
                 }
+                workOrderData.setStatus(Constants.WORK_ORDER_DATA_NEW);
                 workOrderData.setData(GsonUtils.gson.toJson(map));
                 workOrderData.setCtime(new Date());
                 workOrderData.setUtime(new Date());
@@ -189,6 +190,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
         }
+        wrapper.isNull(WorkOrder::getParentId);
         Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<WorkOrderResp> respList = page.getRecords().stream()
                 .map(WorkOrderConverter::entity2WorkOrderResp)
@@ -197,7 +199,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     @Override
-    public Long create(WorkOrder workOrder) {
+    public Long create(WorkOrder workOrder, Integer type, String status) {
         if(Objects.isNull(workOrder.getProjectId())) {
             throw new CheckException("项目ID不能为空");
         }
@@ -205,8 +207,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         count = count + 1;
         workOrder.setName("第" + count + "批次");
         workOrder.setOrderSn(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATETIME_MS_PATTERN));
-        workOrder.setType(Constants.WORK_ORDER_DEMAND);
-        workOrder.setStatus(Constants.WORK_ORDER_NEW);
+        workOrder.setType(type);
+        workOrder.setStatus(status);
         workOrder.setCtime(DateUtil.date());
         workOrder.setUtime(DateUtil.date());
         workOrder.setCreateUserId(UserInfoContext.getUserId());
@@ -214,6 +216,21 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         //
         save(workOrder);
         return workOrder.getId();
+    }
+
+    @Override
+    public PageResult<WorkOrderResp> waitWorkOrderPage(WorkOrderReq req) {
+        if(!StringUtils.equalsAny(req.getStatus(), Constants.WORK_ORDER_ASK, Constants.WORK_ORDER_REVIEW)) {
+            throw new CheckException("工单状态不合法");
+        }
+        LambdaQueryWrapper<WorkOrder> wrapper = Wrappers.lambdaQuery(WorkOrder.class);
+        wrapper.eq(WorkOrder::getToUser, UserInfoContext.getUserId())
+                .eq(WorkOrder::getStatus, req.getStatus());
+        Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
+        List<WorkOrderResp> respList = page.getRecords().stream()
+                .map(WorkOrderConverter::entity2WorkOrderResp)
+                .collect(Collectors.toList());
+        return new PageResult<>(page.getTotal(), respList);
     }
 
     public List<String> excelTitle() {

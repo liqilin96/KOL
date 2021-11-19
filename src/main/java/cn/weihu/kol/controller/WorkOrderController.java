@@ -52,5 +52,12 @@ public class WorkOrderController {
         return new ResultBean<>(workOrderBiz.workOrderPage(req));
     }
 
+    @ApiOperation(value = "待报价/审核工单列表", httpMethod = "GET", notes = "列表")
+    @GetMapping(value = "/wait/page")
+    public ResultBean<PageResult<WorkOrderResp>> waitWorkOrderPage(WorkOrderReq req) {
+        CheckUtil.notEmpty(req.getStatus(), "状态不能为空");
+        return new ResultBean<>(workOrderBiz.waitWorkOrderPage(req));
+    }
+
 }
 

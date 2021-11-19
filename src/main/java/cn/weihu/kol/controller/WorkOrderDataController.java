@@ -41,6 +41,13 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.workOrderDataList(req));
     }
 
+    @ApiOperation(value = "待报价数据列表", httpMethod = "GET", notes = "数据列表")
+    @GetMapping(value = "/wait/list")
+    public ResultBean<List<WorkOrderDataResp>> waitWorkOrderDataList(WorkOrderDataReq req) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        return new ResultBean<>(dataBiz.waitWorkOrderDataList(req));
+    }
+
     @ApiOperation(value = "批量更新", httpMethod = "PUT", notes = "批量更新")
     @PutMapping(value = "/update/batch")
     public ResultBean<Long> updateWorkOrderData(@RequestBody WorkOrderBatchUpdateReq req) {
@@ -74,7 +81,7 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.quoteList(req));
     }
 
-    @ApiOperation(value = "提审&下单", httpMethod = "POST", notes = "提审&下单")
+    @ApiOperation(value = "提审", httpMethod = "POST", notes = "提审")
     @PostMapping(value = "/order")
     public ResultBean<Long> order(@RequestBody WorkOrderDataOrderReq req) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");

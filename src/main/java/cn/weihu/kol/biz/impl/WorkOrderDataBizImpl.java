@@ -17,6 +17,7 @@ import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
+import cn.weihu.kol.runner.StartupRunner;
 import cn.weihu.kol.userinfo.UserInfoContext;
 import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.MD5Util;
@@ -65,6 +66,21 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                 .like(StringUtils.isNotBlank(req.getSupplier()), WorkOrderData::getData, req.getSupplier());
+        List<WorkOrderData> list = list(wrapper);
+        return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<WorkOrderDataResp> waitWorkOrderDataList(WorkOrderDataReq req) {
+        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
+        if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
+            // 新意
+            wrapper.like(WorkOrderData::getData, Constants.SUPPLIER_XIN_YI);
+        } else {
+            wrapper.like(WorkOrderData::getData, Constants.SUPPLIER_WEI_GE);
+        }
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
@@ -231,7 +247,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 // 不存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
                 Map<String, String> map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
-                map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XINYI);
+                map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XIN_YI);
                 map.put(Constants.ACTOR_INBOUND, "0");
                 compareFlag = StringUtils.join(map.get(Constants.TITLE_MEDIA),
                                                map.get(Constants.TITLE_ACCOUNT),
@@ -245,7 +261,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderDataNew.setWorkOrderId(workOrderDataUpdateReq.getWorkOrderId());
                 workOrderDataNew.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
                 map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
-                map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEIGE);
+                map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEI_GE);
                 map.put(Constants.ACTOR_INBOUND, "0");
                 map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
                 workOrderDataNew.setData(GsonUtils.gson.toJson(map));
@@ -268,10 +284,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(!workOrderDataListNew.isEmpty()) {
             saveBatch(workOrderDataListNew);
             // 生成 询价/询档工单
-            createPointWorkOrder(workOrder, Constants.SUPPLIER_USER_WEIGE);
+            createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
         }
         // 生成 询价/询档工单
-        createPointWorkOrder(workOrder, Constants.SUPPLIER_USER_XINYI);
+        createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_XIN_YI);
         // 更新需求工单状态
         workOrder.setStatus(Constants.WORK_ORDER_ASK);
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
@@ -294,7 +310,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         askWorkOrder.setUtime(DateUtil.date());
         askWorkOrder.setCreateUserId(UserInfoContext.getUserId());
         askWorkOrder.setUpdateUserId(UserInfoContext.getUserId());
-        workOrderDao.insert(workOrder);
+        workOrderDao.insert(askWorkOrder);
     }
 
     @Override
@@ -322,19 +338,25 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         updateBatchById(workOrderDataList);
         // 插入报价记录表
         pricesLogsBiz.saveBatch(pricesLogsList);
-        // 更新工单状态
+        // 更新询价工单状态
+        WorkOrder workOrder = workOrderDao.selectById(req.getWorkOrderId());
+        workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrder.setUtime(DateUtil.date());
+        workOrderDao.updateById(workOrder);
+        // 更新父工单状态
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
         List<WorkOrderData> list = list(wrapper);
         if(CollectionUtils.isEmpty(list)) {
             // 更新工单状态为 已报价
-            WorkOrder workOrder = new WorkOrder();
-            workOrder.setId(req.getWorkOrderId());
-            workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
-            workOrder.setUpdateUserId(UserInfoContext.getUserId());
-            workOrder.setUtime(DateUtil.date());
-            workOrderDao.updateById(workOrder);
+            WorkOrder workOrderParent = new WorkOrder();
+            workOrderParent.setId(workOrder.getParentId());
+            workOrderParent.setStatus(Constants.WORK_ORDER_QUOTE);
+            workOrderParent.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderParent.setUtime(DateUtil.date());
+            workOrderDao.updateById(workOrderParent);
         }
         return null;
     }
@@ -342,7 +364,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Override
     public WorkOrderDataCompareResp quoteList(WorkOrderDataReq req) {
         List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
-                                                .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId()));
+                                                .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                                                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE));
         WorkOrderDataCompareResp resp = null;
         if(!CollectionUtils.isEmpty(list)) {
             resp = new WorkOrderDataCompareResp();
@@ -366,7 +389,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 } else {
                     // 库内 区分供应商
                     String supplier = map.get(Constants.SUPPLIER_FIELD);
-                    if(Constants.SUPPLIER_XINYI.equals(supplier)) {
+                    if(Constants.SUPPLIER_XIN_YI.equals(supplier)) {
                         // 新意
                         xinYi = WorkOrderConverter.entity2WorkOrderDataResp(workOrderData);
                         xinYiList.add(xinYi);
@@ -469,7 +492,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                         Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
                         update.setProvider(map.get(Constants.ACTOR_PROVIDER));
                         update.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
-                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATETIME_PATTERN) : null);
+                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATE_PATTERN) : null);
                         update.setUtime(DateUtil.date());
                         update.setUpdateUserId(UserInfoContext.getUserId());
                         updateList.add(update);
@@ -487,7 +510,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                         Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
                         insert.setProvider(map.get(Constants.ACTOR_PROVIDER));
                         insert.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
-                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATETIME_PATTERN) : null);
+                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATE_PATTERN) : null);
                         insert.setCtime(DateUtil.date());
                         insert.setUtime(DateUtil.date());
                         insert.setCreateUserId(UserInfoContext.getUserId());

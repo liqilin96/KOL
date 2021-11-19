@@ -24,6 +24,8 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req);
 
+    List<WorkOrderDataResp> waitWorkOrderDataList(WorkOrderDataReq req);
+
     Long updateWorkOrderData(WorkOrderBatchUpdateReq req);
 
     WorkOrderDataScreeningResp screening(WorkOrderBatchUpdateReq req);

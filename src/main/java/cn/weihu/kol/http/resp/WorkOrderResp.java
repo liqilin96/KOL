@@ -28,6 +28,9 @@ public class WorkOrderResp {
     @ApiModelProperty(value = "状态")
     private String status;
 
+    @ApiModelProperty(value = "父工单ID")
+    private Long parentId;
+
     @ApiModelProperty(value = "创建时间")
     private Date ctime;
 

@@ -27,6 +27,7 @@ public class WorkOrderConverter {
         resp.setProjectId(workOrder.getProjectId());
         resp.setProjectName(workOrder.getProjectName());
         resp.setStatus(workOrder.getStatus());
+        resp.setParentId(workOrder.getParentId());
         resp.setCtime(workOrder.getCtime());
         resp.setUtime(workOrder.getUtime());
         return resp;
@@ -63,7 +64,7 @@ public class WorkOrderConverter {
                             Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
         pricesLogs.setProvider(map.get(Constants.ACTOR_PROVIDER));
         pricesLogs.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
-                                    DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATETIME_PATTERN) : null);
+                                    DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATE_PATTERN) : null);
         pricesLogs.setCtime(DateUtil.date());
         pricesLogs.setUtime(DateUtil.date());
         return pricesLogs;
