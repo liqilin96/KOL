@@ -13,21 +13,16 @@ import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
-import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.reflect.TypeToken;
-import io.swagger.annotations.ApiOperation;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -133,47 +128,78 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         return new PricesDetailsResp(sum, map);
     }
 
-    @SneakyThrows
     @Override
-    public void exportStarData(HttpServletResponse response,StarExportDataReq req) {
-        //1 是资源库组
-        Fields fields    = fieldsBiz.getById(1);
-        String fieldList = fields.getFieldList();
-
+    public void exportStarData(HttpServletResponse response, StarExportDataReq req) {
+        //4 是报价历史
+        Fields fields = fieldsBiz.getById(4);
         //获取字段列表
         List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
         }.getType());
 
+        List<List<String>> exprotData = new ArrayList<>();
 
-        List<String> exprotData = new ArrayList<>();
 
-        List<String> title = fieldsBos.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
+        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
 
-        exprotData.addAll(title);
+        //获取中文表头
+        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
 
-        List<Object> list = new ArrayList<>();
+        exprotData.add(titleCN);
 
 
         if(StringUtils.isBlank(req.getIds())) {
             List<Prices> pricesList = this.list();
             //导出所有数据
 //            EasyExcelUtil.writeExcel(response,list,"达人报价数据");
-            return;
+            for(Prices prices : pricesList) {
+                List<String> data = new ArrayList<>();
+                addExportData(exprotData, data, prices, newList);
+            }
+        } else {
+
+            String[] split = req.getIds().split(",");
+            for(int i = 0; i < split.length; i++) {
+                List<String> data   = new ArrayList<>();
+                String       id     = split[i];
+                Prices       prices = getById(id);
+                addExportData(exprotData, data, prices, newList);
+            }
         }
-
-        String[] split = req.getIds().split(",");
-        for(int i = 0; i < split.length; i++) {
-            String data = split[i];
-
-
-
+        try {
+            EasyExcelUtil.writeExcel(response, exprotData, "数据详情");
+        } catch(
+                Exception e) {
+            e.printStackTrace();
         }
-
-        EasyExcelUtil.writeExcel(response,exprotData,"达人报价数据");
-
 
     }
 
+    /**
+     * @param exprotData 导出的数据
+     * @param data       每一条数据
+     * @param prices     单个达人报价
+     * @param newList    导出的头
+     */
+    public void addExportData(List<List<String>> exprotData, List<String> data, Prices prices, List<FieldsBo> newList) {
 
+        String                  actorData = prices.getActorData();
+        HashMap<String, String> hashMap   = GsonUtils.gson.fromJson(actorData, HashMap.class);
+
+        for(int j = 0; j < newList.size(); j++) {
+            boolean flag = true;
+            for(String key : hashMap.keySet()) {
+                String dataIndex = newList.get(j).getDataIndex();
+                if(key.equalsIgnoreCase(dataIndex)) {
+                    data.add(hashMap.get(key));
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag) {
+                data.add("");
+            }
+        }
+        exprotData.add(data);
+    }
 
 }

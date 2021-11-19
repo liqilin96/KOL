@@ -9,7 +9,6 @@ import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
@@ -56,23 +55,21 @@ public class EasyExcelUtil {
 //        excelWriter.write(list, writeSheet);
 //        excelWriter.finish();
 //    }
-
-    public static <T> void writeExcel(HttpServletResponse response, List<T> list, String fileName) throws IOException {
-
-
-        response.setContentType("application/vnd.ms-excel");// 设置文本内省
-        response.setCharacterEncoding("utf-8");// 设置字符编码
-        response.setHeader("Content-disposition", "attachment;filename=demo.xlsx"); // 设置响应头
-        EasyExcel.write(response.getOutputStream()).sheet("模板").doWrite(list);
-
-
-
-//        ServletOutputStream outputStream = response.getOutputStream();
-//        OutputStream outputStream = getOutputStream(response, fileName);
-//        ExcelWriter  excelWriter  = com.alibaba.excel.EasyExcel.write(outputStream).build();
-//        WriteSheet   writeSheet   = com.alibaba.excel.EasyExcel.writerSheet("").build();
-//        excelWriter.write(list, writeSheet);
-//        excelWriter.finish();
+    public static <T> void writeExcel(HttpServletResponse response, List<T> list, String fileName) {
+        ExcelWriter excelWriter = null;
+        try {
+            //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
+            response.setContentType("mutipart/form-data");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-disposition", "attachment;filename="+java.net.URLEncoder.encode(fileName, "UTF-8")+".xlsx");
+            excelWriter = EasyExcel.write(response.getOutputStream()).build();
+            WriteSheet writeSheet = com.alibaba.excel.EasyExcel.writerSheet("").build();
+            excelWriter.write(list, writeSheet);
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            excelWriter.finish();
+        }
     }
 
     /**

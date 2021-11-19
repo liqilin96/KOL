@@ -20,7 +20,7 @@ public class FieldsBo implements Comparable<FieldsBo> {
     private String       type;
     private boolean      isRequire;
     private boolean      isFilter;
-    private boolean      isEffact;
+    private boolean      isEffect;
     private List<Opt> options;
     private Integer      id;
 
