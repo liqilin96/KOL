@@ -6,6 +6,7 @@ import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.PricesBiz;
 import cn.weihu.kol.http.req.PricesLogsReq;
+import cn.weihu.kol.http.req.StarExportDataReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsBoResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -56,14 +59,14 @@ public class PricesController {
     @GetMapping(value = "/star/page")
     public ResultBean<PageResult<PricesLogsResp>> starPricePage(PricesLogsReq req) {
         CheckUtil.notEmpty(req.getStarName(), "达人名称不能为空");
+        CheckUtil.notEmpty(req.getPlatform(), "媒体平台不能为空");
         return new ResultBean<>(pricesBiz.starPricePage(req));
     }
 
     @ApiOperation(value = "达人报价详情导出", httpMethod = "GET", notes = "达人报价详情导出")
     @GetMapping(value = "/star/export")
-    public void export(PricesLogsReq req) {
-        CheckUtil.notEmpty(req.getStarName(), "达人名称不能为空");
-        pricesBiz.starPricePage(req);
+    public void export(StarExportDataReq req, HttpServletResponse response) {
+        pricesBiz.exportStarData(response,req);
     }
 }
 

@@ -3,9 +3,12 @@ package cn.weihu.kol.biz;
 import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
+import cn.weihu.kol.http.req.StarExportDataReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -24,4 +27,6 @@ public interface PricesBiz extends IService<Prices> {
     Prices getOneByActorSn(String actorSn);
 
     PricesDetailsResp starDetail(PricesLogsReq req);
+
+    void exportStarData(HttpServletResponse response,StarExportDataReq req);
 }

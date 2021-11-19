@@ -1,5 +1,6 @@
 package cn.weihu.kol.util;
 
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.context.AnalysisContext;
@@ -8,6 +9,7 @@ import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
@@ -46,15 +48,32 @@ public class EasyExcelUtil {
      * @param sheetName 导入文件的sheet名
      * @param clazz     实体类
      */
-    public static <T> void writeExcel(HttpServletResponse response, List<T> list, String fileName, String sheetName, Class<T> clazz) {
+//    public static <T> void writeExcel(HttpServletResponse response, List<T> list, String fileName, String sheetName, Class<T> clazz) {
+//
+//        OutputStream outputStream = getOutputStream(response, fileName);
+//        ExcelWriter  excelWriter  = com.alibaba.excel.EasyExcel.write(outputStream, clazz).build();
+//        WriteSheet   writeSheet   = com.alibaba.excel.EasyExcel.writerSheet(sheetName).build();
+//        excelWriter.write(list, writeSheet);
+//        excelWriter.finish();
+//    }
 
-        OutputStream outputStream = getOutputStream(response, fileName);
-        ExcelWriter  excelWriter  = com.alibaba.excel.EasyExcel.write(outputStream, clazz).build();
-        WriteSheet   writeSheet   = com.alibaba.excel.EasyExcel.writerSheet(sheetName).build();
-        excelWriter.write(list, writeSheet);
-        excelWriter.finish();
+    public static <T> void writeExcel(HttpServletResponse response, List<T> list, String fileName) throws IOException {
+
+
+        response.setContentType("application/vnd.ms-excel");// 设置文本内省
+        response.setCharacterEncoding("utf-8");// 设置字符编码
+        response.setHeader("Content-disposition", "attachment;filename=demo.xlsx"); // 设置响应头
+        EasyExcel.write(response.getOutputStream()).sheet("模板").doWrite(list);
+
+
+
+//        ServletOutputStream outputStream = response.getOutputStream();
+//        OutputStream outputStream = getOutputStream(response, fileName);
+//        ExcelWriter  excelWriter  = com.alibaba.excel.EasyExcel.write(outputStream).build();
+//        WriteSheet   writeSheet   = com.alibaba.excel.EasyExcel.writerSheet("").build();
+//        excelWriter.write(list, writeSheet);
+//        excelWriter.finish();
     }
-
 
     /**
      * 导出时生成OutputStream
