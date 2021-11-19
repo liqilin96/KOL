@@ -94,11 +94,14 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
     @Override
     public PageResult<PricesLogsResp> starPricePage(PricesLogsReq req) {
-        //1 是资源库组
-        Fields                     fields    = fieldsBiz.getById(1);
+        //4 是报价历史
+        Fields                     fields    = fieldsBiz.getById(4);
         String                     fieldList = fields.getFieldList();
         LambdaQueryWrapper<Prices> wrapper   = new LambdaQueryWrapper<>();
 
+
+        //媒体平台
+        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
         //达人名称
         wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", req.getStarName());
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
