@@ -24,4 +24,7 @@ public class MessageResp {
 
     @ApiModelProperty(value = "更新时间")
     private Long utime;
+
+    @ApiModelProperty(value = "是否已读,1是0否")
+    private Integer isReceived;
 }
