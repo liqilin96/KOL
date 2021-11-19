@@ -13,10 +13,8 @@ import cn.weihu.kol.convert.WorkOrderConverter;
 import cn.weihu.kol.db.dao.WorkOrderDao;
 import cn.weihu.kol.db.dao.WorkOrderDataDao;
 import cn.weihu.kol.db.po.*;
-import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
-import cn.weihu.kol.http.req.WorkOrderDataReq;
-import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
-import cn.weihu.kol.http.req.WorkOrderDataUpdateReq;
+import cn.weihu.kol.http.req.*;
+import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
@@ -123,7 +121,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         WorkOrderDataScreeningResp resp = new WorkOrderDataScreeningResp();
         // 标题
-        Fields         fields = fieldsBiz.getOneByType(Constants.FIELD_TYPE_DEMAND);
+        Fields fields = fieldsBiz.getOneByType(Constants.FIELD_TYPE_DEMAND);
+        type = new TypeToken<List<FieldsBo>>() {
+        }.getType();
         List<FieldsBo> titles = GsonUtils.gson.fromJson(fields.getFieldList(), type);
         resp.setTitles(titles);
         // 数据
@@ -136,23 +136,28 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }.getType();
         log.info(">>> inbound:{}", inbound);
         log.info(">>> outbound:{}", outbound);
-        Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
-        Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
-        if(!inboundMap.get(Constants.TITLE_MEDIA).equals(outboundMap.get(Constants.TITLE_MEDIA))) {
+        try {
+            Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
+            Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
+            if(!inboundMap.get(Constants.TITLE_MEDIA).equals(outboundMap.get(Constants.TITLE_MEDIA))) {
+                return false;
+            }
+            log.info(">>> 媒体匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_MEDIA), outboundMap.get(Constants.TITLE_MEDIA));
+            if(!inboundMap.get(Constants.TITLE_ACCOUNT).equals(outboundMap.get(Constants.TITLE_ACCOUNT))) {
+                return false;
+            }
+            log.info(">>> 账号匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_ACCOUNT), outboundMap.get(Constants.TITLE_ACCOUNT));
+            if(!inboundMap.get(Constants.TITLE_RESOURCE_LOCATION).equals(outboundMap.get(Constants.TITLE_RESOURCE_LOCATION))) {
+                return false;
+            }
+            log.info(">>> 资源位置匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_RESOURCE_LOCATION), outboundMap.get(Constants.TITLE_RESOURCE_LOCATION));
+        } catch(Exception e) {
+            log.error(">>> 库内外基础信息数据筛选异常,inbound:{},outbound:{}", inbound, outbound, e);
             return false;
         }
-        log.info(">>> 媒体匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_MEDIA), outboundMap.get(Constants.TITLE_MEDIA));
-        if(!inboundMap.get(Constants.TITLE_ACCOUNT).equals(outboundMap.get(Constants.TITLE_ACCOUNT))) {
-            return false;
-        }
-        log.info(">>> 账号匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_ACCOUNT), outboundMap.get(Constants.TITLE_ACCOUNT));
-        if(!inboundMap.get(Constants.TITLE_RESOURCE_LOCATION).equals(outboundMap.get(Constants.TITLE_RESOURCE_LOCATION))) {
-            return false;
-        }
-        log.info(">>> 资源位置匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_RESOURCE_LOCATION), outboundMap.get(Constants.TITLE_RESOURCE_LOCATION));
         return true;
     }
 
@@ -161,38 +166,43 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }.getType();
         log.info(">>> inbound:{}", inbound);
         log.info(">>> outbound:{}", outbound);
-        Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
-        Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
-        if("否".equals(inboundMap.get(Constants.TITLE_LINK_PRICE)) && "是".equals(outboundMap.get(Constants.TITLE_LINK_PRICE))) {
+        try {
+            Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
+            Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
+            if("否".equals(inboundMap.get(Constants.TITLE_LINK_PRICE)) && "是".equals(outboundMap.get(Constants.TITLE_LINK_PRICE))) {
+                return false;
+            }
+            log.info(">>> 含电商链接单价匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_LINK_PRICE), outboundMap.get(Constants.TITLE_LINK_PRICE));
+            if("否".equals(inboundMap.get(Constants.TITLE_AT)) && "是".equals(outboundMap.get(Constants.TITLE_AT))) {
+                return false;
+            }
+            log.info(">>> AT匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_AT), outboundMap.get(Constants.TITLE_AT));
+            if("否".equals(inboundMap.get(Constants.TITLE_TOPIC)) && "是".equals(outboundMap.get(Constants.TITLE_TOPIC))) {
+                return false;
+            }
+            log.info(">>> 话题匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_TOPIC), outboundMap.get(Constants.TITLE_TOPIC));
+            if("否".equals(inboundMap.get(Constants.TITLE_STORE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_STORE_AUTH))) {
+                return false;
+            }
+            log.info(">>> 电商肖像权匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_STORE_AUTH), outboundMap.get(Constants.TITLE_STORE_AUTH));
+            if("否".equals(inboundMap.get(Constants.TITLE_SHARE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_SHARE_AUTH))) {
+                return false;
+            }
+            log.info(">>> 品牌双微转发授权匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_SHARE_AUTH), outboundMap.get(Constants.TITLE_SHARE_AUTH));
+            if("否".equals(inboundMap.get(Constants.TITLE_MICRO_TASK)) && "是".equals(outboundMap.get(Constants.TITLE_MICRO_TASK))) {
+                return false;
+            }
+            log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",
+                     inboundMap.get(Constants.TITLE_MICRO_TASK), outboundMap.get(Constants.TITLE_MICRO_TASK));
+        } catch(Exception e) {
+            log.error(">>> 库内外其他信息数据匹配异常,inbound:{},outbound:{}", inbound, outbound, e);
             return false;
         }
-        log.info(">>> 含电商链接单价匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_LINK_PRICE), outboundMap.get(Constants.TITLE_LINK_PRICE));
-        if("否".equals(inboundMap.get(Constants.TITLE_AT)) && "是".equals(outboundMap.get(Constants.TITLE_AT))) {
-            return false;
-        }
-        log.info(">>> AT匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_AT), outboundMap.get(Constants.TITLE_AT));
-        if("否".equals(inboundMap.get(Constants.TITLE_TOPIC)) && "是".equals(outboundMap.get(Constants.TITLE_TOPIC))) {
-            return false;
-        }
-        log.info(">>> 话题匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_TOPIC), outboundMap.get(Constants.TITLE_TOPIC));
-        if("否".equals(inboundMap.get(Constants.TITLE_STORE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_STORE_AUTH))) {
-            return false;
-        }
-        log.info(">>> 电商肖像权匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_STORE_AUTH), outboundMap.get(Constants.TITLE_STORE_AUTH));
-        if("否".equals(inboundMap.get(Constants.TITLE_SHARE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_SHARE_AUTH))) {
-            return false;
-        }
-        log.info(">>> 品牌双微转发授权匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_SHARE_AUTH), outboundMap.get(Constants.TITLE_SHARE_AUTH));
-        if("否".equals(inboundMap.get(Constants.TITLE_MICRO_TASK)) && "是".equals(outboundMap.get(Constants.TITLE_MICRO_TASK))) {
-            return false;
-        }
-        log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",
-                 inboundMap.get(Constants.TITLE_MICRO_TASK), outboundMap.get(Constants.TITLE_MICRO_TASK));
         return true;
     }
 
@@ -212,6 +222,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         List<WorkOrderData> workOrderDataListNew = new ArrayList<>();
         WorkOrderData       workOrderData;
         WorkOrderData       workOrderDataNew;
+        String              compareFlag;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
@@ -221,6 +232,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
                 Map<String, String> map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
                 map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XINYI);
+                map.put(Constants.ACTOR_INBOUND, "0");
+                compareFlag = StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                               map.get(Constants.TITLE_ACCOUNT),
+                                               map.get(Constants.TITLE_RESOURCE_LOCATION));
+                map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
                 workOrderData.setData(GsonUtils.gson.toJson(map));
                 // 同步新增一条数据
                 workOrderDataNew = new WorkOrderData();
@@ -228,7 +244,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderDataNew.setProjectId(workOrderDataUpdateReq.getProjectId());
                 workOrderDataNew.setWorkOrderId(workOrderDataUpdateReq.getWorkOrderId());
                 workOrderDataNew.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
+                map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
                 map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEIGE);
+                map.put(Constants.ACTOR_INBOUND, "0");
+                map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
                 workOrderDataNew.setData(GsonUtils.gson.toJson(map));
                 workOrderDataNew.setCtime(DateUtil.date());
                 workOrderDataNew.setUtime(DateUtil.date());
@@ -237,7 +256,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 // 询档
                 // 存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_DATE);
-                workOrderData.setData(workOrderData.getData());
+                Map<String, String> map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
+                map.put(Constants.ACTOR_INBOUND, "1");
+                workOrderData.setData(GsonUtils.gson.toJson(map));
             }
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
@@ -289,7 +310,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
-            workOrderData.setStatus(Constants.WORK_ORDER_QUOTE);
+            workOrderData.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
             workOrderData.setData(workOrderDataUpdateReq.getData());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
@@ -311,6 +332,89 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             WorkOrder workOrder = new WorkOrder();
             workOrder.setId(req.getWorkOrderId());
             workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
+            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+            workOrder.setUtime(DateUtil.date());
+            workOrderDao.updateById(workOrder);
+        }
+        return null;
+    }
+
+    @Override
+    public WorkOrderDataCompareResp quoteList(WorkOrderDataReq req) {
+        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+                                                .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId()));
+        WorkOrderDataCompareResp resp = null;
+        if(!CollectionUtils.isEmpty(list)) {
+            resp = new WorkOrderDataCompareResp();
+            Type type = new TypeToken<Map<String, String>>() {
+            }.getType();
+            List<WorkOrderDataResp> outboundList = new ArrayList<>();
+            List<WorkOrderDataResp> xinYiList    = new ArrayList<>();
+            List<WorkOrderDataResp> weiGeList    = new ArrayList<>();
+            WorkOrderDataResp       outbound;
+            WorkOrderDataResp       xinYi;
+            WorkOrderDataResp       weiGe;
+            Map<String, String>     map;
+            for(WorkOrderData workOrderData : list) {
+                map = GsonUtils.gson.fromJson(workOrderData.getData(), type);
+                String inbound = map.get(Constants.ACTOR_INBOUND);
+                if(!"1".equals(inbound)) {
+                    // 库外
+                    outbound = WorkOrderConverter.entity2WorkOrderDataResp(workOrderData);
+                    outbound.setCompareFlag(map.get(Constants.ACTOR_COMPARE_FLAG));
+                    outboundList.add(outbound);
+                } else {
+                    // 库内 区分供应商
+                    String supplier = map.get(Constants.SUPPLIER_FIELD);
+                    if(Constants.SUPPLIER_XINYI.equals(supplier)) {
+                        // 新意
+                        xinYi = WorkOrderConverter.entity2WorkOrderDataResp(workOrderData);
+                        xinYiList.add(xinYi);
+                    } else {
+                        // 维格
+                        weiGe = WorkOrderConverter.entity2WorkOrderDataResp(workOrderData);
+                        weiGeList.add(weiGe);
+                    }
+                }
+            }
+            resp.setXinYiList(xinYiList);
+            resp.setWeiGeList(weiGeList);
+            //
+            Map<String, List<WorkOrderDataResp>> outboundMap = outboundList
+                    .stream()
+                    .collect(Collectors.groupingBy(WorkOrderDataResp::getCompareFlag, Collectors.toList()));
+            resp.setOutboundMap(outboundMap);
+        }
+        return resp;
+    }
+
+    @Override
+    public Long order(WorkOrderDataOrderReq req) {
+        if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
+            throw new CheckException("提审下单工单数据不能为空");
+        }
+        // 更新工单数据状态
+        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+        WorkOrderData       workOrderData;
+        for(Long workOrderDataId : req.getWorkOrderDataIds()) {
+            workOrderData = new WorkOrderData();
+            workOrderData.setId(workOrderDataId);
+            workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW);
+            workOrderData.setUtime(DateUtil.date());
+            workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderDataList.add(workOrderData);
+        }
+        updateBatchById(workOrderDataList);
+        // 更新工单状态
+        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE);
+        List<WorkOrderData> list = list(wrapper);
+        if(CollectionUtils.isEmpty(list)) {
+            // 更新工单状态为 审核中
+            WorkOrder workOrder = new WorkOrder();
+            workOrder.setId(req.getWorkOrderId());
+            workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
             workOrder.setUpdateUserId(UserInfoContext.getUserId());
             workOrder.setUtime(DateUtil.date());
             workOrderDao.updateById(workOrder);

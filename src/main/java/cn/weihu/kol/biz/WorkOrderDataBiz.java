@@ -2,12 +2,13 @@ package cn.weihu.kol.biz;
 
 import cn.weihu.kol.db.po.WorkOrderData;
 import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
+import cn.weihu.kol.http.req.WorkOrderDataOrderReq;
 import cn.weihu.kol.http.req.WorkOrderDataReq;
 import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
+import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -25,11 +26,15 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     Long updateWorkOrderData(WorkOrderBatchUpdateReq req);
 
-    WorkOrderDataScreeningResp screening(@RequestBody WorkOrderBatchUpdateReq req);
+    WorkOrderDataScreeningResp screening(WorkOrderBatchUpdateReq req);
 
-    Long enquiry(@RequestBody WorkOrderBatchUpdateReq req);
+    Long enquiry(WorkOrderBatchUpdateReq req);
 
-    Long quote(@RequestBody WorkOrderBatchUpdateReq req);
+    Long quote(WorkOrderBatchUpdateReq req);
 
-    Long review(@RequestBody WorkOrderDataReviewReq req);
+    WorkOrderDataCompareResp quoteList(WorkOrderDataReq req);
+
+    Long order(WorkOrderDataOrderReq req);
+
+    Long review(WorkOrderDataReviewReq req);
 }
