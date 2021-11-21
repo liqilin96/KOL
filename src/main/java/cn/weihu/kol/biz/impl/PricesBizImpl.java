@@ -138,19 +138,14 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
         List<List<String>> exprotData = new ArrayList<>();
 
-
         List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
-
         //获取中文表头
         List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
 
         exprotData.add(titleCN);
-
-
         if(StringUtils.isBlank(req.getIds())) {
             List<Prices> pricesList = this.list();
             //导出所有数据
-//            EasyExcelUtil.writeExcel(response,list,"达人报价数据");
             for(Prices prices : pricesList) {
                 List<String> data = new ArrayList<>();
                 addExportData(exprotData, data, prices, newList);
@@ -172,6 +167,29 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public Set<String> starTab(String tab) {
+        //账号类型
+        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.accountType\")) like {0}", "%" + tab + "%");
+
+        List<Prices> prices  = this.baseMapper.selectList(wrapper);
+        Set<String>  tabList = new HashSet<>();
+        for(Prices price : prices) {
+            HashMap hashMap = GsonUtils.gson.fromJson(price.getActorData(), HashMap.class);
+            if(hashMap.get("accountType") != null) {
+                String[] accountTypes = hashMap.get("accountType").toString().split(",");
+                for(int i = 0; i < accountTypes.length; i++) {
+                    String accountType = accountTypes[i];
+                    if(accountType.contains(tab)) {
+                        tabList.add(accountType);
+                    }
+                }
+            }
+        }
+        return tabList;
     }
 
     /**

@@ -21,6 +21,7 @@ import cn.weihu.kol.http.resp.WorkOrderResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.ExceptionUtil;
+import cn.weihu.kol.util.FileUtil;
 import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -231,6 +233,27 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 .map(WorkOrderConverter::entity2WorkOrderResp)
                 .collect(Collectors.toList());
         return new PageResult<>(page.getTotal(), respList);
+    }
+
+    @Override
+    public String importPicture(MultipartFile file) {
+
+        String fileName    = file.getOriginalFilename();
+        String contentType = StringUtils.substringAfterLast(fileName, ".");
+        if(!contentType.equalsIgnoreCase("jpg") && !contentType.equalsIgnoreCase("png")) {
+            throw new CheckException("图片格式上传错误");
+        }
+        String filePath = DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
+        String newFileName = UUID.randomUUID() + "." + contentType;
+        String path = null;
+        try {
+            FileUtil.uploadFile(file.getBytes(), filePath, newFileName);
+            path = (filePath + newFileName).replace("\\", "/");
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new CheckException("上传图片失败");
+        }
+        return path;
     }
 
     public List<String> excelTitle() {

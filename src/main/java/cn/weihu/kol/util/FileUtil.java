@@ -1,47 +1,37 @@
-//package cn.weihu.kol.util;
-//
-//import cn.weihu.kol.container.impl.FileCacheContainerImpl;
-//import com.google.common.base.Charsets;
-//import lombok.extern.slf4j.Slf4j;
-//import org.apache.commons.io.FileUtils;
-//import org.apache.commons.io.IOUtils;
-//import org.apache.commons.lang3.StringUtils;
-//import org.springframework.util.MimeTypeUtils;
-//
-//import javax.servlet.http.HttpServletResponse;
-//import java.io.*;
-//import java.net.URLEncoder;
-//import java.nio.charset.Charset;
-//import java.nio.charset.StandardCharsets;
-//import java.util.Collections;
-//import java.util.List;
-//
-///**
-// * 读取文件内容并解析参数
-// *
-// * @author qinsf
-// */
-//@Slf4j
-//public class FileUtil {
-//
-//
-//    public static void uploadFile(byte[] file, String filePath, String fileName) throws Exception {
-//
-//        File targetFile = new File(FileCacheContainerImpl.saveFilePath + filePath);
-//        if(!targetFile.exists()) {
-//            targetFile.mkdirs();
-//            try {
-//                Runtime.getRuntime().exec("chmod 777 -R " + targetFile);
-//            } catch(Exception ignored) {
-//            }
-//        }
-//        FileOutputStream out = new FileOutputStream(FileCacheContainerImpl.saveFilePath + filePath + fileName);
-//        log.info("保存文件:{}",FileCacheContainerImpl.saveFilePath + filePath + fileName);
-//        out.write(file);
-//        out.flush();
-//        out.close();
-//    }
-//
+package cn.weihu.kol.util;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+/**
+ * 读取文件内容并解析参数
+ *
+ * @author qinsf
+ */
+@Slf4j
+public class FileUtil {
+
+    public static String saveFilePath = null;
+
+    public static void uploadFile(byte[] file, String filePath, String fileName) throws Exception {
+
+        File targetFile = new File(saveFilePath + filePath);
+        if(!targetFile.exists()) {
+            targetFile.mkdirs();
+            try {
+                Runtime.getRuntime().exec("chmod 777 -R " + targetFile);
+            } catch(Exception ignored) {
+            }
+        }
+        FileOutputStream out = new FileOutputStream(saveFilePath + filePath + fileName);
+        log.info("保存文件:{}", saveFilePath + filePath + fileName);
+        out.write(file);
+        out.flush();
+        out.close();
+    }
+
 //    public static void download(HttpServletResponse response, String path, Boolean isDel) {
 //        File file = new File(path.replace("/", File.separator));
 //        log.info("download filepath:{}", file.getPath());
@@ -189,5 +179,5 @@
 //            e.printStackTrace();
 //        }
 //    }
-//
-//}
+
+}

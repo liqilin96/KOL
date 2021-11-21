@@ -8,17 +8,18 @@ import cn.weihu.kol.biz.PricesBiz;
 import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.req.StarExportDataReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
-import cn.weihu.kol.http.resp.PricesLogsBoResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -66,7 +67,16 @@ public class PricesController {
     @ApiOperation(value = "达人报价详情导出", httpMethod = "GET", notes = "达人报价详情导出")
     @GetMapping(value = "/star/export")
     public void export(StarExportDataReq req, HttpServletResponse response) {
-        pricesBiz.exportStarData(response,req);
+        pricesBiz.exportStarData(response, req);
     }
+
+
+    @ApiOperation(value = "查询达人标签", httpMethod = "GET", notes = "达人标签查询返回")
+    @GetMapping(value = "/star/{tab}")
+    public ResultBean<Set<String>> starTab(@PathVariable("tab") String tab) {
+        CheckUtil.notEmpty(tab, "标签不能为空");
+        return new ResultBean<>(pricesBiz.starTab(tab));
+    }
+
 }
 

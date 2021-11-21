@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * <p>
@@ -57,6 +58,14 @@ public class WorkOrderController {
     public ResultBean<PageResult<WorkOrderResp>> waitWorkOrderPage(WorkOrderReq req) {
         CheckUtil.notEmpty(req.getStatus(), "状态不能为空");
         return new ResultBean<>(workOrderBiz.waitWorkOrderPage(req));
+    }
+
+
+    @ApiOperation(value = "上传截图", httpMethod = "POST", notes = "上传截图")
+    @PostMapping(value = "/import/picture")
+    public ResultBean<String> importPicture(@RequestParam("file") MultipartFile file) {
+        CheckUtil.notNull(file, "上传文件不能为空");
+        return new ResultBean<>(workOrderBiz.importPicture(file));
     }
 
 }

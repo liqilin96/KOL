@@ -48,4 +48,6 @@ public interface WorkOrderBiz extends IService<WorkOrder> {
      * @return
      */
     PageResult<WorkOrderResp> waitWorkOrderPage(WorkOrderReq req);
+
+    String importPicture(MultipartFile file);
 }

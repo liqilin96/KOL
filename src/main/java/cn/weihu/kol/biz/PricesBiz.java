@@ -9,6 +9,8 @@ import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -29,4 +31,6 @@ public interface PricesBiz extends IService<Prices> {
     PricesDetailsResp starDetail(PricesLogsReq req);
 
     void exportStarData(HttpServletResponse response,StarExportDataReq req);
+
+    Set<String> starTab(String tab);
 }
