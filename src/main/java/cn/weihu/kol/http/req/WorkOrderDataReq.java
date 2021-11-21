@@ -16,4 +16,7 @@ public class WorkOrderDataReq {
 
     @ApiModelProperty(value = "供应商:新意/维格")
     private String supplier;
+
+    @ApiModelProperty(value = "状态")
+    private String status;
 }

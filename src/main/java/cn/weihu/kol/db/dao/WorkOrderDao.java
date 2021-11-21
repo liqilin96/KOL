@@ -15,6 +15,6 @@ import org.apache.ibatis.annotations.Select;
  */
 public interface WorkOrderDao extends BaseMapper<WorkOrder> {
 
-    @Select("SELECT count(1) FROM kol_work_order WHERE project_id = #{projectId}")
+    @Select("SELECT count(1) FROM kol_work_order WHERE parent_id is null and project_id = #{projectId}")
     Integer getCount(@Param("projectId") Long projectId);
 }
