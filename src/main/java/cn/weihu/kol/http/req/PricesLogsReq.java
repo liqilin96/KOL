@@ -33,5 +33,6 @@ public class PricesLogsReq {
     @ApiModelProperty(value = "条数")
     private Integer pageSize = 10;
 
-
+    @ApiModelProperty("达人id，不传则全部,逗号分割")
+    private String ids;
 }

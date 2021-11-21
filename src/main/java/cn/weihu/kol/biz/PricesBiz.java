@@ -3,13 +3,11 @@ package cn.weihu.kol.biz;
 import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
-import cn.weihu.kol.http.req.StarExportDataReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,7 +28,12 @@ public interface PricesBiz extends IService<Prices> {
 
     PricesDetailsResp starDetail(PricesLogsReq req);
 
-    void exportStarData(HttpServletResponse response,StarExportDataReq req);
+    void exportStarData(HttpServletResponse response,PricesLogsReq req);
 
     Set<String> starTab(String tab);
+
+    PageResult<PricesLogsResp> expirtPrices(PricesLogsReq req);
+
+    void expirtPricesExport(PricesLogsReq req,HttpServletResponse response);
+
 }
