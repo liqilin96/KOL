@@ -51,12 +51,14 @@ public class WorkOrderDataController {
     @ApiOperation(value = "批量更新", httpMethod = "PUT", notes = "批量更新")
     @PutMapping(value = "/update/batch")
     public ResultBean<Long> updateWorkOrderData(@RequestBody WorkOrderBatchUpdateReq req) {
+
         return new ResultBean<>(dataBiz.updateWorkOrderData(req));
     }
 
     @ApiOperation(value = "库内外筛选", httpMethod = "POST", notes = "库内外筛选")
     @PostMapping(value = "/screening")
     public ResultBean<WorkOrderDataScreeningResp> screening(@RequestBody WorkOrderBatchUpdateReq req) {
+        CheckUtil.notNull(req.getProjectId(), "项目ID不能为空");
         return new ResultBean<>(dataBiz.screening(req));
     }
 
@@ -84,6 +86,7 @@ public class WorkOrderDataController {
     @ApiOperation(value = "提审", httpMethod = "POST", notes = "提审")
     @PostMapping(value = "/order")
     public ResultBean<Long> order(@RequestBody WorkOrderDataOrderReq req) {
+        CheckUtil.notNull(req.getProjectId(), "项目ID不能为空");
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
         return new ResultBean<>(dataBiz.order(req));
     }
@@ -91,6 +94,7 @@ public class WorkOrderDataController {
     @ApiOperation(value = "审核", httpMethod = "POST", notes = "审核")
     @PostMapping(value = "/review")
     public ResultBean<Long> review(@RequestBody WorkOrderDataReviewReq req) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
         CheckUtil.notEmpty(req.getStatus(), "审核结果状态不能为空");
         return new ResultBean<>(dataBiz.review(req));
     }

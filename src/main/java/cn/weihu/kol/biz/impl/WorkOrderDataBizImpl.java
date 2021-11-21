@@ -1,12 +1,8 @@
 package cn.weihu.kol.biz.impl;
 
-import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
-import cn.weihu.kol.biz.FieldsBiz;
-import cn.weihu.kol.biz.PricesBiz;
-import cn.weihu.kol.biz.PricesLogsBiz;
-import cn.weihu.kol.biz.WorkOrderDataBiz;
+import cn.weihu.kol.biz.*;
 import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.convert.WorkOrderConverter;
@@ -22,6 +18,7 @@ import cn.weihu.kol.userinfo.UserInfoContext;
 import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.MD5Util;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.reflect.TypeToken;
@@ -58,6 +55,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private PricesBiz     pricesBiz;
     @Autowired
     private PricesLogsBiz pricesLogsBiz;
+    @Autowired
+    private QuoteBiz      quoteBiz;
     @Resource
     private WorkOrderDao  workOrderDao;
 
@@ -98,38 +97,70 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("筛选内容不能为空");
         }
-        // 获取所有达人信息
-        List<Prices> pricesList = pricesBiz.list();
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
         List<WorkOrderDataResp> list = new ArrayList<>();
         WorkOrderDataResp       workOrderDataResp;
         Map<String, String>     map;
+        String                  actorSn;
         for(WorkOrderDataUpdateReq updateReq : req.getList()) {
-            // 根据 媒体、账号、资源位置 匹配相同需求数据
-            // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
-            List<Prices> collect = pricesList.stream()
-                    .filter(prices -> 0 != prices.getInbound())
-                    .filter(prices -> screeningBasis(prices.getActorData(), updateReq.getData()))
-                    .filter(prices -> screeningOther(prices.getActorData(), updateReq.getData()))
-                    .collect(Collectors.toList());
             workOrderDataResp = new WorkOrderDataResp();
-            if(collect.isEmpty()) {
-                // 非库内数据
-                workOrderDataResp.setWorkOrderDataId(updateReq.getId());
-                workOrderDataResp.setFieldsId(updateReq.getFieldsId());
-                workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
-                workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
-                workOrderDataResp.setData(updateReq.getData());
-                workOrderDataResp.setInbound(0);
+            // 根据 媒体、账号、资源位置 匹配相同需求数据
+            map = GsonUtils.gson.fromJson(updateReq.getData(), type);
+            actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                                      map.get(Constants.TITLE_ACCOUNT),
+                                                      map.get(Constants.TITLE_RESOURCE_LOCATION)));
+            boolean flag = true;
+            // kol表
+            Prices prices = pricesBiz.getOneByActorSn(actorSn);
+            if(Objects.nonNull(prices)) {
+                // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
+                flag = screeningOther(prices.getActorData(), updateReq.getData());
+            }
+            if(!flag) {
+                // kol库匹配失败
+                // 报价表
+                Quote quote = quoteBiz.getOneByActorSn(req.getProjectId(), actorSn);
+                if(Objects.nonNull(quote)) {
+                    // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
+                    flag = screeningOther(quote.getActorData(), updateReq.getData());
+                    workOrderDataResp.setWorkOrderDataId(updateReq.getId());
+                    workOrderDataResp.setFieldsId(updateReq.getFieldsId());
+                    workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
+                    workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
+                    if(flag) {
+                        // 报价库库匹配成功
+                        // 库内数据
+                        map = GsonUtils.gson.fromJson(quote.getActorData(), type);
+                        map.put(Constants.ACTOR_DATA_SN, actorSn);
+                        workOrderDataResp.setData(GsonUtils.gson.toJson(map));
+                        workOrderDataResp.setInbound(1);
+                    } else {
+                        // 库外数据
+                        map.put(Constants.ACTOR_DATA_SN, actorSn);
+                        workOrderDataResp.setData(GsonUtils.gson.toJson(map));
+                        workOrderDataResp.setInbound(0);
+                    }
+                } else {
+                    // 库外数据
+                    workOrderDataResp.setWorkOrderDataId(updateReq.getId());
+                    workOrderDataResp.setFieldsId(updateReq.getFieldsId());
+                    workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
+                    workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
+                    map.put(Constants.ACTOR_DATA_SN, actorSn);
+                    workOrderDataResp.setData(GsonUtils.gson.toJson(map));
+                    workOrderDataResp.setData(updateReq.getData());
+                    workOrderDataResp.setInbound(0);
+                }
             } else {
+                // kol库匹配成功
                 // 库内数据
                 workOrderDataResp.setWorkOrderDataId(updateReq.getId());
                 workOrderDataResp.setFieldsId(updateReq.getFieldsId());
                 workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
-                map = GsonUtils.gson.fromJson(collect.get(0).getActorData(), type);
-                map.put(Constants.ACTOR_DATA_SN, String.valueOf(collect.get(0).getActorSn()));
+                map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+                map.put(Constants.ACTOR_DATA_SN, actorSn);
                 workOrderDataResp.setData(GsonUtils.gson.toJson(map));
                 workOrderDataResp.setInbound(1);
             }
@@ -145,36 +176,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         // 数据
         resp.setList(list);
         return resp;
-    }
-
-    private boolean screeningBasis(String inbound, String outbound) {
-        Type type = new TypeToken<Map<String, String>>() {
-        }.getType();
-        log.info(">>> inbound:{}", inbound);
-        log.info(">>> outbound:{}", outbound);
-        try {
-            Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
-            Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
-            if(!inboundMap.get(Constants.TITLE_MEDIA).equals(outboundMap.get(Constants.TITLE_MEDIA))) {
-                return false;
-            }
-            log.info(">>> 媒体匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_MEDIA), outboundMap.get(Constants.TITLE_MEDIA));
-            if(!inboundMap.get(Constants.TITLE_ACCOUNT).equals(outboundMap.get(Constants.TITLE_ACCOUNT))) {
-                return false;
-            }
-            log.info(">>> 账号匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_ACCOUNT), outboundMap.get(Constants.TITLE_ACCOUNT));
-            if(!inboundMap.get(Constants.TITLE_RESOURCE_LOCATION).equals(outboundMap.get(Constants.TITLE_RESOURCE_LOCATION))) {
-                return false;
-            }
-            log.info(">>> 资源位置匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_RESOURCE_LOCATION), outboundMap.get(Constants.TITLE_RESOURCE_LOCATION));
-        } catch(Exception e) {
-            log.error(">>> 库内外基础信息数据筛选异常,inbound:{},outbound:{}", inbound, outbound, e);
-            return false;
-        }
-        return true;
     }
 
     private boolean screeningOther(String inbound, String outbound) {
@@ -216,7 +217,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",
                      inboundMap.get(Constants.TITLE_MICRO_TASK), outboundMap.get(Constants.TITLE_MICRO_TASK));
         } catch(Exception e) {
-            log.error(">>> 库内外其他信息数据匹配异常,inbound:{},outbound:{}", inbound, outbound, e);
+            log.error(">>> 库内外信息数据匹配异常,inbound:{},outbound:{}", inbound, outbound, e);
             return false;
         }
         return true;
@@ -320,9 +321,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         // 更新工单数据状态
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
-        List<PricesLogs>    pricesLogsList    = new ArrayList<>();
         WorkOrderData       workOrderData;
-        PricesLogs          pricesLogs;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
@@ -331,13 +330,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             workOrderDataList.add(workOrderData);
-
-            pricesLogs = WorkOrderConverter.workOrderData2PricesLogs(workOrderDataUpdateReq);
-            pricesLogsList.add(pricesLogs);
         }
         updateBatchById(workOrderDataList);
-        // 插入报价记录表
-        pricesLogsBiz.saveBatch(pricesLogsList);
         // 更新询价工单状态
         WorkOrder workOrder = workOrderDao.selectById(req.getWorkOrderId());
         workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
@@ -428,20 +422,51 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
-        // 更新工单状态
-        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
-                .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE);
-        List<WorkOrderData> list = list(wrapper);
-        if(CollectionUtils.isEmpty(list)) {
-            // 更新工单状态为 审核中
-            WorkOrder workOrder = new WorkOrder();
-            workOrder.setId(req.getWorkOrderId());
-            workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
-            workOrder.setUpdateUserId(UserInfoContext.getUserId());
-            workOrder.setUtime(DateUtil.date());
-            workOrderDao.updateById(workOrder);
+        // 处理未勾选的数据状态 新增至报价表
+        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                                                .ne(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW));
+        if(!CollectionUtils.isEmpty(list)) {
+            workOrderDataList.clear();
+            List<Quote> quoteList = new ArrayList<>();
+            Quote       quote;
+            Type type = new TypeToken<Map<String, String>>() {
+            }.getType();
+            Map<String, String> map;
+            for(WorkOrderData unSelect : list) {
+                unSelect.setStatus(Constants.WORK_ORDER_DATA_QUOTE_UNSELECTED);
+                unSelect.setUtime(DateUtil.date());
+                unSelect.setUpdateUserId(UserInfoContext.getUserId());
+                workOrderDataList.add(unSelect);
+
+                quote = new Quote();
+                quote.setProjectId(req.getProjectId());
+                map = GsonUtils.gson.fromJson(unSelect.getData(), type);
+                quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
+                quote.setActorData(unSelect.getData());
+                quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                    Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+                quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                               Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+                quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                // 保价到期时间14天后
+                quote.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
+                quote.setEnableFlag(1);
+                quote.setCtime(DateUtil.date());
+                quote.setUtime(DateUtil.date());
+                quote.setCreateUserId(UserInfoContext.getUserId());
+                quote.setUpdateUserId(UserInfoContext.getUserId());
+                quoteList.add(quote);
+            }
+            updateBatchById(workOrderDataList);
+            quoteBiz.saveBatch(quoteList);
         }
+        // 更新工单状态为 审核中
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setId(req.getWorkOrderId());
+        workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrder.setUtime(DateUtil.date());
+        workOrderDao.updateById(workOrder);
         return null;
     }
 
@@ -454,83 +479,116 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                   Constants.WORK_ORDER_DATA_REVIEW_REJECT)) {
             throw new CheckException("审核状态不合法");
         }
-        // 更新工单数据状态
+        if(Constants.WORK_ORDER_DATA_REVIEW_REJECT.equals(req.getStatus())) {
+            // 审核驳回 返回上一步
+            reviewReject(req.getWorkOrderId());
+            log.info(">>> 审核驳回,workOrderId:{}", req.getWorkOrderId());
+            return null;
+        }
+        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+                                                .in(WorkOrderData::getId, req.getWorkOrderDataIds()));
+        if(CollectionUtils.isEmpty(list)) {
+            throw new CheckException("审核工单数据不存在");
+        }
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
-        WorkOrderData       workOrderData;
-        for(Long workOrderDataId : req.getWorkOrderDataIds()) {
-            workOrderData = new WorkOrderData();
-            workOrderData.setId(workOrderDataId);
+        List<Prices>        pricesList        = new ArrayList<>();
+        List<PricesLogs>    pricesLogsList    = new ArrayList<>();
+        List<Quote>         quoteList         = new ArrayList<>();
+        Prices              prices;
+        PricesLogs          pricesLogs;
+        Quote               quote;
+        Map<String, String> map;
+        String              inbound;
+        String              actorSn;
+        for(WorkOrderData workOrderData : list) {
+            // 更新工单数据
             workOrderData.setStatus(req.getStatus());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             workOrderDataList.add(workOrderData);
+            // 判断库内外,库外新增,工单数据更新记录
+            map = GsonUtils.gson.fromJson(workOrderData.getData(), type);
+            inbound = map.get(Constants.ACTOR_INBOUND);
+            actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                                      map.get(Constants.TITLE_ACCOUNT),
+                                                      map.get(Constants.TITLE_RESOURCE_LOCATION)));
+            if("0".equals(inbound)) {
+                // 库外数据审核通过 入kol库,并更新报价库enable标识
+                // kol资源表
+                prices = new Prices();
+                prices.setActorSn(actorSn);
+                prices.setActorData(workOrderData.getData());
+                prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                prices.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                     Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+                prices.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+                prices.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                prices.setCtime(DateUtil.date());
+                prices.setUtime(DateUtil.date());
+                prices.setCreateUserId(UserInfoContext.getUserId());
+                prices.setUpdateUserId(UserInfoContext.getUserId());
+                pricesList.add(prices);
+
+                quote = new Quote();
+                quote.setActorSn(actorSn);
+                quote.setProjectId(workOrderData.getProjectId());
+                quote.setEnableFlag(0);
+                quote.setUtime(DateUtil.date());
+                quote.setUpdateUserId(UserInfoContext.getUserId());
+                quoteList.add(quote);
+            }
+            // 报价记录表
+            pricesLogs = new PricesLogs();
+            pricesLogs.setActorSn(actorSn);
+            pricesLogs.setActorData(workOrderData.getData());
+            if(Constants.WORK_ORDER_DATA_REVIEW_PASS.equals(req.getStatus())) {
+                pricesLogs.setInbound(1);
+                pricesLogs.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+            } else {
+                pricesLogs.setInbound(0);
+                pricesLogs.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
+            }
+            pricesLogs.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                     Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+            pricesLogs.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+            pricesLogs.setProvider(map.get(Constants.ACTOR_PROVIDER));
+            pricesLogs.setCtime(DateUtil.date());
+            pricesLogs.setUtime(DateUtil.date());
+            pricesLogs.setCreateUserId(UserInfoContext.getUserId());
+            pricesLogs.setUpdateUserId(UserInfoContext.getUserId());
+            pricesLogsList.add(pricesLogs);
         }
         updateBatchById(workOrderDataList);
-        // 下单
-        Type type = new TypeToken<Map<String, String>>() {
-        }.getType();
-        if(Constants.WORK_ORDER_DATA_REVIEW_PASS.equals(req.getStatus())) {
-            // 审核通过处理
-            List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
-                                                    .in(WorkOrderData::getId, req.getWorkOrderDataIds()));
-            if(!CollectionUtils.isEmpty(list)) {
-                // 判断库内外,库内更新,库外新增,工单数据更新记录
-                List<Prices>        updateList = new ArrayList<>();
-                List<Prices>        insertList = new ArrayList<>();
-                Prices              update;
-                Prices              insert;
-                Map<String, String> map;
-                for(WorkOrderData data : list) {
-                    map = GsonUtils.gson.fromJson(data.getData(), type);
-                    String actorSn = map.get(Constants.ACTOR_DATA_SN);
-                    if(StringUtils.isNotBlank(actorSn)) {
-                        update = pricesBiz.getOneByActorSn(actorSn);
-                        update.setActorData(data.getData());
-                        update.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
-                                             Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : 0);
-                        update.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
-                                        Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
-                        update.setProvider(map.get(Constants.ACTOR_PROVIDER));
-                        update.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
-                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATE_PATTERN) : null);
-                        update.setUtime(DateUtil.date());
-                        update.setUpdateUserId(UserInfoContext.getUserId());
-                        updateList.add(update);
-                    } else {
-                        insert = new Prices();
-                        actorSn = StringUtils.join(map.get(Constants.TITLE_MEDIA),
-                                                   map.get(Constants.TITLE_ACCOUNT),
-                                                   map.get(Constants.TITLE_RESOURCE_LOCATION));
-                        insert.setActorSn(MD5Util.getMD5(actorSn));
-                        insert.setActorData(data.getData());
-                        insert.setInbound(1);
-                        insert.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
-                                             Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : 0);
-                        insert.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
-                                        Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : 0);
-                        insert.setProvider(map.get(Constants.ACTOR_PROVIDER));
-                        insert.setInsureEndtime(StringUtils.isNotBlank(map.get(Constants.ACTOR_INSURE)) ?
-                                                DateUtil.parse(map.get(Constants.ACTOR_INSURE), DatePattern.NORM_DATE_PATTERN) : null);
-                        insert.setCtime(DateUtil.date());
-                        insert.setUtime(DateUtil.date());
-                        insert.setCreateUserId(UserInfoContext.getUserId());
-                        insert.setUpdateUserId(UserInfoContext.getUserId());
-                        insertList.add(insert);
-                    }
-                }
-                if(!CollectionUtils.isEmpty(updateList)) {
-                    // 更新
-                    pricesBiz.updateBatchById(updateList);
-                }
-                if(!CollectionUtils.isEmpty(insertList)) {
-                    // 新增
-                    pricesBiz.saveBatch(insertList);
-                }
-            }
-        } else {
-            // TODO: 2021/11/18   审核驳回处理
-
+        if(!CollectionUtils.isEmpty(pricesList)) {
+            pricesBiz.saveBatch(pricesList);
+        }
+        if(!CollectionUtils.isEmpty(pricesLogsList)) {
+            pricesLogsBiz.saveBatch(pricesLogsList);
+        }
+        if(!CollectionUtils.isEmpty(quoteList)) {
+            quoteBiz.updateBatchByActorSn(quoteList);
         }
         return null;
+    }
+
+    private void reviewReject(Long workOrderId) {
+        // 更新工单数据状态 -> 已报价
+        LambdaUpdateWrapper<WorkOrderData> wrapper = Wrappers.lambdaUpdate(WorkOrderData.class);
+        wrapper.set(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE)
+                .set(WorkOrderData::getUtime, DateUtil.date())
+                .set(WorkOrderData::getUpdateUserId, UserInfoContext.getUserId())
+                .eq(WorkOrderData::getWorkOrderId, workOrderId);
+        update(wrapper);
+        // 更新工单状态 -> 已报价
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setId(workOrderId);
+        workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
+        workOrder.setUtime(DateUtil.date());
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrderDao.updateById(workOrder);
     }
 }

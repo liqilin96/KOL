@@ -10,7 +10,6 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Date;
 
 /**
  * <p>
@@ -36,9 +35,6 @@ public class Prices implements Serializable {
 
     @ApiModelProperty(value = "达人信息")
     private String actorData;
-
-    @ApiModelProperty(value = "是否库内")
-    private Integer inbound;
 
     @ApiModelProperty(value = "佣金%")
     private Integer commission;

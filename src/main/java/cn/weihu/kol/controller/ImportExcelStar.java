@@ -180,7 +180,6 @@ public class ImportExcelStar {
             //平台+名称+资源 + MD5
             prices.setActorSn(MD5Util.getMD5(bo.get(0) + bo.get(2) + bo.get(6)));
             prices.setCommission(StringUtils.isNotBlank(bo.get(19)) ? Integer.parseInt(bo.get(19).substring(0, 2)) : null);
-            prices.setInbound(1);
             prices.setPrice(Double.parseDouble(bo.get(18)));
             prices.setProvider(bo.get(23));
             prices.setInsureEndtime(strToDate(bo.get(22)));

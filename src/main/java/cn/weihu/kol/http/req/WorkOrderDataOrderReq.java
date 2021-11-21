@@ -10,6 +10,9 @@ import java.util.List;
 @ApiModel(value = "工单数据提审请求实体类", description = "描述")
 public class WorkOrderDataOrderReq {
 
+    @ApiModelProperty(value = "项目ID")
+    private Long projectId;
+
     @ApiModelProperty(value = "工单ID")
     private Long workOrderId;
 

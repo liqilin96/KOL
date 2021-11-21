@@ -22,16 +22,17 @@ public interface Constants {
 
     /**
      * 工单数据状态
-     * 新建、询价、询档、已报价、审核中、审核通过、审核驳回、下单
+     * 新建、询价、询档、已报价、报价失效、审核中、审核通过、审核驳回、下单
      */
-    String WORK_ORDER_DATA_NEW           = "NEW";
-    String WORK_ORDER_DATA_ASK_PRICE     = "ASK_PRICE";
-    String WORK_ORDER_DATA_ASK_DATE      = "ASK_DATE";
-    String WORK_ORDER_DATA_QUOTE         = "QUOTE";
-    String WORK_ORDER_DATA_REVIEW        = "REVIEW";
-    String WORK_ORDER_DATA_REVIEW_PASS   = "REVIEW_PASS";
-    String WORK_ORDER_DATA_REVIEW_REJECT = "REVIEW_REJECT";
-    String WORK_ORDER_DATA_ORDER         = "ORDER";
+    String WORK_ORDER_DATA_NEW              = "NEW";
+    String WORK_ORDER_DATA_ASK_PRICE        = "ASK_PRICE";
+    String WORK_ORDER_DATA_ASK_DATE         = "ASK_DATE";
+    String WORK_ORDER_DATA_QUOTE            = "QUOTE";
+    String WORK_ORDER_DATA_QUOTE_UNSELECTED = "QUOTE_UNSELECTED";
+    String WORK_ORDER_DATA_REVIEW           = "REVIEW";
+    String WORK_ORDER_DATA_REVIEW_PASS      = "REVIEW_PASS";
+    String WORK_ORDER_DATA_REVIEW_REJECT    = "REVIEW_REJECT";
+    String WORK_ORDER_DATA_ORDER            = "ORDER";
 
     /**
      * 供应商

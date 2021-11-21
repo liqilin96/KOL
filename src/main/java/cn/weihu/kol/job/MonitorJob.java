@@ -1,15 +1,9 @@
 package cn.weihu.kol.job;
 
 import cn.hutool.core.date.DateUtil;
-import cn.weihu.kol.biz.MessageBiz;
-import cn.weihu.kol.biz.PricesBiz;
-import cn.weihu.kol.biz.WorkOrderBiz;
-import cn.weihu.kol.biz.WorkOrderDataBiz;
+import cn.weihu.kol.biz.*;
 import cn.weihu.kol.constants.Constants;
-import cn.weihu.kol.db.po.Message;
-import cn.weihu.kol.db.po.Prices;
-import cn.weihu.kol.db.po.WorkOrder;
-import cn.weihu.kol.db.po.WorkOrderData;
+import cn.weihu.kol.db.po.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +12,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -29,6 +25,8 @@ public class MonitorJob {
     @Value("${price.expire.remind:30}")
     private Integer expireRemind;
 
+    @Autowired
+    private ProjectBiz       projectBiz;
     @Autowired
     private PricesBiz        pricesBiz;
     @Autowired
@@ -47,12 +45,22 @@ public class MonitorJob {
                                                    .ge(Prices::getInsureEndtime, compareTime));
         if(!CollectionUtils.isEmpty(list)) {
             log.info(">>> 存在一个月后保价到期数据...size:{}", list.size());
-            // 创建保价到期项目
+            // 创建保价即将到期项目
+            String  name    = "保价即将到期";
+            Project project = projectBiz.getOne(new LambdaQueryWrapper<>(Project.class).eq(Project::getName, name));
+            if(Objects.isNull(project)) {
+                project = new Project();
+                project.setName(name);
+                project.setDescs("保价即将到期项目");
+                project.setCtime(LocalDateTime.now());
+                project.setUtime(LocalDateTime.now());
+                projectBiz.save(project);
+            }
             log.info(">>> 保价即将到期项目已生成...");
             // 生成保价到期询价工单
             WorkOrder workOrder = new WorkOrder();
-            workOrder.setProjectId(1L);
-            workOrder.setProjectName("保价即将到期");
+            workOrder.setProjectId(project.getId());
+            workOrder.setProjectName(project.getName());
             Long workOrderId = workOrderBiz.create(workOrder, Constants.WORK_ORDER_EXPIRE_DEMAND, Constants.WORK_ORDER_ASK);
             log.info(">>> 保价即将到期工单已生成...");
             // 生成工单数据及提醒消息
@@ -63,7 +71,7 @@ public class MonitorJob {
             for(Prices prices : list) {
                 workOrderData = new WorkOrderData();
                 workOrderData.setFieldsId(1L);
-                workOrderData.setProjectId(1L);
+                workOrderData.setProjectId(project.getId());
                 workOrderData.setWorkOrderId(workOrderId);
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
                 workOrderData.setData(prices.getActorData());
