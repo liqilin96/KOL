@@ -68,11 +68,10 @@ public class WorkOrderController {
     }
 
     @ApiOperation(value = "截图下载", httpMethod = "GET", notes = "截图下载")
-    @GetMapping(value = "/download/{date}/{path}")
-    public void downloadPicTure(@PathVariable("date") String date, @PathVariable("path") String path ,HttpServletResponse response) {
-        CheckUtil.notNull(date, "图片目录不能为空");
+    @GetMapping(value = "/download")
+    public void downloadPicTure(String path ,HttpServletResponse response) {
         CheckUtil.notNull(path, "图片地址不能为空");
-        workOrderBiz.downloadPicTure(date + "/" + path, response);
+        workOrderBiz.downloadPicTure(path, response);
     }
 
 
