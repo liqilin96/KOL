@@ -6,7 +6,6 @@ import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.PricesBiz;
 import cn.weihu.kol.http.req.PricesLogsReq;
-import cn.weihu.kol.http.req.StarExportDataReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import io.swagger.annotations.Api;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -66,7 +64,7 @@ public class PricesController {
 
     @ApiOperation(value = "达人报价详情导出", httpMethod = "GET", notes = "达人报价详情导出")
     @GetMapping(value = "/star/export")
-    public void export(StarExportDataReq req, HttpServletResponse response) {
+    public void export(PricesLogsReq req, HttpServletResponse response) {
         pricesBiz.exportStarData(response, req);
     }
 
@@ -78,5 +76,18 @@ public class PricesController {
         return new ResultBean<>(pricesBiz.starTab(tab));
     }
 
+
+    @ApiOperation(value = "保价即将到期", httpMethod = "GET", notes = "保价即将到期")
+    @GetMapping(value = "/star/expirt")
+    public ResultBean<PageResult<PricesLogsResp>> expirtPrices(PricesLogsReq req) {
+        return new ResultBean<>(pricesBiz.expirtPrices(req));
+    }
+
+
+    @ApiOperation(value = "保价即将到期导出", httpMethod = "GET", notes = "保价即将到期导出")
+    @GetMapping(value = "/star/expirt/export")
+    public void expirtPricesExport(PricesLogsReq req,HttpServletResponse response) {
+        pricesBiz.expirtPricesExport(req,response);
+    }
 }
 

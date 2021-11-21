@@ -8,7 +8,6 @@ import cn.weihu.kol.db.dao.PricesDao;
 import cn.weihu.kol.db.po.Fields;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
-import cn.weihu.kol.http.req.StarExportDataReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import cn.weihu.kol.util.EasyExcelUtil;
@@ -129,7 +128,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     }
 
     @Override
-    public void exportStarData(HttpServletResponse response, StarExportDataReq req) {
+    public void exportStarData(HttpServletResponse response, PricesLogsReq req) {
         //4 是报价历史
         Fields fields = fieldsBiz.getById(4);
         //获取字段列表
@@ -192,6 +191,79 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         return tabList;
     }
 
+
+    @Override
+    public PageResult<PricesLogsResp> expirtPrices(PricesLogsReq req) {
+
+        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+
+        if(StringUtils.isNotBlank(req.getStarName())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getPlatform() + "%");
+
+        }
+        if(StringUtils.isNotBlank(req.getPlatform())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
+        }
+        wrapper.between(Prices::getInsureEndtime, new Date(), expirtDate(new Date()));
+        Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
+
+        List<PricesLogsResp> respList = pricesPage.getRecords().stream().map(x -> {
+            PricesLogsResp resp = new PricesLogsResp();
+            BeanUtils.copyProperties(x, resp);
+            return resp;
+        }).collect(Collectors.toList());
+
+        return new PageResult<>(pricesPage.getTotal(), respList);
+    }
+
+    @Override
+    public void expirtPricesExport(PricesLogsReq req, HttpServletResponse response) {
+
+        //4 是报价历史
+        Fields fields = fieldsBiz.getById(4);
+        //获取字段列表
+        List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
+        }.getType());
+
+        List<List<String>> exprotData = new ArrayList<>();
+
+        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+        //获取中文表头
+        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
+
+        exprotData.add(titleCN);
+        if(StringUtils.isBlank(req.getIds())) {
+            List<PricesLogsResp> records = this.expirtPrices(req).getRecords();
+            List<Prices> pricesList = records.stream().map(x -> {
+                Prices prices = new Prices();
+                BeanUtils.copyProperties(x, prices);
+                return prices;
+            }).collect(Collectors.toList());
+            //导出所有数据
+            for(Prices prices : pricesList) {
+                List<String> data = new ArrayList<>();
+                addExportData(exprotData, data, prices, newList);
+            }
+        } else {
+
+            String[] split = req.getIds().split(",");
+            for(int i = 0; i < split.length; i++) {
+                List<String> data   = new ArrayList<>();
+                String       id     = split[i];
+                Prices       prices = getById(id);
+                addExportData(exprotData, data, prices, newList);
+            }
+        }
+        try {
+            EasyExcelUtil.writeExcel(response, exprotData, "保价即将到期");
+        } catch(
+                Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
     /**
      * @param exprotData 导出的数据
      * @param data       每一条数据
@@ -218,6 +290,18 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             }
         }
         exprotData.add(data);
+    }
+
+
+    //返回15天的日子
+    private Date expirtDate(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.DATE, 15);
+        System.out.println("---------------------------------------------");
+        System.out.println(c.getTime() + "============" + new Date());
+        System.out.println("---------------------------------------------");
+        return c.getTime();
     }
 
 }
