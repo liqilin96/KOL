@@ -1,9 +1,12 @@
 package cn.weihu.kol.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.springframework.util.MimeTypeUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 
 /**
  * 读取文件内容并解析参数
@@ -32,38 +35,41 @@ public class FileUtil {
         out.close();
     }
 
-//    public static void download(HttpServletResponse response, String path, Boolean isDel) {
-//        File file = new File(path.replace("/", File.separator));
-//        log.info("download filepath:{}", file.getPath());
-//        InputStream inputStream = null;
-//        try {
-//            if(file.exists()) {
-//                response.setContentType(MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);
-//                response.addHeader("Content-Disposition", "attachment;filename=" + new String(file.getName().getBytes(), "ISO8859-1"));
-//                response.addHeader("Content-Length", "" + file.length());
-//                inputStream = new BufferedInputStream(new FileInputStream(file));
-//                IOUtils.copy(inputStream, response.getOutputStream());
-//                response.getOutputStream().close();
-//            } else {
-//                response.setStatus(500);
-//                response.addHeader("code", "-1");
-//                response.addHeader("error", "file not exist");
-//            }
-//        } catch(Exception e) {
-//            log.error("文件合成异常", e);
-//        } finally {
-//            if(inputStream != null) {
-//                try {
-//                    inputStream.close();
-//                } catch(IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            if(isDel) {
-//                FileUtils.deleteQuietly(file);
-//            }
-//        }
-//    }
+    public static void download(HttpServletResponse response, String path, Boolean isDel) {
+
+        path = saveFilePath + path;
+
+        File file = new File(path.replace("/", File.separator));
+        log.info("download filepath:{}", file.getPath());
+        InputStream inputStream = null;
+        try {
+            if(file.exists()) {
+                response.setContentType(MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);
+                response.addHeader("Content-Disposition", "attachment;filename=" + new String(file.getName().getBytes(), "ISO8859-1"));
+                response.addHeader("Content-Length", "" + file.length());
+                inputStream = new BufferedInputStream(new FileInputStream(file));
+                IOUtils.copy(inputStream, response.getOutputStream());
+                response.getOutputStream().close();
+            } else {
+                response.setStatus(500);
+                response.addHeader("code", "-1");
+                response.addHeader("error", "file not exist");
+            }
+        } catch(Exception e) {
+            log.error("文件合成异常", e);
+        } finally {
+            if(inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(isDel) {
+                FileUtils.deleteQuietly(file);
+            }
+        }
+    }
 //
 //    public static void downloadTemplate(String pararms, String name, HttpServletResponse response) {
 //        List<String> heads = CSVUtils.params2Head(pararms);

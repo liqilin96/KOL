@@ -256,6 +256,12 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         return path;
     }
 
+    @Override
+    public void downloadPicTure(String picturePath, HttpServletResponse response) {
+
+        FileUtil.download(response, picturePath, false);
+    }
+
     public List<String> excelTitle() {
         return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "粉丝数", "资源位置", "数量", "发布开始时间",
                              "发布结束时间", "含电商链接单价", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",

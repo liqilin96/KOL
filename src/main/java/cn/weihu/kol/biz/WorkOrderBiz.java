@@ -50,4 +50,7 @@ public interface WorkOrderBiz extends IService<WorkOrder> {
     PageResult<WorkOrderResp> waitWorkOrderPage(WorkOrderReq req);
 
     String importPicture(MultipartFile file);
+
+    void downloadPicTure(String picturePath, HttpServletResponse response);
+
 }

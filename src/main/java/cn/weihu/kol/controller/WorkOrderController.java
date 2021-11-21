@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 
 /**
  * <p>
@@ -67,6 +66,15 @@ public class WorkOrderController {
         CheckUtil.notNull(file, "上传文件不能为空");
         return new ResultBean<>(workOrderBiz.importPicture(file));
     }
+
+    @ApiOperation(value = "截图下载", httpMethod = "GET", notes = "截图下载")
+    @GetMapping(value = "/download/{date}/{path}")
+    public void downloadPicTure(@PathVariable("date") String date, @PathVariable("path") String path ,HttpServletResponse response) {
+        CheckUtil.notNull(date, "图片目录不能为空");
+        CheckUtil.notNull(path, "图片地址不能为空");
+        workOrderBiz.downloadPicTure(date + "/" + path, response);
+    }
+
 
 }
 
