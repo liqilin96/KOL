@@ -163,7 +163,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 map.put(Constants.ACTOR_INBOUND, "1");
                 workOrderDataResp.setData(GsonUtils.gson.toJson(map));
                 workOrderDataResp.setInbound(1);
-
             }
             list.add(workOrderDataResp);
             workOrderData = new WorkOrderData();
@@ -242,19 +241,22 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         // 更新工单数据
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
+        Map<String, String> map;
         List<WorkOrderData> workOrderDataList    = new ArrayList<>();
         List<WorkOrderData> workOrderDataListNew = new ArrayList<>();
         WorkOrderData       workOrderData;
         WorkOrderData       workOrderDataNew;
         String              compareFlag;
+        boolean             existXinYi           = false;
+        boolean             existWeiGe           = false;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
+            map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
             if(1 == workOrderDataUpdateReq.getAskType()) {
                 // 询价
                 // 不存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
-                Map<String, String> map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
                 map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XIN_YI);
                 map.put(Constants.ACTOR_INBOUND, "0");
                 compareFlag = StringUtils.join(map.get(Constants.TITLE_MEDIA),
@@ -276,13 +278,20 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderDataNew.setCtime(DateUtil.date());
                 workOrderDataNew.setUtime(DateUtil.date());
                 workOrderDataListNew.add(workOrderDataNew);
+                existXinYi = true;
+                existWeiGe = true;
             } else {
                 // 询档
                 // 存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_DATE);
-                Map<String, String> map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
                 map.put(Constants.ACTOR_INBOUND, "1");
                 workOrderData.setData(GsonUtils.gson.toJson(map));
+                if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
+                    existXinYi = true;
+                }
+                if(Constants.SUPPLIER_WEI_GE.equals(map.get(Constants.SUPPLIER_FIELD))) {
+                    existWeiGe = true;
+                }
             }
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
@@ -291,11 +300,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         updateBatchById(workOrderDataList);
         if(!workOrderDataListNew.isEmpty()) {
             saveBatch(workOrderDataListNew);
-            // 生成 询价/询档工单
-            createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
         }
         // 生成 询价/询档工单
-        createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_XIN_YI);
+        if(existXinYi) {
+            createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_XIN_YI);
+        }
+        if(existWeiGe) {
+            createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
+        }
         // 更新需求工单状态
         workOrder.setStatus(Constants.WORK_ORDER_ASK);
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
