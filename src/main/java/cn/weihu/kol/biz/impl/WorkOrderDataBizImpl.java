@@ -66,6 +66,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus())
                 .like(StringUtils.isNotBlank(req.getSupplier()), WorkOrderData::getData, req.getSupplier());
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
@@ -112,12 +113,15 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
                                                       map.get(Constants.TITLE_ACCOUNT),
                                                       map.get(Constants.TITLE_RESOURCE_LOCATION)));
+            log.info(">>> actor_sn:{}", actorSn);
             boolean flag = true;
             // kol表
             Prices prices = pricesBiz.getOneByActorSn(actorSn);
             if(Objects.nonNull(prices)) {
                 // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
                 flag = screeningOther(prices.getActorData(), updateReq.getData());
+            } else {
+                flag = false;
             }
             if(!flag) {
                 // kol库匹配失败
@@ -132,16 +136,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                     if(flag) {
                         // 报价库库匹配成功
-                        // 库内数据
                         map = GsonUtils.gson.fromJson(quote.getActorData(), type);
-                        map.put(Constants.ACTOR_DATA_SN, actorSn);
-                        workOrderDataResp.setData(GsonUtils.gson.toJson(map));
-                        workOrderDataResp.setInbound(1);
-                    } else {
-                        // 库外数据
-                        map.put(Constants.ACTOR_DATA_SN, actorSn);
-                        workOrderDataResp.setData(GsonUtils.gson.toJson(map));
-                        workOrderDataResp.setInbound(0);
                     }
                 } else {
                     // 库外数据
@@ -149,11 +144,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     workOrderDataResp.setFieldsId(updateReq.getFieldsId());
                     workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                     workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
-                    map.put(Constants.ACTOR_DATA_SN, actorSn);
-                    workOrderDataResp.setData(GsonUtils.gson.toJson(map));
-                    workOrderDataResp.setData(updateReq.getData());
-                    workOrderDataResp.setInbound(0);
                 }
+                map.put(Constants.ACTOR_DATA_SN, actorSn);
+                workOrderDataResp.setData(GsonUtils.gson.toJson(map));
+                workOrderDataResp.setInbound(0);
             } else {
                 // kol库匹配成功
                 // 库内数据
@@ -342,7 +336,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         workOrderDao.updateById(workOrder);
         // 更新父工单状态
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+        wrapper.eq(WorkOrderData::getWorkOrderId, workOrder.getParentId())
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
         List<WorkOrderData> list = list(wrapper);
         if(CollectionUtils.isEmpty(list)) {
@@ -574,6 +568,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(!CollectionUtils.isEmpty(quoteList)) {
             quoteBiz.updateBatchByActorSn(quoteList);
         }
+        // 更新工单状态 -> 已下单
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setId(req.getWorkOrderId());
+        workOrder.setStatus(Constants.WORK_ORDER_ORDER);
+        workOrder.setUtime(DateUtil.date());
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrderDao.updateById(workOrder);
         return null;
     }
 
