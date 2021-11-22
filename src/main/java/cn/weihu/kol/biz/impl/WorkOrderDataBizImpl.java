@@ -102,10 +102,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
-        List<WorkOrderDataResp> list = new ArrayList<>();
+        List<WorkOrderDataResp> list          = new ArrayList<>();
         WorkOrderDataResp       workOrderDataResp;
         Map<String, String>     map;
         String                  actorSn;
+        WorkOrderData           workOrderData = null;
+        List<WorkOrderData>     updateList    = new ArrayList<>();
         for(WorkOrderDataUpdateReq updateReq : req.getList()) {
             workOrderDataResp = new WorkOrderDataResp();
             // 根据 媒体、账号、资源位置 匹配相同需求数据
@@ -164,11 +166,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             }
             list.add(workOrderDataResp);
-            WorkOrderData workOrderData = new WorkOrderData();
+            workOrderData = new WorkOrderData();
             workOrderData.setId(updateReq.getId());
             workOrderData.setData(GsonUtils.gson.toJson(map));
-            this.updateById(workOrderData);
+            updateList.add(workOrderData);
         }
+        this.updateBatchById(updateList);
 
         WorkOrderDataScreeningResp resp = new WorkOrderDataScreeningResp();
         // 标题
