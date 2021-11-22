@@ -606,47 +606,74 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
         List<WorkOrderDataUpdateReq> list = req.getList();
 
-        for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
-            List<String> data = new ArrayList<>();
-            //库外
-            if(orderDataUpdateReq.getInbound() == 0) {
-                pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
-            } else {
-                HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(orderDataUpdateReq.getData(), HashMap.class);
-                String                  supplier = hashMap.get("supplier");
-                if("新意".equalsIgnoreCase(supplier)) {
-                    pricesBiz.addExportData(xinyiData, data, orderDataUpdateReq.getData(), newList);
-                } else if("维格".equalsIgnoreCase(supplier)) {
-                    pricesBiz.addExportData(weigeData, data, orderDataUpdateReq.getData(), newList);
+        if(list != null) {
+            for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
+                List<String> data = new ArrayList<>();
+                //库外
+                if(orderDataUpdateReq.getInbound() == 0) {
+                    pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
+                } else {
+                    HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(orderDataUpdateReq.getData(), HashMap.class);
+                    String                  supplier = hashMap.get(Constants.SUPPLIER_FIELD);
+                    if(Constants.SUPPLIER_XIN_YI.equalsIgnoreCase(supplier)) {
+                        pricesBiz.addExportData(xinyiData, data, orderDataUpdateReq.getData(), newList);
+                    } else if(Constants.SUPPLIER_WEI_GE.equalsIgnoreCase(supplier)) {
+                        pricesBiz.addExportData(weigeData, data, orderDataUpdateReq.getData(), newList);
+                    }
                 }
             }
+            allData.add(outboundData);
+            allData.add(xinyiData);
+            allData.add(weigeData);
         }
-        allData.add(outboundData);
-        allData.add(xinyiData);
-        allData.add(weigeData);
-//        //库外数据
-//        list.stream().filter(x -> x.getInbound() == 0).map(x -> {
-//            List<String> data = new ArrayList<>();
-//            pricesBiz.addExportData(outboundData, data, x.getData(), newList);
-//            return null;
-//        }).count();
-//
-//        allData.add(outboundData);
-//
-//
-//
-//        list.stream().filter(x -> {
-//            HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(x.getData(), HashMap.class);
-//            String                  supplier = hashMap.get("supplier");
-//            return "新意".equalsIgnoreCase(supplier);
-//        }).map(x -> {
-//
-//        }).count()
-//
-//        //维格
+        List<String> sheetNames = Arrays.asList("库外数据", Constants.SUPPLIER_XIN_YI, Constants.SUPPLIER_WEI_GE);
+        try {
+            EasyExcelUtil.writeExcelSheet(response, allData, "需求单详情", sheetNames);
+        } catch(
+                Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
+
+        Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_QUOTE);
+        //获取字段列表
+        List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
+        }.getType());
+
+        List<List<List<String>>> allData = new ArrayList<>();
+        //报价&排期
+        List<List<String>> outboundData = new ArrayList<>();
+        //仅排档期
+        List<List<String>> inboundData = new ArrayList<>();
+
+        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+        //获取中文表头
+        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
+
+        outboundData.add(titleCN);
+        inboundData.add(titleCN);
+
+        List<WorkOrderDataUpdateReq> list = req.getList();
+        if(list != null) {
+            for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
+                List<String> data = new ArrayList<>();
+                //库内 排期
+                if(orderDataUpdateReq.getInbound() == 1) {
+                    pricesBiz.addExportData(inboundData, data, orderDataUpdateReq.getData(), newList);
+                }
+                pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
+            }
+            allData.add(outboundData);
+            allData.add(inboundData);
+        }
+        List<String> sheetNames = Arrays.asList("报价&排期", "仅排档期");
 
         try {
-            EasyExcelUtil.writeExcelSheet(response, allData, "测试多sheet");
+            EasyExcelUtil.writeExcelSheet(response, allData, "供应商报价", sheetNames);
         } catch(
                 Exception e) {
             e.printStackTrace();

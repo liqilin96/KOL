@@ -42,4 +42,7 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
     Long review(WorkOrderDataReviewReq req);
 
     void detailExport(WorkOrderBatchUpdateReq req, HttpServletResponse response);
+
+    void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response);
+
 }

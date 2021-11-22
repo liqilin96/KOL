@@ -35,7 +35,7 @@ public class PricesController {
     @Autowired
     private PricesBiz pricesBiz;
 
-    //    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
+//    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
 //    @GetMapping(value = "/star")
 //    public ResultBean<PricesLogsBoResp> starPrice(PricesLogsReq req) {
 //        return new ResultBean<>(pricesBiz.starPrice(req));

@@ -66,7 +66,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             String[] split = req.getPricesForm().split(",");
             for(int i = 0; i < split.length; i++) {
                 String priceForm = split[i];
-                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.priceType\")) like {0}", "%" + priceForm + "%");
+                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.address\")) like {0}", "%" + priceForm + "%");
             }
         }
         //达人名称
@@ -195,6 +195,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public PageResult<PricesLogsResp> expirtPrices(PricesLogsReq req) {
 
+        Fields fields    = fieldsBiz.getById(4);
+        String fieldList = fields.getFieldList();
+
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
 
         if(StringUtils.isNotBlank(req.getStarName())) {
@@ -213,7 +216,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             return resp;
         }).collect(Collectors.toList());
 
-        return new PageResult<>(pricesPage.getTotal(), respList);
+        return new PageResult<>(pricesPage.getTotal(), respList, fieldList);
     }
 
     @Override
@@ -267,12 +270,12 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     /**
      * @param exprotData 导出的数据
      * @param data       每一条数据
-     * @param prices     单个达人报价
+     * @param JsonData   JSON数据
      * @param newList    导出的头
      */
-    public void addExportData(List<List<String>> exprotData, List<String> data, String actorData, List<FieldsBo> newList) {
+    public void addExportData(List<List<String>> exprotData, List<String> data, String JsonData, List<FieldsBo> newList) {
 
-        HashMap<String, String> hashMap   = GsonUtils.gson.fromJson(actorData, HashMap.class);
+        HashMap<String, String> hashMap = GsonUtils.gson.fromJson(JsonData, HashMap.class);
 
         for(int j = 0; j < newList.size(); j++) {
             boolean flag = true;

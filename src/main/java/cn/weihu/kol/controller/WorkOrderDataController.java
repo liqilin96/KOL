@@ -103,5 +103,12 @@ public class WorkOrderDataController {
         dataBiz.detailExport(req,response);
     }
 
+
+    @ApiOperation(value = "供应商报价导出", httpMethod = "GET", notes = "供应商报价导出")
+    @GetMapping(value = "/supplier/export")
+    public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
+        dataBiz.supplierExport(req,response);
+    }
+
 }
 
