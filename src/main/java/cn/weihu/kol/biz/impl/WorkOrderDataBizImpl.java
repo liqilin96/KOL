@@ -2,7 +2,10 @@ package cn.weihu.kol.biz.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
-import cn.weihu.kol.biz.*;
+import cn.weihu.kol.biz.FieldsBiz;
+import cn.weihu.kol.biz.PricesLogsBiz;
+import cn.weihu.kol.biz.QuoteBiz;
+import cn.weihu.kol.biz.WorkOrderDataBiz;
 import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.convert.WorkOrderConverter;
@@ -15,6 +18,7 @@ import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import cn.weihu.kol.runner.StartupRunner;
 import cn.weihu.kol.userinfo.UserInfoContext;
+import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.MD5Util;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -29,11 +33,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +54,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Autowired
     private FieldsBiz     fieldsBiz;
     @Autowired
-    private PricesBiz     pricesBiz;
+    private PricesBizImpl pricesBiz;
     @Autowired
     private PricesLogsBiz pricesLogsBiz;
     @Autowired
@@ -574,6 +576,83 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         return null;
     }
+
+    @Override
+    public void detailExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
+
+        Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_DEMAND);
+        //获取字段列表
+        List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
+        }.getType());
+
+        List<List<List<String>>> allData = new ArrayList<>();
+        //库外数据
+        List<List<String>> outboundData = new ArrayList<>();
+
+        //新意
+        List<List<String>> xinyiData = new ArrayList<>();
+
+        //维格
+        List<List<String>> weigeData = new ArrayList<>();
+
+        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+        //获取中文表头
+        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
+
+        outboundData.add(titleCN);
+        xinyiData.add(titleCN);
+        weigeData.add(titleCN);
+
+        List<WorkOrderDataUpdateReq> list = req.getList();
+
+        for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
+            List<String> data = new ArrayList<>();
+            //库外
+            if(orderDataUpdateReq.getInbound() == 0) {
+                pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
+            } else {
+                HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(orderDataUpdateReq.getData(), HashMap.class);
+                String                  supplier = hashMap.get("supplier");
+                if("新意".equalsIgnoreCase(supplier)) {
+                    pricesBiz.addExportData(xinyiData, data, orderDataUpdateReq.getData(), newList);
+                } else if("维格".equalsIgnoreCase(supplier)) {
+                    pricesBiz.addExportData(weigeData, data, orderDataUpdateReq.getData(), newList);
+                }
+            }
+        }
+        allData.add(outboundData);
+        allData.add(xinyiData);
+        allData.add(weigeData);
+//        //库外数据
+//        list.stream().filter(x -> x.getInbound() == 0).map(x -> {
+//            List<String> data = new ArrayList<>();
+//            pricesBiz.addExportData(outboundData, data, x.getData(), newList);
+//            return null;
+//        }).count();
+//
+//        allData.add(outboundData);
+//
+//
+//
+//        list.stream().filter(x -> {
+//            HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(x.getData(), HashMap.class);
+//            String                  supplier = hashMap.get("supplier");
+//            return "新意".equalsIgnoreCase(supplier);
+//        }).map(x -> {
+//
+//        }).count()
+//
+//        //维格
+
+        try {
+            EasyExcelUtil.writeExcelSheet(response, allData, "测试多sheet");
+        } catch(
+                Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     private void reviewReject(Long workOrderId) {
         // 更新工单数据状态 -> 已报价

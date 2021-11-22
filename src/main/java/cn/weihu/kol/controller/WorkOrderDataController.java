@@ -4,10 +4,7 @@ package cn.weihu.kol.controller;
 import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
-import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
-import cn.weihu.kol.http.req.WorkOrderDataOrderReq;
-import cn.weihu.kol.http.req.WorkOrderDataReq;
-import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
+import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
@@ -16,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -98,5 +96,12 @@ public class WorkOrderDataController {
         CheckUtil.notEmpty(req.getStatus(), "审核结果状态不能为空");
         return new ResultBean<>(dataBiz.review(req));
     }
+
+    @ApiOperation(value = "初次创建需求单详情导出", httpMethod = "GET", notes = "初次创建需求单详情导出")
+    @GetMapping(value = "/detail/export")
+    public void expirtPricesExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
+        dataBiz.detailExport(req,response);
+    }
+
 }
 

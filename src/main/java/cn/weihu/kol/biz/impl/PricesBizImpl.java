@@ -147,7 +147,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             //导出所有数据
             for(Prices prices : pricesList) {
                 List<String> data = new ArrayList<>();
-                addExportData(exprotData, data, prices, newList);
+                addExportData(exprotData, data, prices.getActorData(), newList);
             }
         } else {
 
@@ -156,7 +156,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 List<String> data   = new ArrayList<>();
                 String       id     = split[i];
                 Prices       prices = getById(id);
-                addExportData(exprotData, data, prices, newList);
+                addExportData(exprotData, data, prices.getActorData(), newList);
             }
         }
         try {
@@ -242,7 +242,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             //导出所有数据
             for(Prices prices : pricesList) {
                 List<String> data = new ArrayList<>();
-                addExportData(exprotData, data, prices, newList);
+                addExportData(exprotData, data, prices.getActorData(), newList);
             }
         } else {
 
@@ -251,7 +251,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 List<String> data   = new ArrayList<>();
                 String       id     = split[i];
                 Prices       prices = getById(id);
-                addExportData(exprotData, data, prices, newList);
+                addExportData(exprotData, data, prices.getActorData(), newList);
             }
         }
         try {
@@ -270,9 +270,8 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
      * @param prices     单个达人报价
      * @param newList    导出的头
      */
-    public void addExportData(List<List<String>> exprotData, List<String> data, Prices prices, List<FieldsBo> newList) {
+    public void addExportData(List<List<String>> exprotData, List<String> data, String actorData, List<FieldsBo> newList) {
 
-        String                  actorData = prices.getActorData();
         HashMap<String, String> hashMap   = GsonUtils.gson.fromJson(actorData, HashMap.class);
 
         for(int j = 0; j < newList.size(); j++) {
@@ -293,14 +292,11 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     }
 
 
-    //返回15天的日子
+    //返回30天的日子
     private Date expirtDate(Date date) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
-        c.add(Calendar.DATE, 15);
-        System.out.println("---------------------------------------------");
-        System.out.println(c.getTime() + "============" + new Date());
-        System.out.println("---------------------------------------------");
+        c.add(Calendar.DATE, 30);
         return c.getTime();
     }
 

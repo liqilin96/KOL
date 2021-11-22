@@ -10,6 +10,7 @@ import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -39,4 +40,6 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
     Long order(WorkOrderDataOrderReq req);
 
     Long review(WorkOrderDataReviewReq req);
+
+    void detailExport(WorkOrderBatchUpdateReq req, HttpServletResponse response);
 }

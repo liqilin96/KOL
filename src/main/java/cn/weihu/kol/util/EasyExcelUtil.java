@@ -41,11 +41,11 @@ public class EasyExcelUtil {
     /**
      * 导出Excel(一个sheet)
      *
-     * @param response  HttpServletResponse
-     * @param list      数据list
-     * @param fileName  导出的文件名
-     * @param sheetName 导入文件的sheet名
-     * @param clazz     实体类
+     * @param response HttpServletResponse
+     * @param list     数据list
+     * @param fileName 导出的文件名
+     *                 //     * @param sheetName 导入文件的sheet名
+     *                 //     * @param clazz     实体类
      */
 //    public static <T> void writeExcel(HttpServletResponse response, List<T> list, String fileName, String sheetName, Class<T> clazz) {
 //
@@ -61,9 +61,9 @@ public class EasyExcelUtil {
             //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
             response.setContentType("mutipart/form-data");
             response.setCharacterEncoding("utf-8");
-            response.setHeader("Content-disposition", "attachment;filename="+java.net.URLEncoder.encode(fileName, "UTF-8")+".xlsx");
+            response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
             excelWriter = EasyExcel.write(response.getOutputStream()).build();
-            WriteSheet writeSheet = com.alibaba.excel.EasyExcel.writerSheet("").build();
+            WriteSheet writeSheet = EasyExcel.writerSheet("详情").build();
             excelWriter.write(list, writeSheet);
         } catch(Exception e) {
             e.printStackTrace();
@@ -71,6 +71,30 @@ public class EasyExcelUtil {
             excelWriter.finish();
         }
     }
+
+
+    public static  void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName) {
+        ExcelWriter excelWriter = null;
+        try {
+            //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
+            response.setContentType("mutipart/form-data");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
+
+            excelWriter = EasyExcel.write(response.getOutputStream()).build();
+            WriteSheet writeSheet = EasyExcel.writerSheet("库外数据").build();
+            excelWriter.write((List)list.get(0), writeSheet);
+            writeSheet = EasyExcel.writerSheet("新意").build();
+            excelWriter.write((List)list.get(1), writeSheet);
+            writeSheet = EasyExcel.writerSheet("维格").build();
+            excelWriter.write((List)list.get(2), writeSheet);
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            excelWriter.finish();
+        }
+    }
+
 
     /**
      * 导出时生成OutputStream

@@ -10,10 +10,7 @@ import cn.weihu.kol.http.resp.MessageResp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -48,7 +45,7 @@ public class MessageController {
 
     @ApiOperation(value = "查看消息", httpMethod = "PATCH", notes = "查看消息")
     @PatchMapping(value = "/check")
-    public ResultBean<MessageResp> check(MessageReq req) {
+    public ResultBean<MessageResp> check(@RequestBody MessageReq req) {
         CheckUtil.notNull(req.getId(), "消息序号不能为空");
         return new ResultBean<>(messageBiz.check(req.getId()));
     }
