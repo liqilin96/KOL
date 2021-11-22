@@ -39,7 +39,7 @@ public interface Constants {
      */
     String SUPPLIER_FIELD  = "supplier";
     String SUPPLIER_XIN_YI = "新意";
-    String SUPPLIER_WEI_GE = "维格";
+    String SUPPLIER_WEI_GE = "微格";
 
     /**
      * 属性筛选标题
