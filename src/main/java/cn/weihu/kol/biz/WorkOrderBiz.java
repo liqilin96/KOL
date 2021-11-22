@@ -39,7 +39,7 @@ public interface WorkOrderBiz extends IService<WorkOrder> {
      * @param status
      * @return
      */
-    Long create(WorkOrder workOrder, Integer type, String status);
+    WorkOrder create(WorkOrder workOrder, Integer type, String status);
 
     /**
      * 待报价列表

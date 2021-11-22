@@ -12,6 +12,7 @@ public class WorkOrderConverter {
         resp.setWorkOrderId(workOrder.getId());
         resp.setWorkOrderSn(workOrder.getOrderSn());
         resp.setWorkOrderName(workOrder.getName());
+        resp.setType(workOrder.getType());
         resp.setProjectId(workOrder.getProjectId());
         resp.setProjectName(workOrder.getProjectName());
         resp.setStatus(workOrder.getStatus());

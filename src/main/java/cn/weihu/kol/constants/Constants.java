@@ -4,11 +4,12 @@ public interface Constants {
 
     /**
      * 工单类型：
-     * 1：需求工单，2：询价&询档工单，3：报价到期工单
+     * 1：需求工单，2：询价&询档工单，3：报价到期工单，4：重新询价工单
      */
     int WORK_ORDER_DEMAND        = 1;
     int WORK_ORDER_ENQUIRY       = 2;
     int WORK_ORDER_EXPIRE_DEMAND = 3;
+    int WORK_ORDER_ENQUIRY_AGAIN = 4;
 
     /**
      * 工单状态

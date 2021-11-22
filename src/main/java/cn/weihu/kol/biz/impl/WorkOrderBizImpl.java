@@ -201,7 +201,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     @Override
-    public Long create(WorkOrder workOrder, Integer type, String status) {
+    public WorkOrder create(WorkOrder workOrder, Integer type, String status) {
         if(Objects.isNull(workOrder.getProjectId())) {
             throw new CheckException("项目ID不能为空");
         }
@@ -217,7 +217,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
         //
         save(workOrder);
-        return workOrder.getId();
+        return workOrder;
     }
 
     @Override
@@ -243,9 +243,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         if(!contentType.equalsIgnoreCase("jpg") && !contentType.equalsIgnoreCase("png")) {
             throw new CheckException("图片格式上传错误");
         }
-        String filePath = DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
+        String filePath    = DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
         String newFileName = UUID.randomUUID() + "." + contentType;
-        String path = null;
+        String path        = null;
         try {
             FileUtil.uploadFile(file.getBytes(), filePath, newFileName);
             path = (filePath + newFileName).replace("\\", "/");

@@ -311,6 +311,72 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
+    public Long enquiryAgain(WorkOrderBatchUpdateReq req) {
+        if(CollectionUtils.isEmpty(req.getList())) {
+            throw new CheckException("重新询价数据不能为空");
+        }
+        List<WorkOrderData> list = new ArrayList<>();
+        WorkOrderData       workOrderData;
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        Map<String, String> map;
+        boolean             existXinYi = false;
+        boolean             existWeiGe = false;
+        for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
+            workOrderData = new WorkOrderData();
+            workOrderData.setId(workOrderDataUpdateReq.getId());
+            map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
+            if("1".equals(map.get(Constants.ACTOR_INBOUND))) {
+                workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_DATE);
+            } else {
+                workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
+            }
+            workOrderData.setUtime(DateUtil.date());
+            workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+            list.add(workOrderData);
+
+            //
+            if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
+                existXinYi = true;
+                continue;
+            }
+            if(Constants.SUPPLIER_WEI_GE.equals(map.get(Constants.SUPPLIER_FIELD))) {
+                existWeiGe = true;
+            }
+        }
+        updateBatchById(list);
+        // 更新询价子工单状态
+        if(existXinYi) {
+            WorkOrder workOrder = new WorkOrder();
+            workOrder.setType(Constants.WORK_ORDER_ENQUIRY_AGAIN);
+            workOrder.setStatus(Constants.WORK_ORDER_ASK);
+            workOrder.setUtime(DateUtil.date());
+            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderDao.update(workOrder, new LambdaUpdateWrapper<>(WorkOrder.class)
+                    .eq(WorkOrder::getParentId, req.getWorkOrderId())
+                    .eq(WorkOrder::getToUser, StartupRunner.SUPPLIER_USER_XIN_YI));
+        }
+        if(existWeiGe) {
+            WorkOrder workOrder = new WorkOrder();
+            workOrder.setType(Constants.WORK_ORDER_ENQUIRY_AGAIN);
+            workOrder.setStatus(Constants.WORK_ORDER_ASK);
+            workOrder.setUtime(DateUtil.date());
+            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderDao.update(workOrder, new LambdaUpdateWrapper<>(WorkOrder.class)
+                    .eq(WorkOrder::getParentId, req.getWorkOrderId())
+                    .eq(WorkOrder::getToUser, StartupRunner.SUPPLIER_USER_WEI_GE));
+        }
+        // 更新工单状态
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setId(req.getWorkOrderId());
+        workOrder.setStatus(Constants.WORK_ORDER_ASK);
+        workOrder.setUtime(DateUtil.date());
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        workOrderDao.updateById(workOrder);
+        return null;
+    }
+
+    @Override
     public Long quote(WorkOrderBatchUpdateReq req) {
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("报价工单数据不能为空");

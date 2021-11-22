@@ -33,6 +33,8 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     Long enquiry(WorkOrderBatchUpdateReq req);
 
+    Long enquiryAgain(WorkOrderBatchUpdateReq req);
+
     Long quote(WorkOrderBatchUpdateReq req);
 
     WorkOrderDataCompareResp quoteList(WorkOrderDataReq req);

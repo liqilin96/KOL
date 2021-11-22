@@ -19,6 +19,9 @@ public class WorkOrderResp {
     @ApiModelProperty(value = "工单名称")
     private String workOrderName;
 
+    @ApiModelProperty(value = "工单类型")
+    private Integer type;
+
     @ApiModelProperty(value = "项目ID")
     private Long projectId;
 

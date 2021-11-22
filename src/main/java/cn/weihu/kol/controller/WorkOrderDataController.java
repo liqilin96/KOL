@@ -4,7 +4,10 @@ package cn.weihu.kol.controller;
 import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
-import cn.weihu.kol.http.req.*;
+import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
+import cn.weihu.kol.http.req.WorkOrderDataOrderReq;
+import cn.weihu.kol.http.req.WorkOrderDataReq;
+import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
@@ -67,6 +70,13 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.enquiry(req));
     }
 
+    @ApiOperation(value = "重新询价", httpMethod = "POST", notes = "重新询价")
+    @PostMapping(value = "/enquiry/again")
+    public ResultBean<Long> enquiryAgain(@RequestBody WorkOrderBatchUpdateReq req) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        return new ResultBean<>(dataBiz.enquiryAgain(req));
+    }
+
     @ApiOperation(value = "报价", httpMethod = "POST", notes = "报价")
     @PostMapping(value = "/quote")
     public ResultBean<Long> quote(@RequestBody WorkOrderBatchUpdateReq req) {
@@ -101,7 +111,7 @@ public class WorkOrderDataController {
     @GetMapping(value = "/detail/export")
     public void expirtPricesExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
-        dataBiz.detailExport(req,response);
+        dataBiz.detailExport(req, response);
     }
 
 
@@ -109,7 +119,7 @@ public class WorkOrderDataController {
     @GetMapping(value = "/supplier/export")
     public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkerOrderIds(), "需求工单ID不能为空");
-        dataBiz.supplierExport(req,response);
+        dataBiz.supplierExport(req, response);
     }
 
 }
