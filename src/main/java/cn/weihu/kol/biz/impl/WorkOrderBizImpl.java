@@ -130,10 +130,10 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
                 workOrderData.setProjectId(workOrder.getProjectId());
                 workOrderData.setWorkOrderId(workOrder.getId());
-                //字段组2为工单
-                workOrderData.setFieldsId(1L);
+                //字段组3报价单
+                workOrderData.setFieldsId(3L);
 
-                Fields fields = fieldsBiz.getById(1);
+                Fields fields = fieldsBiz.getById(3);
                 //获取字段列表
                 List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
                 }.getType());
@@ -143,6 +143,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 for(int i = 0; i < fieldsBos.size(); i++) {
                     for(int j = 0; j < title.size(); j++) {
                         if(title.get(j).equalsIgnoreCase(fieldsBos.get(i).getTitle())) {
+                            System.out.println(title.get(j) +" ========= " + fieldsBos.get(i).getTitle());
                             map.put(fieldsBos.get(i).getDataIndex(), bo.get(j));
                         }
                     }

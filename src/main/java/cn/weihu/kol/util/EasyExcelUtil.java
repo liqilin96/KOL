@@ -73,7 +73,7 @@ public class EasyExcelUtil {
     }
 
 
-    public static  void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName,List<String> sheetNames) {
+    public static void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName, List<String> sheetNames) {
         ExcelWriter excelWriter = null;
         try {
             //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
@@ -84,8 +84,11 @@ public class EasyExcelUtil {
             excelWriter = EasyExcel.write(response.getOutputStream()).build();
 
             for(int i = 0; i < list.size(); i++) {
+                List data = (List) list.get(i);
+                if(data.size() == 1)
+                    continue;
                 WriteSheet writeSheet = EasyExcel.writerSheet(sheetNames.get(i)).build();
-                excelWriter.write((List)list.get(i), writeSheet);
+                excelWriter.write(data, writeSheet);
             }
 //            WriteSheet writeSheet = EasyExcel.writerSheet("库外数据").build();
 //            excelWriter.write((List)list.get(0), writeSheet);

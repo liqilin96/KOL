@@ -146,6 +146,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                 }
                 map.put(Constants.ACTOR_DATA_SN, actorSn);
+                map.put(Constants.ACTOR_INBOUND, "0");
                 workOrderDataResp.setData(GsonUtils.gson.toJson(map));
                 workOrderDataResp.setInbound(0);
             } else {
@@ -157,11 +158,18 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                 map = GsonUtils.gson.fromJson(prices.getActorData(), type);
                 map.put(Constants.ACTOR_DATA_SN, actorSn);
+                map.put(Constants.ACTOR_INBOUND, "1");
                 workOrderDataResp.setData(GsonUtils.gson.toJson(map));
                 workOrderDataResp.setInbound(1);
+
             }
             list.add(workOrderDataResp);
+            WorkOrderData workOrderData = new WorkOrderData();
+            workOrderData.setId(updateReq.getId());
+            workOrderData.setData(GsonUtils.gson.toJson(map));
+            this.updateById(workOrderData);
         }
+
         WorkOrderDataScreeningResp resp = new WorkOrderDataScreeningResp();
         // 标题
         Fields fields = fieldsBiz.getOneByType(Constants.FIELD_TYPE_DEMAND);
