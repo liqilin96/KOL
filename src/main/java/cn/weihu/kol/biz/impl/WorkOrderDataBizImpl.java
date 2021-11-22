@@ -108,7 +108,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         String                  actorSn;
         for(WorkOrderDataUpdateReq updateReq : req.getList()) {
             workOrderDataResp = new WorkOrderDataResp();
-            // 根据 媒体、账号、报价形式 匹配相同需求数据
+            // 根据 媒体、账号、资源位置 匹配相同需求数据
             map = GsonUtils.gson.fromJson(updateReq.getData(), type);
             actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
                                                       map.get(Constants.TITLE_ACCOUNT),
