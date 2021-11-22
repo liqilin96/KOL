@@ -107,7 +107,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                  *  3     -----》账号ID或链接
                  *  4     -----》账号类型
                  *  5     -----》粉丝数
-                 *  6     -----》资源位置
+                 *  6     -----》报价形式
                  *  7     -----》数量
                  *  8     -----》发布开始时间
                  *  9     -----》发布结束时间
@@ -264,7 +264,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     public List<String> excelTitle() {
-        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "粉丝数", "资源位置", "数量", "发布开始时间",
+        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "粉丝数", "报价形式", "数量", "发布开始时间",
                              "发布结束时间", "含电商链接单价", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",
                              "产品提供方", "发布内容brief概述");
     }

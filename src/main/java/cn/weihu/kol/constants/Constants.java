@@ -44,7 +44,7 @@ public interface Constants {
 
     /**
      * 属性筛选标题
-     * 媒体、账号、资源位置
+     * 媒体、账号、报价形式（等同资源位置）
      * 含电商链接单价、@、话题、电商肖像权、品牌双微转发授权、微任务
      */
     String TITLE_MEDIA             = "media";
