@@ -100,7 +100,7 @@ public class WorkOrderDataController {
     @ApiOperation(value = "初次创建需求单详情导出", httpMethod = "GET", notes = "初次创建需求单详情导出")
     @GetMapping(value = "/detail/export")
     public void expirtPricesExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
-        CheckUtil.notNull(req.getWorkerOrderIds(), "需求工单ID不能为空");
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
         dataBiz.detailExport(req,response);
     }
 

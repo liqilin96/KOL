@@ -604,12 +604,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         xinyiData.add(titleCN);
         weigeData.add(titleCN);
 
+        LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        List<WorkOrderData> orderData = baseMapper.selectList(wrapper);
 
-        String[] split = req.getWorkerOrderIds().split(",");
-        for(int i = 0; i < split.length; i++) {
+        for(int i = 0; i < orderData.size(); i++) {
+            WorkOrderData           workOrderData = orderData.get(i);
             List<String>            data          = new ArrayList<>();
-            String                  id            = split[i];
-            WorkOrderData           workOrderData = getById(id);
             HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
             if("0".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
                 pricesBiz.addExportData(outboundData, data, hashMap, newList);
@@ -622,8 +623,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 }
             }
         }
-
-
         allData.add(outboundData);
         allData.add(xinyiData);
         allData.add(weigeData);
@@ -682,7 +681,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         inboundData.add(titleCN);
 
 
-
         if(StringUtils.isBlank(req.getWorkerOrderIds())) {
             List<WorkOrderData> workOrderDataList = this.list();
             //导出所有数据
@@ -699,10 +697,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             String[] split = req.getWorkerOrderIds().split(",");
             for(int i = 0; i < split.length; i++) {
-                List<String>            data    = new ArrayList<>();
-                String                  id      = split[i];
-                WorkOrderData workOrderData  = getById(id);
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
+                List<String>            data          = new ArrayList<>();
+                String                  id            = split[i];
+                WorkOrderData           workOrderData = getById(id);
+                HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
                 if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
                     pricesBiz.addExportData(inboundData, data, hashMap, newList);
                 }
