@@ -18,4 +18,7 @@ public class WorkOrderBatchUpdateReq {
 
     @ApiModelProperty(value = "更新工单数据列表")
     private List<WorkOrderDataUpdateReq> list;
+
+    @ApiModelProperty("工单id，逗号分割")
+    private String workerOrderIds;
 }

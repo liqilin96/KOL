@@ -60,7 +60,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
 
                 WorkOrder workOrder = new WorkOrder();
 
-                //TODO  创建工单和工单详情没做，待续，没时间做！！！
+                //TODO  创建工单和工单详情
                 workOrder.setProjectId(project.getId());
                 workOrderBiz.save(workOrder);
             });

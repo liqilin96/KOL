@@ -604,28 +604,52 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         xinyiData.add(titleCN);
         weigeData.add(titleCN);
 
-        List<WorkOrderDataUpdateReq> list = req.getList();
 
-        if(list != null) {
-            for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
-                List<String> data = new ArrayList<>();
-                //库外
-                if(orderDataUpdateReq.getInbound() == 0) {
-                    pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
-                } else {
-                    HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(orderDataUpdateReq.getData(), HashMap.class);
-                    String                  supplier = hashMap.get(Constants.SUPPLIER_FIELD);
-                    if(Constants.SUPPLIER_XIN_YI.equalsIgnoreCase(supplier)) {
-                        pricesBiz.addExportData(xinyiData, data, orderDataUpdateReq.getData(), newList);
-                    } else if(Constants.SUPPLIER_WEI_GE.equalsIgnoreCase(supplier)) {
-                        pricesBiz.addExportData(weigeData, data, orderDataUpdateReq.getData(), newList);
-                    }
+        String[] split = req.getWorkerOrderIds().split(",");
+        for(int i = 0; i < split.length; i++) {
+            List<String>            data          = new ArrayList<>();
+            String                  id            = split[i];
+            WorkOrderData           workOrderData = getById(id);
+            HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
+            if("0".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
+                pricesBiz.addExportData(outboundData, data, hashMap, newList);
+            } else {
+                String supplier = hashMap.get(Constants.SUPPLIER_FIELD);
+                if(Constants.SUPPLIER_XIN_YI.equalsIgnoreCase(supplier)) {
+                    pricesBiz.addExportData(xinyiData, data, hashMap, newList);
+                } else if(Constants.SUPPLIER_WEI_GE.equalsIgnoreCase(supplier)) {
+                    pricesBiz.addExportData(weigeData, data, hashMap, newList);
                 }
             }
-            allData.add(outboundData);
-            allData.add(xinyiData);
-            allData.add(weigeData);
         }
+
+
+        allData.add(outboundData);
+        allData.add(xinyiData);
+        allData.add(weigeData);
+
+//        List<WorkOrderDataUpdateReq> list = req.getList();
+//
+//        if(list != null) {
+//            for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
+//                List<String> data = new ArrayList<>();
+//                //库外
+//                if(orderDataUpdateReq.getInbound() == 0) {
+//                    pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
+//                } else {
+//                    HashMap<String, String> hashMap  = GsonUtils.gson.fromJson(orderDataUpdateReq.getData(), HashMap.class);
+//                    String                  supplier = hashMap.get(Constants.SUPPLIER_FIELD);
+//                    if(Constants.SUPPLIER_XIN_YI.equalsIgnoreCase(supplier)) {
+//                        pricesBiz.addExportData(xinyiData, data, orderDataUpdateReq.getData(), newList);
+//                    } else if(Constants.SUPPLIER_WEI_GE.equalsIgnoreCase(supplier)) {
+//                        pricesBiz.addExportData(weigeData, data, orderDataUpdateReq.getData(), newList);
+//                    }
+//                }
+//            }
+//            allData.add(outboundData);
+//            allData.add(xinyiData);
+//            allData.add(weigeData);
+//        }
         List<String> sheetNames = Arrays.asList("库外数据", Constants.SUPPLIER_XIN_YI, Constants.SUPPLIER_WEI_GE);
         try {
             EasyExcelUtil.writeExcelSheet(response, allData, "需求单详情", sheetNames);
@@ -657,19 +681,52 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         outboundData.add(titleCN);
         inboundData.add(titleCN);
 
-        List<WorkOrderDataUpdateReq> list = req.getList();
-        if(list != null) {
-            for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
-                List<String> data = new ArrayList<>();
+
+
+        if(StringUtils.isBlank(req.getWorkerOrderIds())) {
+            List<WorkOrderData> workOrderDataList = this.list();
+            //导出所有数据
+            for(WorkOrderData workOrderData : workOrderDataList) {
+                List<String>            data    = new ArrayList<>();
+                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
                 //库内 排期
-                if(orderDataUpdateReq.getInbound() == 1) {
-                    pricesBiz.addExportData(inboundData, data, orderDataUpdateReq.getData(), newList);
+                if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
+                    pricesBiz.addExportData(inboundData, data, hashMap, newList);
                 }
-                pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
+                pricesBiz.addExportData(outboundData, data, hashMap, newList);
             }
-            allData.add(outboundData);
-            allData.add(inboundData);
+        } else {
+
+            String[] split = req.getWorkerOrderIds().split(",");
+            for(int i = 0; i < split.length; i++) {
+                List<String>            data    = new ArrayList<>();
+                String                  id      = split[i];
+                WorkOrderData workOrderData  = getById(id);
+                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
+                if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
+                    pricesBiz.addExportData(inboundData, data, hashMap, newList);
+                }
+                pricesBiz.addExportData(outboundData, data, hashMap, newList);
+            }
         }
+
+        allData.add(outboundData);
+        allData.add(inboundData);
+
+
+//        List<WorkOrderDataUpdateReq> list = req.getList();
+//        if(list != null) {
+//            for(WorkOrderDataUpdateReq orderDataUpdateReq : list) {
+//                List<String> data = new ArrayList<>();
+//                //库内 排期
+//                if(orderDataUpdateReq.getInbound() == 1) {
+//                    pricesBiz.addExportData(inboundData, data, orderDataUpdateReq.getData(), newList);
+//                }
+//                pricesBiz.addExportData(outboundData, data, orderDataUpdateReq.getData(), newList);
+//            }
+//            allData.add(outboundData);
+//            allData.add(inboundData);
+//        }
         List<String> sheetNames = Arrays.asList("报价&排期", "仅排档期");
 
         try {
