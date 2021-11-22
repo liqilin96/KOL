@@ -769,32 +769,16 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         outboundData.add(titleCN);
         inboundData.add(titleCN);
 
-
-        if(StringUtils.isBlank(req.getWorkerOrderIds())) {
-            List<WorkOrderData> workOrderDataList = this.list();
-            //导出所有数据
-            for(WorkOrderData workOrderData : workOrderDataList) {
-                List<String>            data    = new ArrayList<>();
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
-                //库内 排期
-                if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
-                    pricesBiz.addExportData(inboundData, data, hashMap, newList);
-                }
-                pricesBiz.addExportData(outboundData, data, hashMap, newList);
+        String[] split = req.getWorkerOrderDataIds().split(",");
+        for(int i = 0; i < split.length; i++) {
+            List<String>            data          = new ArrayList<>();
+            String                  id            = split[i];
+            WorkOrderData           workOrderData = getById(id);
+            HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
+            if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
+                pricesBiz.addExportData(inboundData, data, hashMap, newList);
             }
-        } else {
-
-            String[] split = req.getWorkerOrderIds().split(",");
-            for(int i = 0; i < split.length; i++) {
-                List<String>            data          = new ArrayList<>();
-                String                  id            = split[i];
-                WorkOrderData           workOrderData = getById(id);
-                HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
-                if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
-                    pricesBiz.addExportData(inboundData, data, hashMap, newList);
-                }
-                pricesBiz.addExportData(outboundData, data, hashMap, newList);
-            }
+            pricesBiz.addExportData(outboundData, data, hashMap, newList);
         }
 
         allData.add(outboundData);
