@@ -18,6 +18,9 @@ public class PricesLogsReq {
     @ApiModelProperty(value = "达人id")
     private String starId;
 
+    @ApiModelProperty(value = "达人名")
+    private String starName;
+
     @ApiModelProperty(value = "媒体平台")
     private String platform;
 
