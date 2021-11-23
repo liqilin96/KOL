@@ -86,7 +86,7 @@ public class ImportExcelStar {
                     bo.put(14, "否");
                     bo.put(16, "否");
                     bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(22, DateToStr(new Date()));
+                    bo.put(21, DateToStr(new Date()));
                     break;
                 }
                 case "微信": {
@@ -96,7 +96,7 @@ public class ImportExcelStar {
                     bo.put(14, "是");
                     bo.put(16, "否");
                     bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(22, DateToStr(new Date()));
+                    bo.put(21, DateToStr(new Date()));
                     break;
                 }
                 case "微博": {
@@ -109,7 +109,7 @@ public class ImportExcelStar {
                     bo.put(14, "是");
                     bo.put(16, "否");
                     bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(22, DateToStr(new Date()));
+                    bo.put(21, DateToStr(new Date()));
                     break;
                 }
                 case "抖音": {
@@ -122,7 +122,7 @@ public class ImportExcelStar {
                     bo.put(14, "否");
                     bo.put(16, "否");
                     bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(22, DateToStr(new Date()));
+                    bo.put(21, DateToStr(new Date()));
                     break;
                 }
                 case "快手": {
@@ -135,7 +135,7 @@ public class ImportExcelStar {
                     bo.put(14, "否");
                     bo.put(16, "否");
                     bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(22, DateToStr(new Date()));
+                    bo.put(21, DateToStr(new Date()));
                     break;
                 }
                 case "B站": {
@@ -147,7 +147,7 @@ public class ImportExcelStar {
                     bo.put(14, "否");
                     bo.put(16, "否");
                     bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(22, DateToStr(new Date()));
+                    bo.put(21, DateToStr(new Date()));
                     break;
                 }
             }
