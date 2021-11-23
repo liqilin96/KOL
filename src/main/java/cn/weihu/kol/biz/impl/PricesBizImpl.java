@@ -71,13 +71,14 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         }
 
         //达人名称
-        if(StringUtils.isNotBlank(req.getStarId())) {
+        if(StringUtils.isNotBlank(req.getStarName())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
         }
 
         //达人id
         if(StringUtils.isNotBlank(req.getStarId())) {
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) like \"%" + req.getStarId() + "%\"");
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) = {0}", req.getStarId());
+            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
         } else {
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
         }
@@ -252,16 +253,16 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             }).collect(Collectors.toList());
             //导出所有数据
             for(Prices prices : pricesList) {
-                List<String> data = new ArrayList<>();
+                List<String>            data    = new ArrayList<>();
                 HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 addExportData(exprotData, data, hashMap, newList);
             }
         } else {
             String[] split = req.getIds().split(",");
             for(int i = 0; i < split.length; i++) {
-                List<String> data   = new ArrayList<>();
-                String       id     = split[i];
-                Prices       prices = getById(id);
+                List<String>            data    = new ArrayList<>();
+                String                  id      = split[i];
+                Prices                  prices  = getById(id);
                 HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 addExportData(exprotData, data, hashMap, newList);
             }
@@ -284,7 +285,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     /**
      * @param exprotData 导出的数据
      * @param data       每一条数据
-     * @param hashMap   JSON数据解析后的map
+     * @param hashMap    JSON数据解析后的map
      * @param newList    导出的头
      */
     public void addExportData(List<List<String>> exprotData, List<String> data, HashMap<String, String> hashMap, List<FieldsBo> newList) {
