@@ -49,6 +49,11 @@ public class WorkOrder implements Serializable {
     @ApiModelProperty(value = "指向处理人")
     private Long toUser;
 
+    /**
+     * 驳回原因
+     */
+    private String rejectReason;
+
     @ApiModelProperty(value = "插入时间")
     private Date ctime;
 

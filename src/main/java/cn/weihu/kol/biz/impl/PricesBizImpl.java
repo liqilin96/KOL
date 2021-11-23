@@ -10,6 +10,7 @@ import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
+import cn.weihu.kol.runner.StartupRunner;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -313,7 +314,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     private Date expirtDate(Date date) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
-        c.add(Calendar.DATE, 30);
+        c.add(Calendar.DATE, StartupRunner.PRICE_EXPIRE_REMIND_DAY);
         return c.getTime();
     }
 

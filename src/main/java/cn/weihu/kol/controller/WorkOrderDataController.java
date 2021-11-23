@@ -52,7 +52,6 @@ public class WorkOrderDataController {
     @ApiOperation(value = "批量更新", httpMethod = "PUT", notes = "批量更新")
     @PutMapping(value = "/update/batch")
     public ResultBean<Long> updateWorkOrderData(@RequestBody WorkOrderBatchUpdateReq req) {
-
         return new ResultBean<>(dataBiz.updateWorkOrderData(req));
     }
 

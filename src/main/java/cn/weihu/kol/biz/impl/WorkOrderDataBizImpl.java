@@ -371,7 +371,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 break;
             case 2:
                 // 到期询价
-                expire(req);
+                expire();
         }
         return null;
     }
@@ -399,6 +399,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             } else {
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             }
+            workOrderData.setData(workOrderDataUpdateReq.getData());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             list.add(workOrderData);
@@ -442,12 +443,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         workOrderDao.updateById(workOrder);
     }
 
-    private void expire(WorkOrderBatchUpdateReq req) {
-        if(CollectionUtils.isEmpty(req.getPriceIds())) {
-            throw new CheckException("重新询价数据不能为空");
-        }
+    private void expire() {
         List<Prices> pricesList = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class)
-                                                         .in(Prices::getId, req.getPriceIds()));
+                                                         .between(Prices::getInsureEndtime, new Date(), expireDate(new Date())));
         if(CollectionUtils.isEmpty(pricesList)) {
             throw new CheckException("重新询价数据不存在");
         }
@@ -697,8 +695,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             throw new CheckException("审核状态不合法");
         }
         if(Constants.WORK_ORDER_DATA_REVIEW_REJECT.equals(req.getStatus())) {
+            if(StringUtils.isBlank(req.getRejectReason())) {
+                throw new CheckException("驳回原因不能为空");
+            }
             // 审核驳回 返回上一步
-            reviewReject(req.getWorkOrderId());
+            reviewReject(req.getWorkOrderId(), req.getRejectReason());
             log.info(">>> 审核驳回,workOrderId:{}", req.getWorkOrderId());
             return null;
         }
@@ -943,7 +944,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
 
-    private void reviewReject(Long workOrderId) {
+    private void reviewReject(Long workOrderId, String rejectReason) {
         // 更新工单数据状态 -> 已报价
         LambdaUpdateWrapper<WorkOrderData> wrapper = Wrappers.lambdaUpdate(WorkOrderData.class);
         wrapper.set(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE)
@@ -955,8 +956,17 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         WorkOrder workOrder = new WorkOrder();
         workOrder.setId(workOrderId);
         workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
+        workOrder.setRejectReason(rejectReason);
         workOrder.setUtime(DateUtil.date());
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
         workOrderDao.updateById(workOrder);
+    }
+
+    //返回30天的日子
+    private Date expireDate(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.DATE, StartupRunner.PRICE_EXPIRE_REMIND_DAY);
+        return c.getTime();
     }
 }
