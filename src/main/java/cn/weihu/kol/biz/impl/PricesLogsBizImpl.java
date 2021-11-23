@@ -57,9 +57,13 @@ public class PricesLogsBizImpl extends ServiceImpl<PricesLogsDao, PricesLogs> im
                 wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.accountType\")) like {0}", "%" + type + "%");
             }
         }
-        //达人id
-        if(StringUtils.isNotBlank(req.getStarId())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", "%" + req.getStarId() + "%");
+//        //达人id
+//        if(StringUtils.isNotBlank(req.getStarId())) {
+//            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", "%" + req.getStarId() + "%");
+//        }
+        //达人名称
+        if(StringUtils.isNotBlank(req.getStarName())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
         }
 
         Page<PricesLogs> logsPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);

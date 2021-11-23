@@ -106,20 +106,20 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                  *  2     -----》账号
                  *  3     -----》账号ID或链接
                  *  4     -----》账号类型
-                 *  5     -----》粉丝数
-                 *  6     -----》资源位置
-                 *  7     -----》数量
-                 *  8     -----》发布开始时间
-                 *  9     -----》发布结束时间
-                 *  10    -----》含电商链接单价
-                 *  11    -----》@
-                 *  12    -----》话题
-                 *  13    -----》电商肖像授权
-                 *  14    -----》品牌双微转发授权
-                 *  15    -----》微任务
-                 *  16    -----》其他
-                 *  17    -----》产品提供方
-                 *  18    -----》发布内容brief概述
+//                 *  5     -----》粉丝数
+                 *  5     -----》资源位置
+                 *  6     -----》数量
+                 *  7     -----》发布开始时间
+                 *  8     -----》发布结束时间
+                 *  9    -----》电商链接
+                 *  10    -----》@
+                 *  11    -----》话题
+                 *  12    -----》电商肖像授权
+                 *  13    -----》品牌双微转发授权
+                 *  14    -----》微任务
+                 *  15    -----》其他
+                 *  16    -----》产品提供方
+                 *  17    -----》发布内容brief概述
                  */
                 //获取第一条数据的账号，如果等于示例数据则跳过
                 String accountName = bo.get(2);
@@ -143,7 +143,6 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 for(int i = 0; i < fieldsBos.size(); i++) {
                     for(int j = 0; j < title.size(); j++) {
                         if(title.get(j).equalsIgnoreCase(fieldsBos.get(i).getTitle())) {
-                            System.out.println(title.get(j) +" ========= " + fieldsBos.get(i).getTitle());
                             map.put(fieldsBos.get(i).getDataIndex(), bo.get(j));
                         }
                     }
@@ -264,8 +263,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     public List<String> excelTitle() {
-        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "粉丝数", "资源位置", "数量", "发布开始时间",
-                             "发布结束时间", "含电商链接单价", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",
+        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型",  "资源位置", "数量", "发布开始时间",
+                             "发布结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",
                              "产品提供方", "发布内容brief概述");
     }
 }
