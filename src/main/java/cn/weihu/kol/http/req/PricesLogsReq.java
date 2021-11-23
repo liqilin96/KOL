@@ -15,8 +15,8 @@ import lombok.Setter;
 @ApiModel(value = "报价记录请求实体类", description = "描述")
 public class PricesLogsReq {
 
-    @ApiModelProperty(value = "达人名称")
-    private String starName;
+    @ApiModelProperty(value = "达人id")
+    private String starId;
 
     @ApiModelProperty(value = "媒体平台")
     private String platform;

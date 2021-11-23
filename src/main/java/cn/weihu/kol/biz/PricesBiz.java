@@ -36,4 +36,5 @@ public interface PricesBiz extends IService<Prices> {
 
     void expirtPricesExport(PricesLogsReq req,HttpServletResponse response);
 
+    void savePrices(Prices prices) ;
 }

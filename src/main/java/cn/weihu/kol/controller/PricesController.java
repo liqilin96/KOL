@@ -57,7 +57,7 @@ public class PricesController {
     @ApiOperation(value = "达人报价详情-分页", httpMethod = "GET", notes = "达人报价详情-分页")
     @GetMapping(value = "/star/page")
     public ResultBean<PageResult<PricesLogsResp>> starPricePage(PricesLogsReq req) {
-        CheckUtil.notEmpty(req.getStarName(), "达人名称不能为空");
+        CheckUtil.notEmpty(req.getStarId(), "达人id不能为空");
         CheckUtil.notEmpty(req.getPlatform(), "媒体平台不能为空");
         return new ResultBean<>(pricesBiz.starPricePage(req));
     }

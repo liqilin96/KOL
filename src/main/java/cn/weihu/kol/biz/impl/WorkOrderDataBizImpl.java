@@ -777,8 +777,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
             if("1".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
                 pricesBiz.addExportData(inboundData, data, hashMap, newList);
+            } else {
+                pricesBiz.addExportData(outboundData, data, hashMap, newList);
             }
-            pricesBiz.addExportData(outboundData, data, hashMap, newList);
         }
 
         allData.add(outboundData);

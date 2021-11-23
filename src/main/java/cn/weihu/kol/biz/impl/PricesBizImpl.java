@@ -69,12 +69,12 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.address\")) like {0}", "%" + priceForm + "%");
             }
         }
-        //达人名称
-        if(StringUtils.isNotBlank(req.getStarName())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.account\")) like \"%" + req.getStarName() + "%\"");
+        //达人id
+        if(StringUtils.isNotBlank(req.getStarId())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", "%" + req.getStarId() + "%");
+            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) like \"%" + req.getStarId() + "%\"");
         } else {
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.account\"))");
+            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
         }
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
@@ -97,7 +97,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         //媒体平台
         wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
         //达人名称
-        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", req.getStarName());
+        wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", req.getStarId());
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
         List<PricesLogsResp> respList = pricesPage.getRecords().stream().map(x -> {
@@ -202,8 +202,8 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
 
-        if(StringUtils.isNotBlank(req.getStarName())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getPlatform() + "%");
+        if(StringUtils.isNotBlank(req.getStarId())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", "%" + req.getStarId() + "%");
 
         }
         if(StringUtils.isNotBlank(req.getPlatform())) {
@@ -268,6 +268,11 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         }
 
 
+    }
+
+    @Override
+    public void savePrices(Prices prices) {
+        this.baseMapper.insert(prices);
     }
 
     /**
