@@ -44,11 +44,12 @@ public interface Constants {
 
     /**
      * 属性筛选标题
-     * 媒体、账号、资源位置
+     * 媒体、账号、资源位置、账号ID或链接
      * 含电商链接单价、@、话题、电商肖像权、品牌双微转发授权、微任务
      */
     String TITLE_MEDIA             = "media";
     String TITLE_ACCOUNT           = "account";
+    String TITLE_ID_OR_LINK        = "IDorLink";
     String TITLE_RESOURCE_LOCATION = "address";
     String TITLE_LINK_PRICE        = "linkPrice";
     String TITLE_AT                = "at";
@@ -60,14 +61,23 @@ public interface Constants {
     /**
      * 达人
      * 佣金、价格、供应商、报价到期时间
+     * 数量、发布时间、其他特殊说明、产品提供方、发布内容brief概述
      */
-    String ACTOR_COMMISSION   = "commission";
-    String ACTOR_PRICE        = "implPrice";
-    String ACTOR_PROVIDER     = "supplier";
-    String ACTOR_INSURE       = "priceTime";
-    String ACTOR_DATA_SN      = "actorSn";
-    String ACTOR_INBOUND      = "inbound";
-    String ACTOR_COMPARE_FLAG = "compareFlag";
+    String ACTOR_COMMISSION      = "commission";
+    String ACTOR_PRICE           = "implPrice";
+    String ACTOR_PROVIDER        = "supplier";
+    String ACTOR_INSURE          = "priceTime";
+    //
+    String ACTOR_DATA_SN         = "actorSn";
+    String ACTOR_INBOUND         = "inbound";
+    String ACTOR_COMPARE_FLAG    = "compareFlag";
+    //
+    String ACTOR_COUNT           = "count";
+    String ACTOR_POST_START_TIME = "postStartTime";
+    String ACTOR_POST_END_TIME   = "postEndTime";
+    String ACTOR_OTHER           = "other";
+    String ACTOR_PRODUCT         = "product";
+    String ACTOR_BRIEF           = "brief";
 
     /**
      * 字段组类型

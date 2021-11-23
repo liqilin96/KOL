@@ -21,4 +21,10 @@ public class WorkOrderBatchUpdateReq {
 
     @ApiModelProperty("工单id，逗号分割")
     private String workerOrderDataIds;
+
+    @ApiModelProperty("请求类型:1,重新询价;2:到期询价")
+    private Integer requestType;
+
+    @ApiModelProperty("到期询价的ID集")
+    private List<Long> priceIds;
 }

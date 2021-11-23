@@ -9,6 +9,7 @@ import cn.weihu.kol.biz.WorkOrderDataBiz;
 import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.convert.WorkOrderConverter;
+import cn.weihu.kol.db.dao.ProjectDao;
 import cn.weihu.kol.db.dao.WorkOrderDao;
 import cn.weihu.kol.db.dao.WorkOrderDataDao;
 import cn.weihu.kol.db.po.*;
@@ -35,6 +36,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,6 +61,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private PricesLogsBiz pricesLogsBiz;
     @Autowired
     private QuoteBiz      quoteBiz;
+    @Resource
+    private ProjectDao    projectDao;
     @Resource
     private WorkOrderDao  workOrderDao;
 
@@ -110,10 +114,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         List<WorkOrderData>     updateList    = new ArrayList<>();
         for(WorkOrderDataUpdateReq updateReq : req.getList()) {
             workOrderDataResp = new WorkOrderDataResp();
-            // 根据 媒体、账号、资源位置 匹配相同需求数据
+            // 根据 媒体、账号ID、资源位置 匹配相同需求数据
             map = GsonUtils.gson.fromJson(updateReq.getData(), type);
             actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
-                                                      map.get(Constants.TITLE_ACCOUNT),
+                                                      map.get(Constants.TITLE_ID_OR_LINK),
                                                       map.get(Constants.TITLE_RESOURCE_LOCATION)));
             log.info(">>> actor_sn:{}", actorSn);
             boolean flag = true;
@@ -139,6 +143,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     if(flag) {
                         // 报价库库匹配成功
                         map = GsonUtils.gson.fromJson(quote.getActorData(), type);
+                        // 填充数据
+                        fillOther(map, updateReq.getData());
                     }
                 } else {
                     // 库外数据
@@ -161,6 +167,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 map = GsonUtils.gson.fromJson(prices.getActorData(), type);
                 map.put(Constants.ACTOR_DATA_SN, actorSn);
                 map.put(Constants.ACTOR_INBOUND, "1");
+                // 填充数据
+                fillOther(map, updateReq.getData());
                 workOrderDataResp.setData(GsonUtils.gson.toJson(map));
                 workOrderDataResp.setInbound(1);
             }
@@ -229,6 +237,23 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         return true;
     }
 
+    private void fillOther(Map<String, String> inbound, String outbound) {
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        try {
+            Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
+            inbound.put(Constants.ACTOR_COUNT, outboundMap.get(Constants.ACTOR_COUNT));
+            inbound.put(Constants.ACTOR_POST_START_TIME, outboundMap.get(Constants.ACTOR_POST_START_TIME));
+            inbound.put(Constants.ACTOR_POST_END_TIME, outboundMap.get(Constants.ACTOR_POST_END_TIME));
+            inbound.put(Constants.ACTOR_OTHER, outboundMap.get(Constants.ACTOR_OTHER));
+            inbound.put(Constants.ACTOR_PRODUCT, outboundMap.get(Constants.ACTOR_PRODUCT));
+            inbound.put(Constants.ACTOR_BRIEF, outboundMap.get(Constants.ACTOR_BRIEF));
+            log.info(">>> 库内数据填充完成,inbound:{}", inbound);
+        } catch(Exception e) {
+            log.error(">>> 库内数据填充异常,inbound:{}", inbound, e);
+        }
+    }
+
     @Override
     public Long enquiry(WorkOrderBatchUpdateReq req) {
         if(CollectionUtils.isEmpty(req.getList())) {
@@ -260,7 +285,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XIN_YI);
                 map.put(Constants.ACTOR_INBOUND, "0");
                 compareFlag = StringUtils.join(map.get(Constants.TITLE_MEDIA),
-                                               map.get(Constants.TITLE_ACCOUNT),
+                                               map.get(Constants.TITLE_ID_OR_LINK),
                                                map.get(Constants.TITLE_RESOURCE_LOCATION));
                 map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
                 workOrderData.setData(GsonUtils.gson.toJson(map));
@@ -335,6 +360,26 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public Long enquiryAgain(WorkOrderBatchUpdateReq req) {
+        // 请求类型:1,重新询价;2:到期询价
+        if(1 != req.getRequestType() && 2 != req.getRequestType()) {
+            throw new CheckException("请求类型不合法");
+        }
+        switch(req.getRequestType()) {
+            case 1:
+                // 重新询价
+                again(req);
+                break;
+            case 2:
+                // 到期询价
+                expire(req);
+        }
+        return null;
+    }
+
+    private void again(WorkOrderBatchUpdateReq req) {
+        if(Objects.isNull(req.getWorkOrderId())) {
+            throw new CheckException("需求工单ID不能为空");
+        }
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("重新询价数据不能为空");
         }
@@ -357,7 +402,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             list.add(workOrderData);
-
             //
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
                 existXinYi = true;
@@ -396,8 +440,96 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         workOrder.setUtime(DateUtil.date());
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
         workOrderDao.updateById(workOrder);
-        return null;
     }
+
+    private void expire(WorkOrderBatchUpdateReq req) {
+        if(CollectionUtils.isEmpty(req.getPriceIds())) {
+            throw new CheckException("重新询价数据不能为空");
+        }
+        List<Prices> pricesList = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class)
+                                                         .in(Prices::getId, req.getPriceIds()));
+        if(CollectionUtils.isEmpty(pricesList)) {
+            throw new CheckException("重新询价数据不存在");
+        }
+        // 创建保价即将到期项目
+        String  name    = "保价即将到期";
+        Project project = projectDao.selectOne(new LambdaQueryWrapper<>(Project.class).eq(Project::getName, name));
+        if(Objects.isNull(project)) {
+            project = new Project();
+            project.setName(name);
+            project.setDescs("保价即将到期项目");
+            project.setCtime(LocalDateTime.now());
+            project.setUtime(LocalDateTime.now());
+            projectDao.insert(project);
+        }
+        log.info(">>> 保价即将到期项目已生成...");
+        // 生成保价到期询价工单
+        WorkOrder workOrder = new WorkOrder();
+        workOrder.setProjectId(project.getId());
+        workOrder.setProjectName(project.getName());
+//        workOrder = workOrderDao.create(workOrder, Constants.WORK_ORDER_EXPIRE_DEMAND, Constants.WORK_ORDER_ASK);
+        log.info(">>> 保价即将到期工单已生成...");
+        // 生成工单数据及提醒消息
+        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+        WorkOrderData       workOrderData;
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        Map<String, String> map;
+        boolean             existXinYi = false;
+        boolean             existWeiGe = false;
+        for(Prices prices : pricesList) {
+            workOrderData = new WorkOrderData();
+            workOrderData.setFieldsId(1L);
+            workOrderData.setProjectId(project.getId());
+            workOrderData.setWorkOrderId(workOrder.getId());
+            workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
+            workOrderData.setData(prices.getActorData());
+            workOrderData.setCtime(DateUtil.date());
+            workOrderData.setUtime(DateUtil.date());
+            workOrderDataList.add(workOrderData);
+
+            map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+            if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.ACTOR_PROVIDER))) {
+                existXinYi = true;
+            }
+            if(Constants.SUPPLIER_WEI_GE.equals(map.get(Constants.ACTOR_PROVIDER))) {
+                existWeiGe = true;
+            }
+        }
+        saveBatch(workOrderDataList);
+        //
+        if(existXinYi) {
+            WorkOrder workOrderXinYi = new WorkOrder();
+            workOrderXinYi.setOrderSn(workOrder.getOrderSn());
+            workOrderXinYi.setName(workOrder.getName());
+            workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
+            workOrderXinYi.setProjectId(workOrder.getProjectId());
+            workOrderXinYi.setProjectName(workOrder.getProjectName());
+            workOrderXinYi.setParentId(workOrder.getId());
+            workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
+            workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
+            workOrderXinYi.setCtime(DateUtil.date());
+            workOrderXinYi.setUtime(DateUtil.date());
+            workOrderDao.insert(workOrderXinYi);
+            log.info(">>> 保价即将到期新意询价子工单已生成...");
+        }
+        if(existWeiGe) {
+            WorkOrder workOrderWeiGe = new WorkOrder();
+            workOrderWeiGe.setOrderSn(workOrder.getOrderSn());
+            workOrderWeiGe.setName(workOrder.getName());
+            workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
+            workOrderWeiGe.setProjectId(workOrder.getProjectId());
+            workOrderWeiGe.setProjectName(workOrder.getProjectName());
+            workOrderWeiGe.setParentId(workOrder.getId());
+            workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
+            workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
+            workOrderWeiGe.setCtime(DateUtil.date());
+            workOrderWeiGe.setUtime(DateUtil.date());
+            workOrderDao.insert(workOrderWeiGe);
+            log.info(">>> 保价即将到期微格询价子工单已生成...");
+        }
+    }
+
 
     @Override
     public Long quote(WorkOrderBatchUpdateReq req) {
@@ -597,7 +729,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             map = GsonUtils.gson.fromJson(workOrderData.getData(), type);
             inbound = map.get(Constants.ACTOR_INBOUND);
             actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
-                                                      map.get(Constants.TITLE_ACCOUNT),
+                                                      map.get(Constants.TITLE_ID_OR_LINK),
                                                       map.get(Constants.TITLE_RESOURCE_LOCATION)));
             if("0".equals(inbound)) {
                 // 库外数据审核通过 入kol库,并更新报价库enable标识
