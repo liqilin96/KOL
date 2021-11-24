@@ -8,7 +8,6 @@ package cn.weihu.kol.redis;
 import cn.weihu.kol.util.GsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -20,14 +19,13 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class EnhancedRedisService {
     @Autowired
-    @Qualifier("redisTemplateA")
     private StringRedisTemplate redisTemplate;
-    private RedisScript<Long> lPushIfAbsent = new DefaultRedisScript("local list = redis.call(\"lrange\", KEYS[1], 0, -1);\nfor k, v in pairs(list) do\n  if v == ARGV[1] then\n    return 0;\n  end\nend\nreturn redis.call(\"lpush\", KEYS[1], ARGV[1]);", Long.class);
-    private RedisScript<Long> lPushSorted = new DefaultRedisScript("local list = redis.call(\"lrange\", KEYS[1], 0, -1);\nfor k, v in pairs(list) do\n  if v == ARGV[1] then\n    return 0;\n  elseif tonumber(v) > tonumber(ARGV[1]) then\n    return redis.call(\"linsert\", KEYS[1], \"before\", v, ARGV[1]);\n  end\nend\nreturn redis.call(\"rpush\", KEYS[1], ARGV[1]);", Long.class);
-    private RedisScript<String> rPopIfNotEmpty = new DefaultRedisScript("while true do\n  local value = redis.call(\"rpop\", KEYS[1]);\n  if not value then\n    return nil;\n  elseif redis.call(\"llen\", KEYS[2] .. \":\" .. value .. ARGV[1]) > 0 then\n    redis.call(ARGV[2], KEYS[1], value);\n    return value;\n  end\nend", String.class);
-    private RedisScript<List> zRangeRemByScore = new DefaultRedisScript("local zset = redis.call(\"zrangebyscore\", KEYS[1], ARGV[1], ARGV[2]);\nfor k, v in pairs(zset) do\n  redis.call(\"zrem\", KEYS[1], v);\nend\nreturn zset;", List.class);
-    private RedisScript<List> zRangeRemByScoreAndLimit = new DefaultRedisScript("local zset = redis.call(\"zrangebyscore\", KEYS[1], ARGV[1], ARGV[2], \"limit\", ARGV[3], ARGV[4]);\nfor k, v in pairs(zset) do\n  redis.call(\"zrem\", KEYS[1], v);\nend\nreturn zset;", List.class);
-    private RedisScript<Long> zAddIfAbsent = new DefaultRedisScript("local value = redis.call(\"zscore\", KEYS[1], ARGV[1]);\nif not value then\n  return redis.call(\"zadd\", KEYS[1], ARGV[2], ARGV[1]);\nend\nreturn 0;", Long.class);
+    private RedisScript<Long>   lPushIfAbsent            = new DefaultRedisScript("local list = redis.call(\"lrange\", KEYS[1], 0, -1);\nfor k, v in pairs(list) do\n  if v == ARGV[1] then\n    return 0;\n  end\nend\nreturn redis.call(\"lpush\", KEYS[1], ARGV[1]);", Long.class);
+    private RedisScript<Long>   lPushSorted              = new DefaultRedisScript("local list = redis.call(\"lrange\", KEYS[1], 0, -1);\nfor k, v in pairs(list) do\n  if v == ARGV[1] then\n    return 0;\n  elseif tonumber(v) > tonumber(ARGV[1]) then\n    return redis.call(\"linsert\", KEYS[1], \"before\", v, ARGV[1]);\n  end\nend\nreturn redis.call(\"rpush\", KEYS[1], ARGV[1]);", Long.class);
+    private RedisScript<String> rPopIfNotEmpty           = new DefaultRedisScript("while true do\n  local value = redis.call(\"rpop\", KEYS[1]);\n  if not value then\n    return nil;\n  elseif redis.call(\"llen\", KEYS[2] .. \":\" .. value .. ARGV[1]) > 0 then\n    redis.call(ARGV[2], KEYS[1], value);\n    return value;\n  end\nend", String.class);
+    private RedisScript<List>   zRangeRemByScore         = new DefaultRedisScript("local zset = redis.call(\"zrangebyscore\", KEYS[1], ARGV[1], ARGV[2]);\nfor k, v in pairs(zset) do\n  redis.call(\"zrem\", KEYS[1], v);\nend\nreturn zset;", List.class);
+    private RedisScript<List>   zRangeRemByScoreAndLimit = new DefaultRedisScript("local zset = redis.call(\"zrangebyscore\", KEYS[1], ARGV[1], ARGV[2], \"limit\", ARGV[3], ARGV[4]);\nfor k, v in pairs(zset) do\n  redis.call(\"zrem\", KEYS[1], v);\nend\nreturn zset;", List.class);
+    private RedisScript<Long>   zAddIfAbsent             = new DefaultRedisScript("local value = redis.call(\"zscore\", KEYS[1], ARGV[1]);\nif not value then\n  return redis.call(\"zadd\", KEYS[1], ARGV[2], ARGV[1]);\nend\nreturn 0;", Long.class);
 
 
     protected boolean doTryLock(String key, String value, long expireTime, TimeUnit expireTimeUnit) {
@@ -60,7 +58,7 @@ public class EnhancedRedisService {
 
     public void set(String key, Object value) {
         String val;
-        if (value instanceof String) {
+        if(value instanceof String) {
             val = (String) value;
         } else {
             val = GsonUtils.gson.toJson(value);
@@ -183,7 +181,7 @@ public class EnhancedRedisService {
 
     public Long lPush(String key, Object value) {
         String val;
-        if (value instanceof String) {
+        if(value instanceof String) {
             val = (String) value;
         } else {
             val = GsonUtils.gson.toJson(value);
@@ -283,7 +281,7 @@ public class EnhancedRedisService {
 
     public Boolean zAdd(String key, String value, Number score) {
         double s;
-        if (score instanceof Double) {
+        if(score instanceof Double) {
             s = (Double) score;
         } else {
             s = score.doubleValue();
@@ -294,7 +292,7 @@ public class EnhancedRedisService {
 
     public Long zAddIfAbsent(String key, String value, Number score) {
         double s;
-        if (score instanceof Double) {
+        if(score instanceof Double) {
             s = (Double) score;
         } else {
             s = score.doubleValue();
