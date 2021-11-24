@@ -38,4 +38,7 @@ public class PricesLogsReq {
 
     @ApiModelProperty("达人id，不传则全部,逗号分割")
     private String ids;
+
+    @ApiModelProperty("排序，DESC降序，ASC升序，不区分大小写")
+    private String orderBy;
 }

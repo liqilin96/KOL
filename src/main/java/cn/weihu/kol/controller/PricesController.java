@@ -10,6 +10,7 @@ import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,7 +36,7 @@ public class PricesController {
     @Autowired
     private PricesBiz pricesBiz;
 
-//    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
+    //    @ApiOperation(value = "达人报价", httpMethod = "GET", notes = "达人报价")
 //    @GetMapping(value = "/star")
 //    public ResultBean<PricesLogsBoResp> starPrice(PricesLogsReq req) {
 //        return new ResultBean<>(pricesBiz.starPrice(req));
@@ -86,8 +87,8 @@ public class PricesController {
 
     @ApiOperation(value = "保价即将到期导出", httpMethod = "GET", notes = "保价即将到期导出")
     @GetMapping(value = "/star/expirt/export")
-    public void expirtPricesExport(PricesLogsReq req,HttpServletResponse response) {
-        pricesBiz.expirtPricesExport(req,response);
+    public void expirtPricesExport(PricesLogsReq req, HttpServletResponse response) {
+        pricesBiz.expirtPricesExport(req, response);
     }
 }
 
