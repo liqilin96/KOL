@@ -18,4 +18,7 @@ public class WorkOrderDataReviewReq {
 
     @ApiModelProperty(value = "审核结果状态")
     private String status;
+
+    @ApiModelProperty(value = "驳回原因")
+    private String rejectReason;
 }

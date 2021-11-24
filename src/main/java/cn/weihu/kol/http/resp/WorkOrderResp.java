@@ -34,6 +34,9 @@ public class WorkOrderResp {
     @ApiModelProperty(value = "父工单ID")
     private Long parentId;
 
+    @ApiModelProperty(value = "驳回原因")
+    private String rejectReason;
+
     @ApiModelProperty(value = "创建时间")
     private Date ctime;
 

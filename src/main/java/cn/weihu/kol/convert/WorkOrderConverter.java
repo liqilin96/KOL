@@ -17,6 +17,7 @@ public class WorkOrderConverter {
         resp.setProjectName(workOrder.getProjectName());
         resp.setStatus(workOrder.getStatus());
         resp.setParentId(workOrder.getParentId());
+        resp.setRejectReason(workOrder.getRejectReason());
         resp.setCtime(workOrder.getCtime());
         resp.setUtime(workOrder.getUtime());
         return resp;
