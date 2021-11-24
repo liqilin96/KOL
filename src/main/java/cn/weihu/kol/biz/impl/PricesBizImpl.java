@@ -79,8 +79,10 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         if(StringUtils.isNotBlank(req.getStarId())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) = {0}", req.getStarId());
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
+            wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) DESC");
         } else {
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
+            wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) DESC");
         }
 
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
