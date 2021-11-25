@@ -115,7 +115,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
         //媒体平台
         wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
-        //达人名称
+        //达人ID
         wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", req.getStarId());
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
@@ -141,7 +141,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         long sum = resps.stream().filter(x -> x.getInsureEndtime().after(new Date())).map(x -> {
 
             HashMap<String, String> hashMap = GsonUtils.gson.fromJson(x.getActorData(), HashMap.class);
-            return map.put(hashMap.get("address"), x.getPrice().toString());
+            return map.put(hashMap.get("address"), x.getPrice() + "");
         }).count();
         return new PricesDetailsResp(sum, map);
     }
