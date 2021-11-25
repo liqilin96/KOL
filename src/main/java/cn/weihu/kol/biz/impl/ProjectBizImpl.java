@@ -104,7 +104,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         LambdaQueryWrapper<Project> wrapper = new LambdaQueryWrapper<>();
 
         if(StringUtils.isNotBlank(req.getName())) {
-            wrapper.eq(Project::getName, req.getName());
+            wrapper.like(Project::getName, req.getName());
         }
 
         if(req.getStartTime() != null && req.getEndTime() != null) {
