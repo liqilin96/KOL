@@ -20,7 +20,6 @@ import cn.weihu.kol.http.req.WorkOrderReq;
 import cn.weihu.kol.http.resp.WorkOrderResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
 import cn.weihu.kol.util.EasyExcelUtil;
-import cn.weihu.kol.util.ExceptionUtil;
 import cn.weihu.kol.util.FileUtil;
 import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -65,16 +64,35 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     @Transactional(rollbackFor = Exception.class)
     public String ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
 
-        WorkOrder workOrder = new WorkOrder();
         //校验文件类型
         if(!file.getOriginalFilename().endsWith("xls") && !file.getOriginalFilename().endsWith("xlsx")) {
             log.error(file.getOriginalFilename() + "不是excel文件");
             throw new CheckException(file.getOriginalFilename() + "不是excel文件");
         }
 
+        List<Object> orderBos = null;
         try {
-            List<Object> orderBos = EasyExcelUtil.readExcel(file.getInputStream());
+            orderBos = EasyExcelUtil.readExcel(file.getInputStream());
+        } catch(Exception e) {
+            log.error(">>> Excel读取失败:{}", e);
+            throw new CheckException("Excel读取失败,请联系管理员");
+        }
 
+        if(null != orderBos) {
+            // 判断表头
+            LinkedHashMap<Integer, String> title      = (LinkedHashMap<Integer, String>) orderBos.get(0);
+            List<String>                   list       = title.values().stream().collect(Collectors.toList());
+            String                         excelTitle = list.toString();
+
+            List<String> selfTitle = excelTitle();
+            if(!selfTitle.toString().equalsIgnoreCase(excelTitle)) {
+                throw new CheckException("Excel文件标题不匹配");
+            }
+        }
+
+        WorkOrder workOrder = new WorkOrder();
+
+        try {
             String        name          = "示例数据";
             WorkOrderData workOrderData = null;
 
@@ -84,19 +102,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrder.setProjectName(project.getName());
                 create(workOrder, Constants.WORK_ORDER_DEMAND, Constants.WORK_ORDER_NEW);
             }
-            for(int x = 0; x < orderBos.size(); x++) {
+            for(int x = 1; x < orderBos.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBos.get(x);
-                //Excel表头处理
-                if(x == 0) {
-                    List<String> list       = bo.values().stream().collect(Collectors.toList());
-                    String       excelTitle = list.toString();
-
-                    List<String> selfTitle = excelTitle();
-                    if(!selfTitle.toString().equalsIgnoreCase(excelTitle)) {
-                        throw new CheckException("模板顺序不可修改");
-                    }
-                    continue;
-                }
                 /**具体配置如下
                  *
                  *  0     -----》序号
@@ -160,7 +167,6 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             log.error(">>> 数据导入异常:", e);
             throw new CheckException("数据加载异常,请联系管理员");
         }
-
         return workOrder.getId().toString();
     }
 

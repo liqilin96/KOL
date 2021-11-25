@@ -637,7 +637,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
-        // 处理未勾选的数据状态 新增至报价表
+        // 处理未勾选的报价数据状态 新增至报价表
         List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                                                 .ne(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW));
         if(!CollectionUtils.isEmpty(list)) {
@@ -653,27 +653,29 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 unSelect.setUpdateUserId(UserInfoContext.getUserId());
                 workOrderDataList.add(unSelect);
 
-                quote = new Quote();
-                quote.setProjectId(req.getProjectId());
                 map = GsonUtils.gson.fromJson(unSelect.getData(), type);
-                quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
-                quote.setActorData(unSelect.getData());
-                quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
-                                    Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
-                quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
-                               Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
-                quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
-                // 保价到期时间14天后
-                quote.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
-                quote.setEnableFlag(1);
-                quote.setCtime(DateUtil.date());
-                quote.setUtime(DateUtil.date());
-                quote.setCreateUserId(UserInfoContext.getUserId());
-                quote.setUpdateUserId(UserInfoContext.getUserId());
-                quoteList.add(quote);
+                if("0".equals(map.get(Constants.ACTOR_INBOUND))) {
+                    quote = new Quote();
+                    quote.setProjectId(req.getProjectId());
+                    quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
+                    quote.setActorData(unSelect.getData());
+                    quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                        Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+                    quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                   Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+                    quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                    // 保价到期时间14天后
+                    quote.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
+                    quote.setEnableFlag(1);
+                    quote.setCtime(DateUtil.date());
+                    quote.setUtime(DateUtil.date());
+                    quote.setCreateUserId(UserInfoContext.getUserId());
+                    quote.setUpdateUserId(UserInfoContext.getUserId());
+                    quoteList.add(quote);
+                }
             }
             updateBatchById(workOrderDataList);
-            quoteBiz.saveBatch(quoteList);
+            quoteBiz.batchSaveOrUpdate(quoteList);
         }
         // 更新工单状态为 审核中
         WorkOrder workOrder = new WorkOrder();
@@ -788,7 +790,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             pricesLogsBiz.saveBatch(pricesLogsList);
         }
         if(!CollectionUtils.isEmpty(quoteList)) {
-            quoteBiz.updateBatchByActorSn(quoteList);
+            quoteBiz.batchSaveOrUpdate(quoteList);
         }
         // 更新工单状态 -> 已下单
         WorkOrder workOrder = new WorkOrder();

@@ -22,4 +22,6 @@ public interface QuoteBiz extends Biz<Quote> {
     void updateBatchByActorSn(List<Quote> list);
 
     PageResult<QuoteResp> page(QuoteReq req);
+
+    void batchSaveOrUpdate(List<Quote> list);
 }

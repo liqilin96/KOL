@@ -1,7 +1,9 @@
 package cn.weihu.kol.db.dao;
 
 import cn.weihu.kol.db.po.Quote;
-import cn.weihu.kol.db.dao.MyMapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +15,5 @@ import cn.weihu.kol.db.dao.MyMapper;
  */
 public interface QuoteDao extends MyMapper<Quote> {
 
+    void batchSaveOrUpdate(@Param("list") List<Quote> list);
 }
