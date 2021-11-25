@@ -44,19 +44,11 @@ public interface Constants {
 
     /**
      * 属性筛选标题
-     * 媒体、账号、资源位置、账号ID或链接
-     * 含电商链接单价、@、话题、电商肖像权、品牌双微转发授权、微任务
+     * 媒体、账号ID或链接、资源位置
      */
     String TITLE_MEDIA             = "media";
-    String TITLE_ACCOUNT           = "account";
     String TITLE_ID_OR_LINK        = "IDorLink";
     String TITLE_RESOURCE_LOCATION = "address";
-    String TITLE_LINK_PRICE        = "linkPrice";
-    String TITLE_AT                = "at";
-    String TITLE_TOPIC             = "topic";
-    String TITLE_STORE_AUTH        = "storeAuth";
-    String TITLE_SHARE_AUTH        = "shareAuth";
-    String TITLE_MICRO_TASK        = "microTask";
 
     /**
      * 达人
@@ -64,7 +56,7 @@ public interface Constants {
      * 数量、发布时间、其他特殊说明、产品提供方、发布内容brief概述
      */
     String ACTOR_COMMISSION      = "commission";
-    String ACTOR_PRICE           = "implPrice";
+    String ACTOR_PRICE           = "price";
     String ACTOR_PROVIDER        = "supplier";
     String ACTOR_INSURE          = "priceTime";
     //

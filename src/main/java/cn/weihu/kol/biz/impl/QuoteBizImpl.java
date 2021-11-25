@@ -42,6 +42,7 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
     public Quote getOneByActorSn(Long projectId, String actorSn) {
         List<Quote> list = list(new LambdaQueryWrapper<>(Quote.class)
                                         .eq(Quote::getProjectId, projectId)
+                                        .eq(Quote::getActorSn, actorSn)
                                         .ge(Quote::getInsureEndtime, DateUtil.date())
                                         .eq(Quote::getEnableFlag, 1)
                                         .orderByDesc(Quote::getCtime));
@@ -74,21 +75,17 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
         String                    fieldList = fields.getFieldList();
         LambdaQueryWrapper<Quote> wrapper   = Wrappers.lambdaQuery(Quote.class);
 
-        //媒体平台
+        // 达人名称
+        if(StringUtils.isNotBlank(req.getStarName())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
+        }
+        // 媒体平台
         if(StringUtils.isNotBlank(req.getPlatform())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
         }
-        //账号类型
-        if(StringUtils.isNotBlank(req.getAccountType())) {
-            String[] split = req.getAccountType().split(",");
-            for(int i = 0; i < split.length; i++) {
-                String type = split[i];
-                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.accountType\")) like {0}", "%" + type + "%");
-            }
-        }
-        //达人名称
-        if(StringUtils.isNotBlank(req.getStarName())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
+        // 资源位置
+        if(StringUtils.isNotBlank(req.getPricesForm())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.address\")) like {0}", "%" + req.getPricesForm() + "%");
         }
 
         Page<Quote> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);

@@ -1,5 +1,6 @@
 package cn.weihu.kol.biz.impl;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.kol.biz.*;
@@ -465,7 +466,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         WorkOrder workOrder = new WorkOrder();
         workOrder.setProjectId(project.getId());
         workOrder.setProjectName(project.getName());
-//        workOrder = workOrderDao.create(workOrder, Constants.WORK_ORDER_EXPIRE_DEMAND, Constants.WORK_ORDER_ASK);
+        createWorkOrder(workOrder);
         log.info(">>> 保价即将到期工单已生成...");
         // 生成工单数据及提醒消息
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
@@ -526,6 +527,21 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDao.insert(workOrderWeiGe);
             log.info(">>> 保价即将到期微格询价子工单已生成...");
         }
+    }
+
+    private void createWorkOrder(WorkOrder workOrder) {
+        Integer count = workOrderDao.getCount(workOrder.getProjectId());
+        count = count + 1;
+        workOrder.setName("第" + count + "批次");
+        workOrder.setOrderSn(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATETIME_MS_PATTERN));
+        workOrder.setType(Constants.WORK_ORDER_EXPIRE_DEMAND);
+        workOrder.setStatus(Constants.WORK_ORDER_ASK);
+        workOrder.setCtime(DateUtil.date());
+        workOrder.setUtime(DateUtil.date());
+        workOrder.setCreateUserId(UserInfoContext.getUserId());
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        //
+        workOrderDao.insert(workOrder);
     }
 
 
