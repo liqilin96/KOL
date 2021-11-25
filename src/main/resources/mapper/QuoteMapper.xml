@@ -25,19 +25,21 @@
     </sql>
 
     <insert id="batchSaveOrUpdate" parameterType="java.util.List">
-        INSERT INTO kol_quote VALUES
-        <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.projectId},#{item.actorSn},#{item.actorData},#{item.commission},#{item.price},#{item.provider},
+        INSERT INTO
+            kol_quote(project_id,actor_sn,actor_data,commission,price,provider,insure_endtime,enable_flag,ctime,utime,create_user_id,update_user_id)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.projectId},#{item.actorSn},#{item.actorData},#{item.commission},#{item.price},#{item.provider},
             #{item.insureEndtime},#{item.enableFlag},#{item.ctime},#{item.utime},
-            #{item.createUserId},#{item.updateUserId}
+            #{item.createUserId},#{item.updateUserId})
         </foreach>
-        ON DUPLICATE actor_sn UPDATE
-            actor_data = VALUES (actor_data),
-            commission = VALUES (commission),
-            price = VALUES (price),
-            provider = VALUES (provider),
-            insure_endtime = VALUES (insure_endtime),
-            utime = VALUES (utime)
+        ON DUPLICATE KEY UPDATE
+            actor_data = VALUES(actor_data),
+            commission = VALUES(commission),
+            price = VALUES(price),
+            provider = VALUES(provider),
+            insure_endtime = VALUES(insure_endtime),
+            utime = VALUES(utime)
     </insert>
 
 </mapper>
