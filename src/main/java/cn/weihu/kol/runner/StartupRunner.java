@@ -2,8 +2,10 @@ package cn.weihu.kol.runner;
 
 
 import cn.weihu.kol.Version;
+import cn.weihu.kol.biz.PlatformRulesBiz;
 import cn.weihu.kol.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.system.ApplicationHome;
@@ -45,6 +47,9 @@ public class StartupRunner implements CommandLineRunner {
     @Value("${save_file_path}")
     private String saveFilePath;
 
+    @Autowired
+    private PlatformRulesBiz platformRulesBiz;
+
     @Override
     public void run(String... args) {
         log.info(">>>>>>>>>>>> KOL系统启动中,当前版本:{}<<<<<<<<<<<<", Version.version);
@@ -62,6 +67,8 @@ public class StartupRunner implements CommandLineRunner {
         }
         FileUtil.saveFilePath = saveFilePath;
         log.info(">>>>>>>> saveFilePath:{}", saveFilePath);
+        // 达人平台数据筛选规则
+        platformRulesBiz.init();
     }
 
 }

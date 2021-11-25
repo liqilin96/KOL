@@ -99,4 +99,11 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
         }).collect(Collectors.toList());
         return new PageResult<>(page.getTotal(), quoteRespList, fieldList);
     }
+
+    @Override
+    public void batchSaveOrUpdate(List<Quote> list) {
+        if(!CollectionUtils.isEmpty(list)) {
+            baseMapper.batchSaveOrUpdate(list);
+        }
+    }
 }
