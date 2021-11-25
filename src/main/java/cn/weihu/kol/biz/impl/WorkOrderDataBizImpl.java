@@ -5,6 +5,7 @@ import cn.weihu.base.exception.CheckException;
 import cn.weihu.kol.biz.*;
 import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
+import cn.weihu.kol.container.PlatformRulesContainer;
 import cn.weihu.kol.convert.WorkOrderConverter;
 import cn.weihu.kol.db.dao.ProjectDao;
 import cn.weihu.kol.db.dao.WorkOrderDao;
@@ -67,8 +68,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
-                .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus())
-                .like(StringUtils.isNotBlank(req.getSupplier()), WorkOrderData::getData, req.getSupplier());
+                .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus());
+        if(StringUtils.isNotBlank(req.getSupplier())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
+        }
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
@@ -80,9 +83,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
         if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
             // 新意
-            wrapper.like(WorkOrderData::getData, Constants.SUPPLIER_XIN_YI);
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_XIN_YI);
         } else {
-            wrapper.like(WorkOrderData::getData, Constants.SUPPLIER_WEI_GE);
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_WEI_GE);
         }
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
@@ -205,41 +208,33 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         try {
             Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
             Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
-            if(!inboundMap.get(Constants.TITLE_LINK_PRICE).equals(outboundMap.get(Constants.TITLE_LINK_PRICE))) {
+            String              media       = outboundMap.get(Constants.TITLE_MEDIA);
+            String              address     = outboundMap.get(Constants.TITLE_RESOURCE_LOCATION);
+            log.info(">>> media:{},address:{}", media, address);
+            if(StringUtils.isBlank(media) || StringUtils.isBlank(address)) {
+                log.warn(">>> 数据不完整,匹配失败:{}", outbound);
                 return false;
             }
-            log.info(">>> 含电商链接单价匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_LINK_PRICE), outboundMap.get(Constants.TITLE_LINK_PRICE));
-            if(!inboundMap.get(Constants.TITLE_AT).equals(outboundMap.get(Constants.TITLE_AT))) {
+            // 按照达人平台筛选规则筛选
+            String screenFields = PlatformRulesContainer.getScreenFields(media, address);
+            if(StringUtils.isBlank(screenFields)) {
+                log.info(">>> 筛选字段为空,匹配失败:{}", outbound);
                 return false;
             }
-            log.info(">>> AT匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_AT), outboundMap.get(Constants.TITLE_AT));
-            if(!inboundMap.get(Constants.TITLE_TOPIC).equals(outboundMap.get(Constants.TITLE_TOPIC))) {
-                return false;
+            boolean  flag  = true;
+            String[] split = StringUtils.split(screenFields, ";");
+            for(String field : split) {
+                if(!inboundMap.get(field).equals(outboundMap.get(field))) {
+                    flag = false;
+                    break;
+                }
+                log.info(">>> {}匹配成功...inbound:{},outbound:{}", field, inboundMap.get(field), outboundMap.get(field));
             }
-            log.info(">>> 话题匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_TOPIC), outboundMap.get(Constants.TITLE_TOPIC));
-            if(!inboundMap.get(Constants.TITLE_STORE_AUTH).equals(outboundMap.get(Constants.TITLE_STORE_AUTH))) {
-                return false;
-            }
-            log.info(">>> 电商肖像权匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_STORE_AUTH), outboundMap.get(Constants.TITLE_STORE_AUTH));
-            if(!inboundMap.get(Constants.TITLE_SHARE_AUTH).equals(outboundMap.get(Constants.TITLE_SHARE_AUTH))) {
-                return false;
-            }
-            log.info(">>> 品牌双微转发授权匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_SHARE_AUTH), outboundMap.get(Constants.TITLE_SHARE_AUTH));
-            if(!inboundMap.get(Constants.TITLE_MICRO_TASK).equals(outboundMap.get(Constants.TITLE_MICRO_TASK))) {
-                return false;
-            }
-            log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",
-                     inboundMap.get(Constants.TITLE_MICRO_TASK), outboundMap.get(Constants.TITLE_MICRO_TASK));
+            return flag;
         } catch(Exception e) {
             log.error(">>> 库内外信息数据匹配异常,inbound:{},outbound:{}", inbound, outbound, e);
             return false;
         }
-        return true;
     }
 
     private void fillOther(Map<String, String> inbound, String outbound) {

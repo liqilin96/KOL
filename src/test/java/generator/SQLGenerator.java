@@ -82,7 +82,7 @@ public class SQLGenerator {
 //        strategy.setFieldPrefix("A_");
         strategy.setNaming(NamingStrategy.underline_to_camel);// 表名生成策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);// 允许字段策略独立设置，默认为 naming 策略
-        strategy.setInclude("kol_quote");
+        strategy.setInclude("kol_platform_rules");
         strategy.setTablePrefix("base_", "dict_", "occ_", "obc_", "hpl_","kol_");// 表前缀
 //        strategy.setExclude("base");
         strategy.setEntityLombokModel(true);

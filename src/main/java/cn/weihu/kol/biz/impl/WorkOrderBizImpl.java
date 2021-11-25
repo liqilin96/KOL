@@ -36,7 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,14 +66,13 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     public String ImportData(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
 
         WorkOrder workOrder = new WorkOrder();
+        //校验文件类型
+        if(!file.getOriginalFilename().endsWith("xls") && !file.getOriginalFilename().endsWith("xlsx")) {
+            log.error(file.getOriginalFilename() + "不是excel文件");
+            throw new CheckException(file.getOriginalFilename() + "不是excel文件");
+        }
 
         try {
-            //校验文件类型
-            if(!file.getOriginalFilename().endsWith("xls") && !file.getOriginalFilename().endsWith("xlsx")) {
-                log.error(file.getOriginalFilename() + "不是excel文件");
-                throw new IOException(file.getOriginalFilename() + "不是excel文件");
-            }
-
             List<Object> orderBos = EasyExcelUtil.readExcel(file.getInputStream());
 
             String        name          = "示例数据";
@@ -106,7 +104,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                  *  2     -----》账号
                  *  3     -----》账号ID或链接
                  *  4     -----》账号类型
-//                 *  5     -----》粉丝数
+                 //                 *  5     -----》粉丝数
                  *  5     -----》资源位置
                  *  6     -----》数量
                  *  7     -----》发布开始时间
@@ -159,8 +157,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrderDataBiz.save(workOrderData);
             }
         } catch(Exception e) {
-            log.error(ExceptionUtil.getMessage(e));
-            throw new CheckException("系统错误异常");
+            log.error(">>> 数据导入异常:", e);
+            throw new CheckException("数据加载异常,请联系管理员");
         }
 
         return workOrder.getId().toString();
@@ -185,9 +183,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         LambdaQueryWrapper<WorkOrder> wrapper = Wrappers.lambdaQuery(WorkOrder.class);
         wrapper.eq(Objects.nonNull(req.getProjectId()), WorkOrder::getProjectId, req.getProjectId())
                 .and(StringUtils.isNotBlank(req.getName()), workOrderLambdaQueryWrapper -> workOrderLambdaQueryWrapper
-                        .like(WorkOrder::getName, "%" + req.getName() + "%")
+                        .like(WorkOrder::getName, req.getName())
                         .or()
-                        .eq(WorkOrder::getOrderSn, req.getName()))
+                        .likeRight(WorkOrder::getOrderSn, req.getName()))
                 .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, req.getStatus());
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
@@ -263,7 +261,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     public List<String> excelTitle() {
-        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型",  "资源位置", "数量", "发布开始时间",
+        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "发布开始时间",
                              "发布结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",
                              "产品提供方", "发布内容brief概述");
     }
