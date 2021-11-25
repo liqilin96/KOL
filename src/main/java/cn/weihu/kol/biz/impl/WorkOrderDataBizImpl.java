@@ -2,10 +2,7 @@ package cn.weihu.kol.biz.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
-import cn.weihu.kol.biz.FieldsBiz;
-import cn.weihu.kol.biz.PricesLogsBiz;
-import cn.weihu.kol.biz.QuoteBiz;
-import cn.weihu.kol.biz.WorkOrderDataBiz;
+import cn.weihu.kol.biz.*;
 import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.convert.WorkOrderConverter;
@@ -56,7 +53,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Autowired
     private FieldsBiz     fieldsBiz;
     @Autowired
-    private PricesBizImpl pricesBiz;
+    private PricesBiz     pricesBiz;
     @Autowired
     private PricesLogsBiz pricesLogsBiz;
     @Autowired
@@ -122,10 +119,18 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             log.info(">>> actor_sn:{}", actorSn);
             boolean flag = true;
             // kol表
-            Prices prices = pricesBiz.getOneByActorSn(actorSn);
-            if(Objects.nonNull(prices)) {
-                // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
-                flag = screeningOther(prices.getActorData(), updateReq.getData());
+            Prices       prices     = null;
+            List<Prices> pricesList = pricesBiz.getListActorSn(actorSn);
+            if(!CollectionUtils.isEmpty(pricesList)) {
+                for(Prices p : pricesList) {
+                    // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
+                    flag = screeningOther(p.getActorData(), updateReq.getData());
+                    if(flag) {
+                        // 匹配成功
+                        prices = p;
+                        break;
+                    }
+                }
             } else {
                 flag = false;
             }
@@ -200,32 +205,32 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         try {
             Map<String, String> inboundMap  = GsonUtils.gson.fromJson(inbound, type);
             Map<String, String> outboundMap = GsonUtils.gson.fromJson(outbound, type);
-            if("否".equals(inboundMap.get(Constants.TITLE_LINK_PRICE)) && "是".equals(outboundMap.get(Constants.TITLE_LINK_PRICE))) {
+            if(!inboundMap.get(Constants.TITLE_LINK_PRICE).equals(outboundMap.get(Constants.TITLE_LINK_PRICE))) {
                 return false;
             }
             log.info(">>> 含电商链接单价匹配成功...inbound:{},outbound:{}",
                      inboundMap.get(Constants.TITLE_LINK_PRICE), outboundMap.get(Constants.TITLE_LINK_PRICE));
-            if("否".equals(inboundMap.get(Constants.TITLE_AT)) && "是".equals(outboundMap.get(Constants.TITLE_AT))) {
+            if(!inboundMap.get(Constants.TITLE_AT).equals(outboundMap.get(Constants.TITLE_AT))) {
                 return false;
             }
             log.info(">>> AT匹配成功...inbound:{},outbound:{}",
                      inboundMap.get(Constants.TITLE_AT), outboundMap.get(Constants.TITLE_AT));
-            if("否".equals(inboundMap.get(Constants.TITLE_TOPIC)) && "是".equals(outboundMap.get(Constants.TITLE_TOPIC))) {
+            if(!inboundMap.get(Constants.TITLE_TOPIC).equals(outboundMap.get(Constants.TITLE_TOPIC))) {
                 return false;
             }
             log.info(">>> 话题匹配成功...inbound:{},outbound:{}",
                      inboundMap.get(Constants.TITLE_TOPIC), outboundMap.get(Constants.TITLE_TOPIC));
-            if("否".equals(inboundMap.get(Constants.TITLE_STORE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_STORE_AUTH))) {
+            if(!inboundMap.get(Constants.TITLE_STORE_AUTH).equals(outboundMap.get(Constants.TITLE_STORE_AUTH))) {
                 return false;
             }
             log.info(">>> 电商肖像权匹配成功...inbound:{},outbound:{}",
                      inboundMap.get(Constants.TITLE_STORE_AUTH), outboundMap.get(Constants.TITLE_STORE_AUTH));
-            if("否".equals(inboundMap.get(Constants.TITLE_SHARE_AUTH)) && "是".equals(outboundMap.get(Constants.TITLE_SHARE_AUTH))) {
+            if(!inboundMap.get(Constants.TITLE_SHARE_AUTH).equals(outboundMap.get(Constants.TITLE_SHARE_AUTH))) {
                 return false;
             }
             log.info(">>> 品牌双微转发授权匹配成功...inbound:{},outbound:{}",
                      inboundMap.get(Constants.TITLE_SHARE_AUTH), outboundMap.get(Constants.TITLE_SHARE_AUTH));
-            if("否".equals(inboundMap.get(Constants.TITLE_MICRO_TASK)) && "是".equals(outboundMap.get(Constants.TITLE_MICRO_TASK))) {
+            if(!inboundMap.get(Constants.TITLE_MICRO_TASK).equals(outboundMap.get(Constants.TITLE_MICRO_TASK))) {
                 return false;
             }
             log.info(">>> 微任务匹配成功...inbound:{},outbound:{}",

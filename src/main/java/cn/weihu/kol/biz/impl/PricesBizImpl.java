@@ -128,8 +128,8 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     }
 
     @Override
-    public Prices getOneByActorSn(String actorSn) {
-        return getOne(new LambdaQueryWrapper<>(Prices.class).eq(Prices::getActorSn, actorSn));
+    public List<Prices> getListActorSn(String actorSn) {
+        return list(new LambdaQueryWrapper<>(Prices.class).eq(Prices::getActorSn, actorSn));
     }
 
     @Override
@@ -300,6 +300,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
      * @param hashMap    JSON数据解析后的map
      * @param newList    导出的头
      */
+    @Override
     public void addExportData(List<List<String>> exprotData, List<String> data, HashMap<String, String> hashMap, List<FieldsBo> newList) {
 
 

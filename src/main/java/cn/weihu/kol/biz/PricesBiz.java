@@ -1,6 +1,7 @@
 package cn.weihu.kol.biz;
 
 import cn.weihu.base.result.PageResult;
+import cn.weihu.kol.biz.bo.FieldsBo;
 import cn.weihu.kol.db.po.Prices;
 import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
@@ -8,6 +9,8 @@ import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,17 +27,19 @@ public interface PricesBiz extends IService<Prices> {
 
     PageResult<PricesLogsResp> starPricePage(PricesLogsReq req);
 
-    Prices getOneByActorSn(String actorSn);
+    List<Prices> getListActorSn(String actorSn);
 
     PricesDetailsResp starDetail(PricesLogsReq req);
 
-    void exportStarData(HttpServletResponse response,PricesLogsReq req);
+    void exportStarData(HttpServletResponse response, PricesLogsReq req);
 
     Set<String> starTab(String tab);
 
     PageResult<PricesLogsResp> expirtPrices(PricesLogsReq req);
 
-    void expirtPricesExport(PricesLogsReq req,HttpServletResponse response);
+    void expirtPricesExport(PricesLogsReq req, HttpServletResponse response);
 
-    void savePrices(Prices prices) ;
+    void savePrices(Prices prices);
+
+    void addExportData(List<List<String>> exprotData, List<String> data, HashMap<String, String> hashMap, List<FieldsBo> newList);
 }
