@@ -80,14 +80,16 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
         }
 
+
+
         //达人id
         if(StringUtils.isNotBlank(req.getStarId())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) = {0}", req.getStarId());
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
-            wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) " + req.getOrderBy());
+            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT " + req.getOrderBy());
         } else {
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
-            wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) " + req.getOrderBy());
+            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT " + req.getOrderBy());
         }
 
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
