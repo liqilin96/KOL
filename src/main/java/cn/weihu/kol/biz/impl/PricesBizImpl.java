@@ -48,6 +48,12 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         if(StringUtils.isNotBlank(req.getOrderBy()) && !("DESC".equalsIgnoreCase(req.getOrderBy()) || "ASC".equalsIgnoreCase(req.getOrderBy()))) {
             throw new CheckException("orderBy输入有误");
         }
+
+        if(StringUtils.isBlank(req.getOrderBy())) {
+            //默认升序
+            req.setOrderBy("ASC");
+        }
+
         //1 是资源库组
         Fields fields    = fieldsBiz.getById(1);
         String fieldList = fields.getFieldList();
@@ -81,15 +87,14 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         }
 
 
-
         //达人id
         if(StringUtils.isNotBlank(req.getStarId())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) = {0}", req.getStarId());
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
-            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT " + req.getOrderBy());
+            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT) " + req.getOrderBy());
         } else {
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
-            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT " + req.getOrderBy());
+            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT) " + req.getOrderBy());
         }
 
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
