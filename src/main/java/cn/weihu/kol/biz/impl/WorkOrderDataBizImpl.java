@@ -770,32 +770,28 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 // kol资源表
                 prices = new Prices();
                 prices.setActorSn(actorSn);
+                // 移除档期开始时间和档期结束时间
+                map.remove(Constants.ACTOR_SCHEDULE_START_TIME);
+                map.remove(Constants.ACTOR_SCHEDULE_END_TIME);
+                //
                 prices.setActorData(workOrderData.getData());
-                prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
                 prices.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
                                      Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
                 prices.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
                                 Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
                 prices.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
                 prices.setCtime(DateUtil.date());
                 prices.setUtime(DateUtil.date());
                 prices.setCreateUserId(UserInfoContext.getUserId());
                 prices.setUpdateUserId(UserInfoContext.getUserId());
                 pricesList.add(prices);
-
-                quote = new Quote();
-                quote.setActorSn(actorSn);
-                quote.setProjectId(workOrderData.getProjectId());
-                quote.setEnableFlag(0);
-                quote.setUtime(DateUtil.date());
-                quote.setUpdateUserId(UserInfoContext.getUserId());
-                quoteList.add(quote);
             }
             // 报价记录表
             pricesLogs = new PricesLogs();
             pricesLogs.setActorSn(actorSn);
             pricesLogs.setActorData(workOrderData.getData());
-            if(Constants.WORK_ORDER_DATA_REVIEW_PASS.equals(req.getStatus())) {
+            if("1".equals(inbound)) {
                 pricesLogs.setInbound(1);
                 pricesLogs.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
             } else {

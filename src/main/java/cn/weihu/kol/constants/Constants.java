@@ -55,21 +55,23 @@ public interface Constants {
      * 佣金、价格、供应商、报价到期时间
      * 数量、发布时间、其他特殊说明、产品提供方、发布内容brief概述
      */
-    String ACTOR_COMMISSION      = "commission";
-    String ACTOR_PRICE           = "price";
-    String ACTOR_PROVIDER        = "supplier";
-    String ACTOR_INSURE          = "priceTime";
+    String ACTOR_COMMISSION          = "commission";
+    String ACTOR_PRICE               = "price";
+    String ACTOR_PROVIDER            = "supplier";
+    String ACTOR_INSURE              = "priceTime";
     //
-    String ACTOR_DATA_SN         = "actorSn";
-    String ACTOR_INBOUND         = "inbound";
-    String ACTOR_COMPARE_FLAG    = "compareFlag";
+    String ACTOR_DATA_SN             = "actorSn";
+    String ACTOR_INBOUND             = "inbound";
+    String ACTOR_COMPARE_FLAG        = "compareFlag";
     //
-    String ACTOR_COUNT           = "count";
-    String ACTOR_POST_START_TIME = "postStartTime";
-    String ACTOR_POST_END_TIME   = "postEndTime";
-    String ACTOR_OTHER           = "other";
-    String ACTOR_PRODUCT         = "product";
-    String ACTOR_BRIEF           = "brief";
+    String ACTOR_COUNT               = "count";
+    String ACTOR_POST_START_TIME     = "postStartTime";
+    String ACTOR_POST_END_TIME       = "postEndTime";
+    String ACTOR_OTHER               = "other";
+    String ACTOR_PRODUCT             = "product";
+    String ACTOR_BRIEF               = "brief";
+    String ACTOR_SCHEDULE_START_TIME = "scheduleStartTime";
+    String ACTOR_SCHEDULE_END_TIME   = "scheduleEndTime";
 
     /**
      * 字段组类型
