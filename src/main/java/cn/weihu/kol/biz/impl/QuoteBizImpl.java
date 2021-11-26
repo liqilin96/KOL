@@ -40,12 +40,12 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
     private FieldsBiz fieldsBiz;
 
     @Override
-    public Quote getOneByActorSn(Long projectId, String actorSn) {
+    public Quote getOneByActorSn(Long projectId, String actorSn, String supplier) {
         List<Quote> list = list(new LambdaQueryWrapper<>(Quote.class)
                                         .eq(Quote::getProjectId, projectId)
                                         .eq(Quote::getActorSn, actorSn)
+                                        .eq(Quote::getProvider, supplier)
                                         .ge(Quote::getInsureEndtime, DateUtil.date())
-                                        .eq(Quote::getEnableFlag, 1)
                                         .orderByDesc(Quote::getCtime));
         Quote quote = null;
         if(!CollectionUtils.isEmpty(list)) {
@@ -101,12 +101,14 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
     @Override
     public void batchSaveOrUpdate(List<Quote> list) {
         if(!CollectionUtils.isEmpty(list)) {
-//            baseMapper.batchSaveOrUpdate(list);
             List<Quote> insertList = new ArrayList<>();
             List<Quote> updateList = new ArrayList<>();
             for(Quote quote : list) {
                 //
-                Quote oneByActorSn = getOneByActorSn(quote.getProjectId(), quote.getActorSn());
+                Quote oneByActorSn = getOne(new LambdaQueryWrapper<>(Quote.class)
+                                                    .eq(Quote::getProjectId, quote.getProjectId())
+                                                    .eq(Quote::getActorSn, quote.getActorSn())
+                                                    .eq(Quote::getProvider, quote.getProvider()));
                 if(null != oneByActorSn) {
                     oneByActorSn.setActorData(quote.getActorData());
                     oneByActorSn.setCommission(quote.getCommission());

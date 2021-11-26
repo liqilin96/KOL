@@ -33,7 +33,7 @@ public class MonitorJob {
     @Autowired
     private RoleUserBiz roleUserBiz;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "${check.price.cron:0 0 0 * * ?}")
     public void priceExpire() {
         // 保价到期检测
         // 提前一个月

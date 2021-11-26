@@ -141,7 +141,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             if(!flag) {
                 // kol库匹配失败
                 // 报价表
-                Quote quote = quoteBiz.getOneByActorSn(req.getProjectId(), actorSn);
+                Quote quote = quoteBiz.getOneByActorSn(req.getProjectId(), actorSn, Constants.SUPPLIER_XIN_YI);
+                if(Objects.isNull(quote)) {
+                    quote = quoteBiz.getOneByActorSn(req.getProjectId(), actorSn, Constants.SUPPLIER_WEI_GE);
+                }
                 if(Objects.nonNull(quote)) {
                     // 比对 含电商连接单价、@、话题、电商肖像权、品牌双微转发授权、微任务 是否为库内数据
                     flag = screeningOther(quote.getActorData(), updateReq.getData());
@@ -774,7 +777,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 map.remove(Constants.ACTOR_SCHEDULE_START_TIME);
                 map.remove(Constants.ACTOR_SCHEDULE_END_TIME);
                 //
-                prices.setActorData(workOrderData.getData());
+                prices.setActorData(GsonUtils.gson.toJson(map));
                 prices.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
                                      Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
                 prices.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?

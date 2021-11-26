@@ -17,7 +17,7 @@ import java.util.List;
  */
 public interface QuoteBiz extends Biz<Quote> {
 
-    Quote getOneByActorSn(Long projectId, String actorSn);
+    Quote getOneByActorSn(Long projectId, String actorSn, String supplier);
 
     void updateBatchByActorSn(List<Quote> list);
 

@@ -1,5 +1,6 @@
 package cn.weihu.kol.biz.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.biz.FieldsBiz;
@@ -129,7 +130,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
     @Override
     public List<Prices> getListActorSn(String actorSn) {
-        return list(new LambdaQueryWrapper<>(Prices.class).eq(Prices::getActorSn, actorSn));
+        return list(new LambdaQueryWrapper<>(Prices.class)
+                            .eq(Prices::getActorSn, actorSn)
+                            .ge(Prices::getInsureEndtime, DateUtil.date()));
     }
 
     @Override
