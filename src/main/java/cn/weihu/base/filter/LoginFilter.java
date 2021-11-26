@@ -7,7 +7,6 @@ import cn.weihu.kol.db.dao.UserDao;
 import cn.weihu.kol.redis.RedisUtils;
 import cn.weihu.kol.userinfo.UserInfo;
 import cn.weihu.kol.userinfo.UserInfoContext;
-import io.swagger.models.HttpMethod;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,53 +39,43 @@ public class LoginFilter implements Filter {
             throws IOException, ServletException {
         try {
             HttpServletRequest req = (HttpServletRequest) request;
-            HttpServletResponse rep = (HttpServletResponse) response;
+            response.setContentType("application/json;charset=UTF-8");
+            req.setCharacterEncoding(DEFAULT_ENCODING);
+            response.setCharacterEncoding(DEFAULT_ENCODING);
+            request.setCharacterEncoding(DEFAULT_ENCODING);
 
-            rep.setHeader("Access-Control-Allow-Origin","*");
-            rep.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE, PATCH");
-            rep.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, client_id, uuid, Authorization");
-
-            if (HttpMethod.OPTIONS.toString().equals(req.getMethod())) {
-                chain.doFilter(request, rep);
+            if(StringUtils.startsWithAny(req.getRequestURI(), "/login")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/token")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/auth")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/api/token")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/prometheus")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/pro")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/swagger")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/v2/api-docs")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/file")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/callback")
+                    || StringUtils.startsWithAny(req.getRequestURI(), "/logout")
+            ) {
+                chain.doFilter(request, response);
             } else {
-                rep.setContentType("application/json;charset=UTF-8");
-                req.setCharacterEncoding(DEFAULT_ENCODING);
-                rep.setCharacterEncoding(DEFAULT_ENCODING);
-                request.setCharacterEncoding(DEFAULT_ENCODING);
-                if(StringUtils.startsWithAny(req.getRequestURI(), "/login")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/token")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/auth")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/api/token")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/prometheus")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/pro")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/swagger")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/v2/api-docs")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/file")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/callback")
-                        || StringUtils.startsWithAny(req.getRequestURI(), "/logout")
-                ) {
-                    chain.doFilter(request, rep);
-                } else {
-                    String token = request.getParameter("token");
-                    if(StringUtils.isBlank(token)) {
-                        token = req.getHeader("Authorization");
-                    }
-                    if(StringUtils.isBlank(token)) {
-                        generateErrRes(rep,
-                                new ResultBean(ErrorCode.NO_AUTH).toString());
-                        return;
-                    }
-                    UserInfo userInfo = redisUtils.getUserInfoByToken(token);
-                    if(userInfo == null) {
-                        generateErrRes(rep,
-                                new ResultBean(ErrorCode.NO_AUTH).toString());
-                        return;
-                    }
-                    UserInfoContext.setUserInfo(userInfo);
-                    chain.doFilter(request, rep);
+                String token = request.getParameter("token");
+                if(StringUtils.isBlank(token)) {
+                    token = req.getHeader("Authorization");
                 }
+                if(StringUtils.isBlank(token)) {
+                    generateErrRes(response,
+                            new ResultBean(ErrorCode.NO_AUTH).toString());
+                    return;
+                }
+                UserInfo userInfo = redisUtils.getUserInfoByToken(token);
+                if(userInfo == null) {
+                    generateErrRes(response,
+                            new ResultBean(ErrorCode.NO_AUTH).toString());
+                    return;
+                }
+                UserInfoContext.setUserInfo(userInfo);
+                chain.doFilter(request, response);
             }
-
         } finally {
             //本次请求结束,清除此线程占用
             UserInfoContext.release();
