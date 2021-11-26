@@ -66,6 +66,7 @@ public class MonitorJob {
                 message.setIsReceived(0);
                 message.setCtime(LocalDateTime.now());
                 message.setUtime(LocalDateTime.now());
+                messageList.add(message);
             }
             messageBiz.saveBatch(messageList);
             log.info(">>> 保价即将到期提醒消息已生成...");
