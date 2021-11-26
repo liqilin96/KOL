@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,7 +101,43 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
     @Override
     public void batchSaveOrUpdate(List<Quote> list) {
         if(!CollectionUtils.isEmpty(list)) {
-            baseMapper.batchSaveOrUpdate(list);
+//            baseMapper.batchSaveOrUpdate(list);
+            List<Quote> insertList = new ArrayList<>();
+            List<Quote> updateList = new ArrayList<>();
+            for(Quote quote : list) {
+                //
+                Quote oneByActorSn = getOneByActorSn(quote.getProjectId(), quote.getActorSn());
+                if(null != oneByActorSn) {
+                    oneByActorSn.setActorData(quote.getActorData());
+                    oneByActorSn.setCommission(quote.getCommission());
+                    oneByActorSn.setPrice(quote.getPrice());
+                    oneByActorSn.setProvider(quote.getProvider());
+                    oneByActorSn.setInsureEndtime(quote.getInsureEndtime());
+                    oneByActorSn.setUtime(DateUtil.date());
+                    updateList.add(oneByActorSn);
+                } else {
+                    oneByActorSn = new Quote();
+                    oneByActorSn.setProjectId(quote.getProjectId());
+                    oneByActorSn.setActorSn(quote.getActorSn());
+                    oneByActorSn.setActorData(quote.getActorData());
+                    oneByActorSn.setCommission(quote.getCommission());
+                    oneByActorSn.setPrice(quote.getPrice());
+                    oneByActorSn.setProvider(quote.getProvider());
+                    oneByActorSn.setInsureEndtime(quote.getInsureEndtime());
+                    oneByActorSn.setEnableFlag(1);
+                    oneByActorSn.setCtime(DateUtil.date());
+                    oneByActorSn.setUtime(DateUtil.date());
+                    insertList.add(quote);
+                }
+            }
+            if(!CollectionUtils.isEmpty(insertList)) {
+                saveBatch(insertList);
+                log.info(">>> 报价库插入数据完成...size:{}", insertList.size());
+            }
+            if(!CollectionUtils.isEmpty(updateList)) {
+                updateBatchById(updateList);
+                log.info(">>> 报价库更新数据完成...size:{}", updateList.size());
+            }
         }
     }
 }
