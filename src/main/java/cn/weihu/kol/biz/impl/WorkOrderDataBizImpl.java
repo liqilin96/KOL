@@ -476,63 +476,72 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         log.info(">>> 保价即将到期工单已生成...");
         // 生成工单数据及提醒消息
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
-        WorkOrderData       workOrderData;
+        WorkOrderData       workOrderDataXinYi;
+        WorkOrderData       workOrderDataWeiGe;
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
         Map<String, String> map;
-        boolean             existXinYi = false;
-        boolean             existWeiGe = false;
+        String              compareFlag;
         for(Prices prices : pricesList) {
-            workOrderData = new WorkOrderData();
-            workOrderData.setFieldsId(1L);
-            workOrderData.setProjectId(project.getId());
-            workOrderData.setWorkOrderId(workOrder.getId());
-            workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
-            workOrderData.setData(prices.getActorData());
-            workOrderData.setCtime(DateUtil.date());
-            workOrderData.setUtime(DateUtil.date());
-            workOrderDataList.add(workOrderData);
-
+            workOrderDataXinYi = new WorkOrderData();
+            workOrderDataXinYi.setFieldsId(1L);
+            workOrderDataXinYi.setProjectId(project.getId());
+            workOrderDataXinYi.setWorkOrderId(workOrder.getId());
+            workOrderDataXinYi.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             map = GsonUtils.gson.fromJson(prices.getActorData(), type);
-            if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.ACTOR_PROVIDER))) {
-                existXinYi = true;
-            }
-            if(Constants.SUPPLIER_WEI_GE.equals(map.get(Constants.ACTOR_PROVIDER))) {
-                existWeiGe = true;
-            }
+            map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XIN_YI);
+            map.put(Constants.ACTOR_INBOUND, "1");
+            compareFlag = StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                           map.get(Constants.TITLE_ID_OR_LINK),
+                                           map.get(Constants.TITLE_RESOURCE_LOCATION));
+            map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
+            workOrderDataXinYi.setData(GsonUtils.gson.toJson(map));
+            workOrderDataXinYi.setCtime(DateUtil.date());
+            workOrderDataXinYi.setUtime(DateUtil.date());
+            workOrderDataList.add(workOrderDataXinYi);
+
+            workOrderDataWeiGe = new WorkOrderData();
+            workOrderDataWeiGe.setFieldsId(1L);
+            workOrderDataWeiGe.setProjectId(project.getId());
+            workOrderDataWeiGe.setWorkOrderId(workOrder.getId());
+            workOrderDataWeiGe.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
+            map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+            map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEI_GE);
+            map.put(Constants.ACTOR_INBOUND, "1");
+            map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
+            workOrderDataWeiGe.setData(GsonUtils.gson.toJson(map));
+            workOrderDataWeiGe.setCtime(DateUtil.date());
+            workOrderDataWeiGe.setUtime(DateUtil.date());
+            workOrderDataList.add(workOrderDataWeiGe);
         }
         saveBatch(workOrderDataList);
         //
-        if(existXinYi) {
-            WorkOrder workOrderXinYi = new WorkOrder();
-            workOrderXinYi.setOrderSn(workOrder.getOrderSn());
-            workOrderXinYi.setName(workOrder.getName());
-            workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
-            workOrderXinYi.setProjectId(workOrder.getProjectId());
-            workOrderXinYi.setProjectName(workOrder.getProjectName());
-            workOrderXinYi.setParentId(workOrder.getId());
-            workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
-            workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
-            workOrderXinYi.setCtime(DateUtil.date());
-            workOrderXinYi.setUtime(DateUtil.date());
-            workOrderDao.insert(workOrderXinYi);
-            log.info(">>> 保价即将到期新意询价子工单已生成...");
-        }
-        if(existWeiGe) {
-            WorkOrder workOrderWeiGe = new WorkOrder();
-            workOrderWeiGe.setOrderSn(workOrder.getOrderSn());
-            workOrderWeiGe.setName(workOrder.getName());
-            workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
-            workOrderWeiGe.setProjectId(workOrder.getProjectId());
-            workOrderWeiGe.setProjectName(workOrder.getProjectName());
-            workOrderWeiGe.setParentId(workOrder.getId());
-            workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
-            workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
-            workOrderWeiGe.setCtime(DateUtil.date());
-            workOrderWeiGe.setUtime(DateUtil.date());
-            workOrderDao.insert(workOrderWeiGe);
-            log.info(">>> 保价即将到期微格询价子工单已生成...");
-        }
+        WorkOrder workOrderXinYi = new WorkOrder();
+        workOrderXinYi.setOrderSn(workOrder.getOrderSn());
+        workOrderXinYi.setName(workOrder.getName());
+        workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
+        workOrderXinYi.setProjectId(workOrder.getProjectId());
+        workOrderXinYi.setProjectName(workOrder.getProjectName());
+        workOrderXinYi.setParentId(workOrder.getId());
+        workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
+        workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
+        workOrderXinYi.setCtime(DateUtil.date());
+        workOrderXinYi.setUtime(DateUtil.date());
+        workOrderDao.insert(workOrderXinYi);
+        log.info(">>> 保价即将到期新意询价子工单已生成...");
+        WorkOrder workOrderWeiGe = new WorkOrder();
+        workOrderWeiGe.setOrderSn(workOrder.getOrderSn());
+        workOrderWeiGe.setName(workOrder.getName());
+        workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
+        workOrderWeiGe.setProjectId(workOrder.getProjectId());
+        workOrderWeiGe.setProjectName(workOrder.getProjectName());
+        workOrderWeiGe.setParentId(workOrder.getId());
+        workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
+        workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_WEI_GE);
+        workOrderWeiGe.setCtime(DateUtil.date());
+        workOrderWeiGe.setUtime(DateUtil.date());
+        workOrderDao.insert(workOrderWeiGe);
+        log.info(">>> 保价即将到期微格询价子工单已生成...");
     }
 
     private void createWorkOrder(WorkOrder workOrder) {
