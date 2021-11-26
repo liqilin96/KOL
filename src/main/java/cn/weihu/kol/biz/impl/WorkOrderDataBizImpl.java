@@ -148,12 +148,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     workOrderDataResp.setWorkOrderDataId(updateReq.getId());
                     workOrderDataResp.setFieldsId(updateReq.getFieldsId());
                     workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
-                    workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                     if(flag) {
                         // 报价库库匹配成功
                         map = GsonUtils.gson.fromJson(quote.getActorData(), type);
                         // 填充数据
                         fillOther(map, updateReq.getData());
+                        workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
+                    } else {
+                        workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                     }
                 } else {
                     // 库外数据
@@ -280,6 +282,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setId(workOrderDataUpdateReq.getId());
             map = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(), type);
             if(1 == workOrderDataUpdateReq.getAskType()) {
+                if(Constants.WORK_ORDER_DATA_QUOTE.equals(workOrderDataUpdateReq.getStatus())) {
+                    // 过滤报价库匹配数据,不进行询价操作
+                    continue;
+                }
                 // 询价
                 // 不存在供应商
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);

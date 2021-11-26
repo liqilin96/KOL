@@ -23,6 +23,9 @@ public class WorkOrderDataUpdateReq {
     @ApiModelProperty(value = "工单数据详情")
     private String data;
 
+    @ApiModelProperty(value = "工单数据状态")
+    private String status;
+
     @ApiModelProperty(value = "1:询价,2:询档")
     private Integer askType;
 
