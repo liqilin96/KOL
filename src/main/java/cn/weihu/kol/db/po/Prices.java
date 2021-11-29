@@ -48,6 +48,9 @@ public class Prices implements Serializable {
     @ApiModelProperty(value = "保价到期时间")
     private Date insureEndtime;
 
+    @ApiModelProperty(value = "是否重新询价，0否1是")
+    private Integer isReQuote;
+
     @ApiModelProperty(value = "插入时间")
     private Date ctime;
 

@@ -485,7 +485,15 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }.getType();
         Map<String, String> map;
         String              compareFlag;
+        List<Prices>        isReQuoteList = new ArrayList<>();
+        Prices              quote;
         for(Prices prices : pricesList) {
+            //修改重新询价标识
+            quote = new Prices();
+            quote.setIsReQuote(1);
+            quote.setId(prices.getId());
+            isReQuoteList.add(quote);
+
             workOrderDataXinYi = new WorkOrderData();
             workOrderDataXinYi.setFieldsId(1L);
             workOrderDataXinYi.setProjectId(project.getId());
@@ -518,6 +526,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataList.add(workOrderDataWeiGe);
         }
         saveBatch(workOrderDataList);
+        pricesBiz.updateBatchById(isReQuoteList);
         //
         WorkOrder workOrderXinYi = new WorkOrder();
         workOrderXinYi.setOrderSn(workOrder.getOrderSn());

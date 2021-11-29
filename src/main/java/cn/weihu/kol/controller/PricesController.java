@@ -79,14 +79,14 @@ public class PricesController {
 
 
     @ApiOperation(value = "保价即将到期", httpMethod = "GET", notes = "保价即将到期")
-    @GetMapping(value = "/star/expirt")
+    @GetMapping(value = "/star/expire")
     public ResultBean<PageResult<PricesLogsResp>> expirtPrices(PricesLogsReq req) {
         return new ResultBean<>(pricesBiz.expirtPrices(req));
     }
 
 
     @ApiOperation(value = "保价即将到期导出", httpMethod = "GET", notes = "保价即将到期导出")
-    @GetMapping(value = "/star/expirt/export")
+    @GetMapping(value = "/star/expire/export")
     public void expirtPricesExport(PricesLogsReq req, HttpServletResponse response) {
         pricesBiz.expirtPricesExport(req, response);
     }

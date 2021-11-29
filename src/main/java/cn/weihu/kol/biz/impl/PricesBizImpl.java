@@ -223,14 +223,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         String fieldList = fields.getFieldList();
 
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+        //0未重新询价，1则重新询价 状态
+        wrapper.eq(Prices::getIsReQuote, 0);
 
-        if(StringUtils.isNotBlank(req.getStarId())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) like {0}", "%" + req.getStarId() + "%");
-
-        }
-        if(StringUtils.isNotBlank(req.getPlatform())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
-        }
         wrapper.between(Prices::getInsureEndtime, new Date(), expirtDate(new Date()));
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 

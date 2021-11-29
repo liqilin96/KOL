@@ -11,6 +11,7 @@
         <result column="price" property="price" />
         <result column="provider" property="provider" />
         <result column="insure_endtime" property="insureEndtime" />
+        <result column="is_re_quote" property="isReQuote" />
         <result column="ctime" property="ctime" />
         <result column="utime" property="utime" />
         <result column="create_user_id" property="createUserId" />
@@ -19,7 +20,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, actor_sn, actor_data, commission, price, provider, insure_endtime, ctime, utime, create_user_id, update_user_id
+        id, actor_sn, actor_data, commission, price, provider,is_re_quote, insure_endtime, ctime, utime, create_user_id, update_user_id
     </sql>
 
 </mapper>
