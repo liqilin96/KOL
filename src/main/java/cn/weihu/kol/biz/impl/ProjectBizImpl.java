@@ -111,7 +111,8 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
             wrapper.between(Project::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
         }
 
-        wrapper.orderByDesc(Project::getCtime);
+        wrapper.ne(Project::getName, "保价即将到期")
+                .orderByDesc(Project::getCtime);
 
         Page<Project> projectPage = this.baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<ProjectResp> resps = projectPage.getRecords().stream().map(x -> {

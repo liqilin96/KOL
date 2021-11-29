@@ -159,6 +159,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                             map = GsonUtils.gson.fromJson(quoteXinYi.getActorData(), type);
                             // 填充数据
                             fillOther(map, updateReq.getData());
+                            map.put(Constants.ACTOR_KOL_QUOTE_ID, String.valueOf(quoteXinYi.getId()));
                             workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
                         } else {
                             workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
@@ -169,12 +170,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                             // 报价库库匹配成功
                             log.info(">>> 报价库微格数据匹配成功,actor_sn:{}", actorSn);
                             workOrderDataResp1 = new WorkOrderDataResp();
-                            workOrderDataResp1.setWorkOrderDataId(updateReq.getId());
                             workOrderDataResp1.setFieldsId(updateReq.getFieldsId());
                             workOrderDataResp1.setWorkOrderId(updateReq.getWorkOrderId());
                             map = GsonUtils.gson.fromJson(quoteWeiGe.getActorData(), type);
                             // 填充数据
                             fillOther(map, updateReq.getData());
+                            map.put(Constants.ACTOR_KOL_QUOTE_ID, String.valueOf(quoteWeiGe.getId()));
                             workOrderDataResp1.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
                             map.put(Constants.ACTOR_DATA_SN, actorSn);
                             map.put(Constants.ACTOR_INBOUND, "0");
@@ -195,6 +196,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                 map = GsonUtils.gson.fromJson(quoteXinYi.getActorData(), type);
                                 // 填充数据
                                 fillOther(map, updateReq.getData());
+                                map.put(Constants.ACTOR_KOL_QUOTE_ID, String.valueOf(quoteXinYi.getId()));
                                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
                             } else {
                                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
@@ -210,6 +212,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                 map = GsonUtils.gson.fromJson(quoteWeiGe.getActorData(), type);
                                 // 填充数据
                                 fillOther(map, updateReq.getData());
+                                map.put(Constants.ACTOR_KOL_QUOTE_ID, String.valueOf(quoteWeiGe.getId()));
                                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
                             } else {
                                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
@@ -235,6 +238,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                 workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                 map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+                map.put(Constants.ACTOR_KOL_PRICE_ID, String.valueOf(prices.getId()));
                 map.put(Constants.ACTOR_DATA_SN, actorSn);
                 map.put(Constants.ACTOR_INBOUND, "1");
                 // 填充数据
@@ -572,8 +576,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataXinYi.setWorkOrderId(workOrder.getId());
             workOrderDataXinYi.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+            map.put(Constants.ACTOR_KOL_PRICE_ID, String.valueOf(prices.getId()));
             map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XIN_YI);
-            map.put(Constants.ACTOR_INBOUND, "1");
+            map.put(Constants.ACTOR_INBOUND, "0");
             compareFlag = StringUtils.join(map.get(Constants.TITLE_MEDIA),
                                            map.get(Constants.TITLE_ID_OR_LINK),
                                            map.get(Constants.TITLE_RESOURCE_LOCATION));
@@ -589,8 +594,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataWeiGe.setWorkOrderId(workOrder.getId());
             workOrderDataWeiGe.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+            map.put(Constants.ACTOR_KOL_PRICE_ID, String.valueOf(prices.getId()));
             map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEI_GE);
-            map.put(Constants.ACTOR_INBOUND, "1");
+            map.put(Constants.ACTOR_INBOUND, "0");
             map.put(Constants.ACTOR_COMPARE_FLAG, MD5Util.getMD5(compareFlag));
             workOrderDataWeiGe.setData(GsonUtils.gson.toJson(map));
             workOrderDataWeiGe.setCtime(DateUtil.date());
@@ -829,6 +835,32 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
          * 重新入库，新价格在老价格到期后生效展示
          */
         log.info(">>> kol资源数据到期询价后重新入库...size:{}", list.size());
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        Map<String, String> map;
+        List<Prices>        pricesList = new ArrayList<>();
+        Prices              prices;
+        for(WorkOrderData workOrderData : list) {
+            prices = new Prices();
+            map = GsonUtils.gson.fromJson(workOrderData.getData(), type);
+            map.remove(Constants.ACTOR_SCHEDULE_START_TIME);
+            map.remove(Constants.ACTOR_SCHEDULE_END_TIME);
+            prices.setId(Long.parseLong(map.get(Constants.ACTOR_KOL_PRICE_ID)));
+            prices.setActorData(GsonUtils.gson.toJson(map));
+            prices.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                 Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+            prices.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                            Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+            prices.setProvider(map.get(Constants.ACTOR_PROVIDER));
+            prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+            prices.setIsReQuote(0);
+            prices.setUtime(DateUtil.date());
+            prices.setUpdateUserId(UserInfoContext.getUserId());
+            pricesList.add(prices);
+        }
+        if(!CollectionUtils.isEmpty(pricesList)) {
+            pricesBiz.updateBatchById(pricesList);
+        }
     }
 
     @Override
