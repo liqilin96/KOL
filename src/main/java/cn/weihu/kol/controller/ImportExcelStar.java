@@ -176,7 +176,7 @@ public class ImportExcelStar {
             prices.setPrice(Double.parseDouble(bo.get(17)));
             prices.setProvider(bo.get(22));
             prices.setInsureEndtime(strToDate(bo.get(21)));
-            prices.setCtime(new Date());
+            prices.setCtime(strToDate(bo.get(20)));
             prices.setUtime(new Date());
             prices.setCreateUserId(-1L);
             prices.setUpdateUserId(-1L);
