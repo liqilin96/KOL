@@ -196,10 +196,10 @@ public class EasyExcelUtil {
     public static void downloadLocal(HttpServletResponse response) throws IOException {
         // 下载本地文件
         // 文件的默认保存名
-        String fileName = "模板.xlsx";
+        String fileName = "【KOL】询价单模版.xlsx";
         // 读到流中
         // 文件的存放路径
-        try(InputStream inStream = new FileInputStream("src/main/resources/模板.xlsx")) {
+        try(InputStream inStream = new FileInputStream("src/main/resources/【KOL】询价单模版.xlsx")) {
             // 设置输出的格式
             response.reset();
             response.setContentType("MSEXCEL");
