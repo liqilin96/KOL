@@ -777,9 +777,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                                     .in(WorkOrderData::getId, actorData));
             updatePrice(list);
         }
-        // 处理未勾选的报价数据状态 新增至报价表
+        // 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
         List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
-                                                .ne(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW));
+                                                .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
         if(!CollectionUtils.isEmpty(list)) {
             workOrderDataList.clear();
             List<Quote> quoteList = new ArrayList<>();
