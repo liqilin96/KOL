@@ -185,12 +185,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                         }
                     } else {
                         // 只存在一家供应商
+                        workOrderDataResp.setWorkOrderDataId(updateReq.getId());
+                        workOrderDataResp.setFieldsId(updateReq.getFieldsId());
+                        workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                         // 新意
                         if(Objects.nonNull(quoteXinYi)) {
                             flag = screeningOther(quoteXinYi.getActorData(), updateReq.getData());
-                            workOrderDataResp.setWorkOrderDataId(updateReq.getId());
-                            workOrderDataResp.setFieldsId(updateReq.getFieldsId());
-                            workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                             if(flag) {
                                 // 报价库库匹配成功
                                 map = GsonUtils.gson.fromJson(quoteXinYi.getActorData(), type);
@@ -204,9 +204,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                         }
                         if(Objects.nonNull(quoteWeiGe)) {
                             flag = screeningOther(quoteWeiGe.getActorData(), updateReq.getData());
-                            workOrderDataResp.setWorkOrderDataId(updateReq.getId());
-                            workOrderDataResp.setFieldsId(updateReq.getFieldsId());
-                            workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
                             if(flag) {
                                 // 报价库库匹配成功
                                 map = GsonUtils.gson.fromJson(quoteWeiGe.getActorData(), type);
@@ -352,11 +349,17 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                         workOrderDataNew.setFieldsId(workOrderDataUpdateReq.getFieldsId());
                         workOrderDataNew.setProjectId(workOrderDataUpdateReq.getProjectId());
                         workOrderDataNew.setWorkOrderId(workOrderDataUpdateReq.getWorkOrderId());
-                        workOrderDataNew.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
+                        workOrderDataNew.setStatus(workOrderDataUpdateReq.getStatus());
                         workOrderDataNew.setData(workOrderDataUpdateReq.getData());
                         workOrderDataNew.setCtime(DateUtil.date());
                         workOrderDataNew.setUtime(DateUtil.date());
                         workOrderDataListNew.add(workOrderDataNew);
+                    } else {
+                        workOrderData.setStatus(workOrderDataUpdateReq.getStatus());
+                        workOrderData.setData(workOrderDataUpdateReq.getData());
+                        workOrderData.setUtime(DateUtil.date());
+                        workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+                        workOrderDataList.add(workOrderData);
                     }
                     continue;
                 }
