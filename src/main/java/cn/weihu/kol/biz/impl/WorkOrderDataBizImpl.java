@@ -149,22 +149,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     //
                     if(Objects.nonNull(quoteXinYi) && Objects.nonNull(quoteWeiGe)) {
                         // 新意/微格 都存在
-                        flag = screeningOther(quoteXinYi.getActorData(), updateReq.getData());
-                        workOrderDataResp.setWorkOrderDataId(updateReq.getId());
-                        workOrderDataResp.setFieldsId(updateReq.getFieldsId());
-                        workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
-                        if(flag) {
-                            // 报价库库匹配成功
-                            log.info(">>> 报价库新意数据匹配成功,actor_sn:{}", actorSn);
-                            map = GsonUtils.gson.fromJson(quoteXinYi.getActorData(), type);
-                            // 填充数据
-                            fillOther(map, updateReq.getData());
-                            map.put(Constants.ACTOR_KOL_QUOTE_ID, String.valueOf(quoteXinYi.getId()));
-                            workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
-                        } else {
-                            workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
-                        }
-
                         flag = screeningOther(quoteWeiGe.getActorData(), updateReq.getData());
                         if(flag) {
                             // 报价库库匹配成功
@@ -182,6 +166,22 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                             workOrderDataResp1.setData(GsonUtils.gson.toJson(map));
                             workOrderDataResp1.setInbound(0);
                             list.add(workOrderDataResp1);
+                        }
+
+                        flag = screeningOther(quoteXinYi.getActorData(), updateReq.getData());
+                        if(flag) {
+                            // 报价库库匹配成功
+                            log.info(">>> 报价库新意数据匹配成功,actor_sn:{}", actorSn);
+                            workOrderDataResp.setWorkOrderDataId(updateReq.getId());
+                            workOrderDataResp.setFieldsId(updateReq.getFieldsId());
+                            workOrderDataResp.setWorkOrderId(updateReq.getWorkOrderId());
+                            map = GsonUtils.gson.fromJson(quoteXinYi.getActorData(), type);
+                            // 填充数据
+                            fillOther(map, updateReq.getData());
+                            map.put(Constants.ACTOR_KOL_QUOTE_ID, String.valueOf(quoteXinYi.getId()));
+                            workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
+                        } else {
+                            workOrderDataResp.setStatus(Constants.WORK_ORDER_DATA_NEW);
                         }
                     } else {
                         // 只存在一家供应商
