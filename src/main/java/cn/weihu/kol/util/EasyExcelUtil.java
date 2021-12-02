@@ -63,7 +63,7 @@ public class EasyExcelUtil {
             response.setCharacterEncoding("utf-8");
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
             excelWriter = EasyExcel.write(response.getOutputStream()).build();
-            WriteSheet writeSheet = EasyExcel.writerSheet("详情").build();
+            WriteSheet writeSheet = EasyExcel.writerSheet("数据不存在").build();
             excelWriter.write(list, writeSheet);
         } catch(Exception e) {
             e.printStackTrace();

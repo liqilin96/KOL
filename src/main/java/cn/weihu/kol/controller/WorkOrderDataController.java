@@ -90,6 +90,13 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.quoteList(req));
     }
 
+    @ApiOperation(value = "已报价-报完价待确认导出", httpMethod = "GET", notes = "已报价-报完价待确认导出")
+    @GetMapping(value = "/quote/list/export")
+    public void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        dataBiz.quoteListExport(req, response);
+    }
+
     @ApiOperation(value = "提审", httpMethod = "POST", notes = "提审")
     @PostMapping(value = "/order")
     public ResultBean<Long> order(@RequestBody WorkOrderDataOrderReq req) {

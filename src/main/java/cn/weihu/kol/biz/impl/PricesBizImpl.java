@@ -301,7 +301,6 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public void addExportData(List<List<String>> exprotData, List<String> data, HashMap<String, String> hashMap, List<FieldsBo> newList) {
 
-
         for(int j = 0; j < newList.size(); j++) {
             boolean flag = true;
             for(String key : hashMap.keySet()) {
