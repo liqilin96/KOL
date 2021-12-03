@@ -1099,32 +1099,17 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
+    public void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response) {
+        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW_PASS);
+
+        List<WorkOrderData> orderData = list(wrapper);
+        WorkOrderDataExport(orderData,response,"已下单数据");
+    }
+
+    @Override
     public void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
-
-        Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_QUOTE);
-        //获取字段列表
-        List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
-        }.getType());
-
-        //全部数据
-        List<List<List<String>>> allData = new ArrayList<>();
-        //库外数据
-        List<List<String>> outboundData = new ArrayList<>();
-
-        //新意
-        List<List<String>> xinyiData = new ArrayList<>();
-
-        //维格
-        List<List<String>> weigeData = new ArrayList<>();
-
-        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
-
-        //获取中文表头
-        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
-
-        outboundData.add(titleCN);
-        xinyiData.add(titleCN);
-        weigeData.add(titleCN);
 
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
@@ -1138,39 +1123,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             wrapper.in(WorkOrderData::getId, Arrays.asList(split));
             orderData = baseMapper.selectList(wrapper);
         }
-        for(int i = 0; i < orderData.size(); i++) {
-            WorkOrderData           workOrderData = orderData.get(i);
-            List<String>            data          = new ArrayList<>();
-            HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
-            if("0".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
-                pricesBiz.addExportData(outboundData, data, hashMap, newList);
-            } else {
-                String supplier = hashMap.get(Constants.SUPPLIER_FIELD);
-                if(Constants.SUPPLIER_XIN_YI.equalsIgnoreCase(supplier)) {
-                    pricesBiz.addExportData(xinyiData, data, hashMap, newList);
-                } else if(Constants.SUPPLIER_WEI_GE.equalsIgnoreCase(supplier)) {
-                    pricesBiz.addExportData(weigeData, data, hashMap, newList);
-                }
-            }
-        }
-        allData.add(outboundData);
-        allData.add(xinyiData);
-        allData.add(weigeData);
 
-        if(outboundData.size() == 1 && xinyiData.size() == 1 && weigeData.size() == 1) {
-            EasyExcelUtil.writeExcel(response, null, "已报价-报完价待确认数据");
-            return;
-        }
-
-        //Excel 的sheetName
-        List<String> sheetNames = Arrays.asList("库外数据", Constants.SUPPLIER_XIN_YI, Constants.SUPPLIER_WEI_GE);
-        try {
-            EasyExcelUtil.writeExcelSheet(response, allData, "已报价-报完价待确认数据", sheetNames);
-        } catch(
-                Exception e) {
-            e.printStackTrace();
-        }
-
+        WorkOrderDataExport(orderData, response,"已报价-报完价待确认数据");
     }
 
 
@@ -1198,5 +1152,65 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         c.setTime(date);
         c.add(Calendar.DATE, StartupRunner.PRICE_EXPIRE_REMIND_DAY);
         return c.getTime();
+    }
+
+    public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response,String excelName) {
+        Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_QUOTE);
+        //获取字段列表
+        List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
+        }.getType());
+
+        //全部数据
+        List<List<List<String>>> allData = new ArrayList<>();
+        //库外数据
+        List<List<String>> outboundData = new ArrayList<>();
+
+        //新意
+        List<List<String>> xinyiData = new ArrayList<>();
+
+        //维格
+        List<List<String>> weigeData = new ArrayList<>();
+
+        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+
+        //获取中文表头
+        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
+
+        outboundData.add(titleCN);
+        xinyiData.add(titleCN);
+        weigeData.add(titleCN);
+
+        for(int i = 0; i < orderData.size(); i++) {
+            WorkOrderData           workOrderData = orderData.get(i);
+            List<String>            data          = new ArrayList<>();
+            HashMap<String, String> hashMap       = GsonUtils.gson.fromJson(workOrderData.getData(), HashMap.class);
+            if("0".equals(hashMap.get(Constants.ACTOR_INBOUND))) {
+                pricesBiz.addExportData(outboundData, data, hashMap, newList);
+            } else {
+                String supplier = hashMap.get(Constants.SUPPLIER_FIELD);
+                if(Constants.SUPPLIER_XIN_YI.equalsIgnoreCase(supplier)) {
+                    pricesBiz.addExportData(xinyiData, data, hashMap, newList);
+                } else if(Constants.SUPPLIER_WEI_GE.equalsIgnoreCase(supplier)) {
+                    pricesBiz.addExportData(weigeData, data, hashMap, newList);
+                }
+            }
+        }
+        allData.add(outboundData);
+        allData.add(xinyiData);
+        allData.add(weigeData);
+
+        if(outboundData.size() == 1 && xinyiData.size() == 1 && weigeData.size() == 1) {
+            EasyExcelUtil.writeExcel(response, null, excelName);
+            return;
+        }
+
+        //Excel 的sheetName
+        List<String> sheetNames = Arrays.asList("库外数据", Constants.SUPPLIER_XIN_YI, Constants.SUPPLIER_WEI_GE);
+        try {
+            EasyExcelUtil.writeExcelSheet(response, allData, excelName, sheetNames);
+        } catch(
+                Exception e) {
+            e.printStackTrace();
+        }
     }
 }

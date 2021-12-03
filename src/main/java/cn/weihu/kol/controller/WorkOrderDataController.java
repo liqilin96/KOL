@@ -41,6 +41,12 @@ public class WorkOrderDataController {
         CheckUtil.notNull(req.getWorkOrderId(), "工单ID不能为空");
         return new ResultBean<>(dataBiz.workOrderDataList(req));
     }
+    @ApiOperation(value = "已下单导出", httpMethod = "GET", notes = "已报价-报完价待确认导出")
+    @GetMapping(value = "/list/pass/export")
+    public void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response) {
+        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        dataBiz.workOrderDataListExport(req, response);
+    }
 
     @ApiOperation(value = "待报价数据列表", httpMethod = "GET", notes = "数据列表")
     @GetMapping(value = "/wait/list")

@@ -48,4 +48,6 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
     void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response);
 
     void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response);
+
+    void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response);
 }
