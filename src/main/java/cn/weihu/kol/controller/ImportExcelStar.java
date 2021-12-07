@@ -76,86 +76,85 @@ public class ImportExcelStar {
 
         for(int x = 1; x < data.size(); x++) {
             LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
-            if("重新制作".equals(bo.get(6)) || "违约费用".equals(bo.get(6))) {
-                continue;
-            }
-            switch(bo.get(0)) {
+            if(!"重新制作".equals(bo.get(6)) && !"违约费用".equals(bo.get(6))) {
+                switch(bo.get(0)) {
 
-                case "小红书": {
-                    bo.put(7, "是");
-                    bo.put(8, "是");
-                    bo.put(9, "是");
-                    bo.put(10, "否");
-                    bo.put(11, "是");
-                    bo.put(14, "否");
-                    bo.put(15, "否");
-                    bo.put(16, "否");
+                    case "小红书": {
+                        bo.put(7, "是");
+                        bo.put(8, "是");
+                        bo.put(9, "是");
+                        bo.put(10, "否");
+                        bo.put(11, "是");
+                        bo.put(14, "否");
+                        bo.put(15, "否");
+                        bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(21, DateToStr(new Date()));
-                    break;
-                }
-                case "微信": {
-                    bo.put(9, "是");
-                    bo.put(10, "是");
-                    bo.put(14, "是");
-                    bo.put(15, "否");
-                    bo.put(16, "否");
+                        bo.put(21, DateToStr(new Date()));
+                        break;
+                    }
+                    case "微信": {
+                        bo.put(9, "是");
+                        bo.put(10, "是");
+                        bo.put(14, "是");
+                        bo.put(15, "否");
+                        bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(21, DateToStr(new Date()));
-                    break;
-                }
-                case "微博": {
-                    bo.put(7, "是");
-                    bo.put(8, "是");
-                    bo.put(9, "是");
-                    bo.put(10, "是");
-                    bo.put(12, "否");
-                    bo.put(14, "是");
-                    bo.put(15, "否");
-                    bo.put(16, "否");
+                        bo.put(21, DateToStr(new Date()));
+                        break;
+                    }
+                    case "微博": {
+                        bo.put(7, "是");
+                        bo.put(8, "是");
+                        bo.put(9, "是");
+                        bo.put(10, "是");
+                        bo.put(12, "否");
+                        bo.put(14, "是");
+                        bo.put(15, "否");
+                        bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(21, DateToStr(new Date()));
-                    break;
-                }
-                case "抖音": {
-                    bo.put(7, "是");
-                    bo.put(8, "是");
-                    bo.put(9, "是");
-                    bo.put(10, "否");
-                    bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
+                        bo.put(21, DateToStr(new Date()));
+                        break;
+                    }
+                    case "抖音": {
+                        bo.put(7, "是");
+                        bo.put(8, "是");
+                        bo.put(9, "是");
+                        bo.put(10, "否");
+                        bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
 //                    bo.put(19, "是");
-                    bo.put(14, "否");
-                    bo.put(15, "否");
-                    bo.put(16, "否");
+                        bo.put(14, "否");
+                        bo.put(15, "否");
+                        bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(21, DateToStr(new Date()));
-                    break;
-                }
-                case "快手": {
-                    bo.put(7, "是");
-                    bo.put(8, "是");
-                    bo.put(9, "是");
-                    bo.put(10, "否");
-                    bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
-                    bo.put(14, "否");
-                    bo.put(15, "否");
-                    bo.put(16, "否");
+                        bo.put(21, DateToStr(new Date()));
+                        break;
+                    }
+                    case "快手": {
+                        bo.put(7, "是");
+                        bo.put(8, "是");
+                        bo.put(9, "是");
+                        bo.put(10, "否");
+                        bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
+                        bo.put(14, "否");
+                        bo.put(15, "否");
+                        bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(21, DateToStr(new Date()));
-                    break;
-                }
-                case "B站": {
-                    bo.put(7, "是");
-                    bo.put(8, "是");
-                    bo.put(9, "否");
+                        bo.put(21, DateToStr(new Date()));
+                        break;
+                    }
+                    case "B站": {
+                        bo.put(7, "是");
+                        bo.put(8, "是");
+                        bo.put(9, "否");
 //                    bo.put(19, "否");
-                    bo.put(10, "否");
-                    bo.put(14, "否");
-                    bo.put(15, "否");
-                    bo.put(16, "否");
+                        bo.put(10, "否");
+                        bo.put(14, "否");
+                        bo.put(15, "否");
+                        bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                    bo.put(21, DateToStr(new Date()));
-                    break;
+                        bo.put(21, DateToStr(new Date()));
+                        break;
+                    }
                 }
             }
 
