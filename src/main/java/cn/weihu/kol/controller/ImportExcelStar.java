@@ -10,6 +10,7 @@ import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.MD5Util;
 import com.google.gson.reflect.TypeToken;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/import/execl")
+@Api(value = "初始化达人数据", tags = "初始化达人数据")
 public class ImportExcelStar {
 
     @Autowired
@@ -39,7 +41,7 @@ public class ImportExcelStar {
     private FieldsBiz fieldsBiz;
 
 
-    @ApiOperation(value = "测试数据导入", httpMethod = "POST", notes = "测试数据导入")
+    @ApiOperation(value = "初始化达人数据导入", httpMethod = "POST", notes = "初始化达人数据导入")
     @PostMapping("/import")
     public ResultBean<String> ImportData(@RequestParam(value = "file") MultipartFile file) throws Exception {
 
