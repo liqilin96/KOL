@@ -267,8 +267,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     public List<String> excelTitle() {
-        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "发布开始时间",
-                             "发布结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "其他",
-                             "产品提供方", "发布内容brief概述");
+        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "档期范围开始时间",
+                             "档期范围结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务","信息流授权","报备",
+                             "星图/快接单","线下探店","其他","产品提供方", "发布内容brief概述");
     }
 }
