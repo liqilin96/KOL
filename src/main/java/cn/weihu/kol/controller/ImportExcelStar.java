@@ -74,28 +74,31 @@ public class ImportExcelStar {
 
         for(int x = 1; x < data.size(); x++) {
             LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
+            if("重新制作".equals(bo.get(6)) || "违约费用".equals(bo.get(6))) {
+                continue;
+            }
             switch(bo.get(0)) {
 
                 case "小红书": {
                     bo.put(7, "是");
                     bo.put(8, "是");
                     bo.put(9, "是");
-//                    bo.put(19, "是");
                     bo.put(10, "否");
                     bo.put(11, "是");
                     bo.put(14, "否");
+                    bo.put(15, "否");
                     bo.put(16, "否");
-                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
+//                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
                     bo.put(21, DateToStr(new Date()));
                     break;
                 }
                 case "微信": {
                     bo.put(9, "是");
-//                    bo.put(19, "是");
                     bo.put(10, "是");
                     bo.put(14, "是");
+                    bo.put(15, "否");
                     bo.put(16, "否");
-                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
+//                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
                     bo.put(21, DateToStr(new Date()));
                     break;
                 }
@@ -103,12 +106,12 @@ public class ImportExcelStar {
                     bo.put(7, "是");
                     bo.put(8, "是");
                     bo.put(9, "是");
-//                    bo.put(19, "是");
                     bo.put(10, "是");
                     bo.put(12, "否");
                     bo.put(14, "是");
+                    bo.put(15, "否");
                     bo.put(16, "否");
-                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
+//                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
                     bo.put(21, DateToStr(new Date()));
                     break;
                 }
@@ -116,12 +119,13 @@ public class ImportExcelStar {
                     bo.put(7, "是");
                     bo.put(8, "是");
                     bo.put(9, "是");
+                    bo.put(10, "否");
                     bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
 //                    bo.put(19, "是");
-                    bo.put(10, "否");
                     bo.put(14, "否");
+                    bo.put(15, "否");
                     bo.put(16, "否");
-                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
+//                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
                     bo.put(21, DateToStr(new Date()));
                     break;
                 }
@@ -129,12 +133,12 @@ public class ImportExcelStar {
                     bo.put(7, "是");
                     bo.put(8, "是");
                     bo.put(9, "是");
-                    bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
-//                    bo.put(19, "是");
                     bo.put(10, "否");
+                    bo.put(13, bo.get(13) == null ? "是" : bo.get(13));
                     bo.put(14, "否");
+                    bo.put(15, "否");
                     bo.put(16, "否");
-                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
+//                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
                     bo.put(21, DateToStr(new Date()));
                     break;
                 }
@@ -145,8 +149,9 @@ public class ImportExcelStar {
 //                    bo.put(19, "否");
                     bo.put(10, "否");
                     bo.put(14, "否");
+                    bo.put(15, "否");
                     bo.put(16, "否");
-                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
+//                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
                     bo.put(21, DateToStr(new Date()));
                     break;
                 }
@@ -172,7 +177,7 @@ public class ImportExcelStar {
             prices.setActorData(GsonUtils.gson.toJson(map));
             //平台+名称+资源 + MD5
             prices.setActorSn(MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(6)));
-            prices.setCommission(StringUtils.isNotBlank(bo.get(18)) ? Integer.parseInt(bo.get(18).substring(0, 2)) : null);
+            prices.setCommission(StringUtils.isNotBlank(bo.get(18)) ? (bo.get(18).substring(0, 2).matches("\\d+") ? Integer.parseInt(bo.get(18).substring(0, 2)) : null) : null);
             prices.setPrice(Double.parseDouble(bo.get(17)));
             prices.setProvider(bo.get(22));
             prices.setInsureEndtime(strToDate(bo.get(21)));
