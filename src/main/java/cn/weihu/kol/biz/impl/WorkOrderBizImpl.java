@@ -232,6 +232,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         LambdaQueryWrapper<WorkOrder> wrapper = Wrappers.lambdaQuery(WorkOrder.class);
         wrapper.eq(WorkOrder::getToUser, UserInfoContext.getUserId())
                 .eq(WorkOrder::getStatus, req.getStatus());
+        if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
+            wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
+        }
         Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<WorkOrderResp> respList = page.getRecords().stream()
                 .map(WorkOrderConverter::entity2WorkOrderResp)
