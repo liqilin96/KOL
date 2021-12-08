@@ -232,6 +232,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         LambdaQueryWrapper<WorkOrder> wrapper = Wrappers.lambdaQuery(WorkOrder.class);
         wrapper.eq(WorkOrder::getToUser, UserInfoContext.getUserId())
                 .eq(WorkOrder::getStatus, req.getStatus());
+        if(StringUtils.isNotBlank(req.getName())) {
+            wrapper.like(WorkOrder::getProjectName, req.getName());
+        }
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
         }
@@ -271,7 +274,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
     public List<String> excelTitle() {
         return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "档期范围开始时间",
-                             "档期范围结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务","信息流授权","报备",
-                             "星图/快接单","线下探店","其他","产品提供方", "发布内容brief概述");
+                             "档期范围结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "信息流授权", "报备",
+                             "星图/快接单", "线下探店", "其他", "产品提供方", "发布内容brief概述");
     }
 }
