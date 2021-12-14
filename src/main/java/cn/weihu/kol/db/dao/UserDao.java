@@ -1,6 +1,5 @@
 package cn.weihu.kol.db.dao;
 
-import cn.weihu.kol.db.dao.MyMapper;
 import cn.weihu.kol.db.po.User;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

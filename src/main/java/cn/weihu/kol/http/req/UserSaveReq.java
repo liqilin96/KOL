@@ -38,4 +38,7 @@ public class UserSaveReq {
     @ApiModelProperty(value = "角色")
     private String[] roleIds;
 
+    @ApiModelProperty(value = "合同到期时间")
+    private Long contractTime;
+
 }

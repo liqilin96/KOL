@@ -1,14 +1,19 @@
 package cn.weihu.kol.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.FieldsBiz;
 import cn.weihu.kol.biz.PricesBiz;
+import cn.weihu.kol.biz.UserBiz;
 import cn.weihu.kol.biz.bo.FieldsBo;
+import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.db.po.Fields;
 import cn.weihu.kol.db.po.Prices;
+import cn.weihu.kol.db.po.User;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.MD5Util;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,6 +44,9 @@ public class ImportExcelStar {
 
     @Autowired
     private FieldsBiz fieldsBiz;
+
+    @Autowired
+    private UserBiz userBiz;
 
 
     @ApiOperation(value = "初始化达人数据导入", httpMethod = "POST", notes = "初始化达人数据导入")
@@ -73,10 +81,31 @@ public class ImportExcelStar {
                             21  ---> "保价到期时间",
                             22  ---> "供应商"
                      */
-
         for(int x = 1; x < data.size(); x++) {
+            boolean flag     = false;
             LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
             if(!"重新制作".equals(bo.get(6)) && !"违约费用".equals(bo.get(6))) {
+                String  provider = bo.get(22);
+                String  providerName;
+                if(Constants.SUPPLIER_XIN_YI.equals(provider)) {
+                    providerName = "xinyi";
+                } else if(Constants.SUPPLIER_WEI_GE.equals(provider)) {
+                    providerName = "weige";
+                } else {
+                    providerName = "admin";
+                }
+                User user = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, providerName));
+                if(user != null && user.getContractTime() != null) {
+                    if(user.getContractTime().compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
+                        bo.put(21, user.getContractTime().toString());
+                        flag = true;
+                    } else {
+                        bo.put(21, DateToStr(new Date()));
+                    }
+                } else {
+                    bo.put(21, DateToStr(new Date()));
+
+                }
                 switch(bo.get(0)) {
 
                     case "小红书": {
@@ -89,7 +118,6 @@ public class ImportExcelStar {
                         bo.put(15, "否");
                         bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                        bo.put(21, DateToStr(new Date()));
                         break;
                     }
                     case "微信": {
@@ -99,7 +127,6 @@ public class ImportExcelStar {
                         bo.put(15, "否");
                         bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                        bo.put(21, DateToStr(new Date()));
                         break;
                     }
                     case "微博": {
@@ -112,7 +139,6 @@ public class ImportExcelStar {
                         bo.put(15, "否");
                         bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                        bo.put(21, DateToStr(new Date()));
                         break;
                     }
                     case "抖音": {
@@ -126,7 +152,6 @@ public class ImportExcelStar {
                         bo.put(15, "否");
                         bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                        bo.put(21, DateToStr(new Date()));
                         break;
                     }
                     case "快手": {
@@ -139,7 +164,6 @@ public class ImportExcelStar {
                         bo.put(15, "否");
                         bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                        bo.put(21, DateToStr(new Date()));
                         break;
                     }
                     case "B站": {
@@ -152,7 +176,6 @@ public class ImportExcelStar {
                         bo.put(15, "否");
                         bo.put(16, "否");
 //                    bo.put(17, bo.get(17) == null ? "否" : bo.get(17));
-                        bo.put(21, DateToStr(new Date()));
                         break;
                     }
                 }
@@ -181,7 +204,7 @@ public class ImportExcelStar {
             prices.setCommission(StringUtils.isNotBlank(bo.get(18)) ? (bo.get(18).substring(0, 2).matches("\\d+") ? Integer.parseInt(bo.get(18).substring(0, 2)) : null) : null);
             prices.setPrice(Double.parseDouble(bo.get(17)));
             prices.setProvider(bo.get(22));
-            prices.setInsureEndtime(strToDate(bo.get(21)));
+            prices.setInsureEndtime(flag?new Date(bo.get(21)):strToDate(bo.get(21)));
             prices.setCtime(strToDate(bo.get(20)));
             prices.setUtime(new Date());
             prices.setCreateUserId(-1L);

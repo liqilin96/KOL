@@ -99,6 +99,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         User user = UserConverter.userSaveReq2Entity(req);
         user.setPassword(MD5Util.password("123456"));
         user.setCtime(DateUtil.date());
+        user.setContractTime(new Date(req.getContractTime()));
         save(user);
 
         List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());
@@ -123,6 +124,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         User user = UserConverter.userSaveReq2Entity(req);
         user.setId(Long.parseLong(id));
         user.setUtime(DateUtil.date());
+        user.setContractTime(new Date(req.getContractTime()));
         updateById(user);
 
         // 删除历史用户与角色绑定记录

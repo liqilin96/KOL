@@ -65,6 +65,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Resource
     private WorkOrderDao  workOrderDao;
 
+    @Autowired
+    private UserBiz userBiz;
+
+
     @Override
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
@@ -927,8 +931,30 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                                      Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
                 prices.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
                                 Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
-                prices.setProvider(map.get(Constants.ACTOR_PROVIDER));
-                prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+
+                String provider = map.get(Constants.ACTOR_PROVIDER);
+                prices.setProvider(provider);
+
+                //获取供应商合同到期时间
+                String providerName;
+                if(Constants.SUPPLIER_XIN_YI.equals(provider)) {
+                    providerName = "xinyi";
+                } else if(Constants.SUPPLIER_WEI_GE.equals(provider)) {
+                    providerName = "weige";
+                } else {
+                    providerName = "admin";
+                }
+                User user = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, providerName));
+                if(user != null && user.getContractTime() != null) {
+                    if(user.getContractTime().compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
+                        prices.setInsureEndtime(user.getContractTime());
+                    } else {
+                        prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                    }
+                } else {
+                    prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                }
+                log.info("供应商：{},合同到期时间：{}，预计报价到期时间：{}，实际报价到期时间：{}", providerName, user.getContractTime(), DateUtil.offsetMonth(DateUtil.date(), 6), prices.getInsureEndtime());
                 prices.setCtime(DateUtil.date());
                 prices.setUtime(DateUtil.date());
                 prices.setCreateUserId(UserInfoContext.getUserId());
@@ -1105,7 +1131,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW_PASS);
 
         List<WorkOrderData> orderData = list(wrapper);
-        WorkOrderDataExport(orderData,response,"已下单数据");
+        WorkOrderDataExport(orderData, response, "已下单数据");
     }
 
     @Override
@@ -1124,7 +1150,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             orderData = baseMapper.selectList(wrapper);
         }
 
-        WorkOrderDataExport(orderData, response,"已报价-报完价待确认数据");
+        WorkOrderDataExport(orderData, response, "已报价-报完价待确认数据");
     }
 
 
@@ -1154,7 +1180,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         return c.getTime();
     }
 
-    public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response,String excelName) {
+    public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response, String excelName) {
         Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_QUOTE);
         //获取字段列表
         List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {

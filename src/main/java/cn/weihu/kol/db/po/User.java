@@ -64,4 +64,9 @@ public class User implements Serializable {
      * 更新人id
      */
     private Long updateUserId;
+
+    /**
+     * 合同到期时间（供应商填写）
+     */
+    private Date contractTime;
 }
