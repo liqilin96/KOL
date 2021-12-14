@@ -109,7 +109,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public PageResult<PricesLogsResp> starPricePage(PricesLogsReq req) {
         //4 是报价历史
-        Fields                     fields    = fieldsBiz.getById(4);
+        Fields                     fields    = fieldsBiz.getById(5);
         String                     fieldList = fields.getFieldList();
         LambdaQueryWrapper<Prices> wrapper   = new LambdaQueryWrapper<>();
 
