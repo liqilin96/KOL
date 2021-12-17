@@ -81,31 +81,46 @@ public class ImportExcelStar {
                             21  ---> "保价到期时间",
                             22  ---> "供应商"
                      */
+        Date xinyiTime = null;
+        Date weigeTime = null;
+
+        User xinyi     = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
+        if(xinyi != null && xinyi.getContractTime() != null) {
+            xinyiTime = xinyi.getContractTime();
+        }
+        User weige = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "weige"));
+        if(weige != null && weige.getContractTime() != null) {
+            weigeTime = weige.getContractTime();
+        }
+
         for(int x = 1; x < data.size(); x++) {
-            boolean flag     = false;
             LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
             if(!"重新制作".equals(bo.get(6)) && !"违约费用".equals(bo.get(6))) {
-                String  provider = bo.get(22);
-                String  providerName;
+                prices = new Prices();
+                String provider = bo.get(22);
+                //合同过期时间
+                Date time = null;
                 if(Constants.SUPPLIER_XIN_YI.equals(provider)) {
-                    providerName = "xinyi";
+                    time = xinyiTime;
                 } else if(Constants.SUPPLIER_WEI_GE.equals(provider)) {
-                    providerName = "weige";
+                    time = weigeTime;
                 } else {
-                    providerName = "admin";
-                }
-                User user = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, providerName));
-                if(user != null && user.getContractTime() != null) {
-                    if(user.getContractTime().compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
-                        bo.put(21, user.getContractTime().toString());
-                        flag = true;
-                    } else {
-                        bo.put(21, DateToStr(new Date()));
-                    }
-                } else {
-                    bo.put(21, DateToStr(new Date()));
 
                 }
+
+                if(time != null ) {
+                    if(time.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
+//                        prices.setInsureEndtime(user.getContractTime());
+                        prices.setInsureEndtime(DateUtil.offsetMonth(time, 0));
+                    } else {
+//                        bo.put(21, DateToStr(new Date()));
+                        prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                    }
+                } else {
+                    prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+//                    bo.put(21, DateToStr(new Date()));
+                }
+                bo.put(21, DateToStr(new Date()));
                 switch(bo.get(0)) {
 
                     case "小红书": {
@@ -181,8 +196,6 @@ public class ImportExcelStar {
                 }
             }
 
-
-            prices = new Prices();
             Fields              fields = fieldsBiz.getById(1);
             Map<String, String> map    = new HashMap<>();
             //获取字段列表
@@ -204,7 +217,6 @@ public class ImportExcelStar {
             prices.setCommission(StringUtils.isNotBlank(bo.get(18)) ? (bo.get(18).substring(0, 2).matches("\\d+") ? Integer.parseInt(bo.get(18).substring(0, 2)) : null) : null);
             prices.setPrice(Double.parseDouble(bo.get(17)));
             prices.setProvider(bo.get(22));
-            prices.setInsureEndtime(flag?new Date(bo.get(21)):strToDate(bo.get(21)));
             prices.setCtime(strToDate(bo.get(20)));
             prices.setUtime(new Date());
             prices.setCreateUserId(-1L);

@@ -905,6 +905,20 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         Map<String, String> map;
         String              inbound;
         String              actorSn;
+
+        // 合同到期时间处理
+        Date xinyiTime = null;
+        Date weigeTime = null;
+
+        User xinyi     = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
+        if(xinyi != null && xinyi.getContractTime() != null) {
+            xinyiTime = xinyi.getContractTime();
+        }
+        User weige = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "weige"));
+        if(weige != null && weige.getContractTime() != null) {
+            weigeTime = weige.getContractTime();
+        }
+
         for(WorkOrderData workOrderData : list) {
             // 更新工单数据
             workOrderData.setStatus(req.getStatus());
@@ -935,26 +949,27 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 String provider = map.get(Constants.ACTOR_PROVIDER);
                 prices.setProvider(provider);
 
-                //获取供应商合同到期时间
-                String providerName;
+                //合同过期时间
+                Date contractTime = null;
+
                 if(Constants.SUPPLIER_XIN_YI.equals(provider)) {
-                    providerName = "xinyi";
+                    contractTime = xinyiTime;
                 } else if(Constants.SUPPLIER_WEI_GE.equals(provider)) {
-                    providerName = "weige";
+                    contractTime = weigeTime;
                 } else {
-                    providerName = "admin";
+
                 }
-                User user = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, providerName));
-                if(user != null && user.getContractTime() != null) {
-                    if(user.getContractTime().compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
-                        prices.setInsureEndtime(user.getContractTime());
+                if(contractTime != null ) {
+                    if(contractTime.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
+                        prices.setInsureEndtime(DateUtil.offsetMonth(contractTime, 0));
                     } else {
                         prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
                     }
                 } else {
                     prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
                 }
-                log.info("供应商：{},合同到期时间：{}，预计报价到期时间：{}，实际报价到期时间：{}", providerName, user.getContractTime(), DateUtil.offsetMonth(DateUtil.date(), 6), prices.getInsureEndtime());
+
+                log.info("供应商：{},合同到期时间：{}，预计报价到期时间：{}，实际报价到期时间：{}", provider, contractTime, DateUtil.offsetMonth(DateUtil.date(), 6), prices.getInsureEndtime());
                 prices.setCtime(DateUtil.date());
                 prices.setUtime(DateUtil.date());
                 prices.setCreateUserId(UserInfoContext.getUserId());
