@@ -66,4 +66,7 @@ public class UserResp {
 
     @ApiModelProperty(value = "更新人id")
     private Long updateUserId;
+
+    @ApiModelProperty(value = "合同到期时间")
+    private Date contractTime;
 }

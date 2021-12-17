@@ -1,6 +1,7 @@
 package cn.weihu.kol.controller;
 
 
+import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.QuoteBiz;
@@ -29,10 +30,27 @@ public class QuoteController {
     @Autowired
     private QuoteBiz quoteBiz;
 
-    @ApiOperation(value = "查询", httpMethod = "GET", notes = "报价库-查询")
+//    @ApiOperation(value = "查询", httpMethod = "GET", notes = "报价库-查询")
+//    @GetMapping(value = "/page")
+//    public ResultBean<PageResult<QuoteResp>> page(QuoteReq req) {
+//        return new ResultBean<>(quoteBiz.page(req));
+//    }
+
+
+    @ApiOperation(value = "报价库列表-分页", httpMethod = "GET", notes = "报价库列表-分页")
     @GetMapping(value = "/page")
-    public ResultBean<PageResult<QuoteResp>> page(QuoteReq req) {
-        return new ResultBean<>(quoteBiz.page(req));
+    public ResultBean<PageResult<QuoteResp>> starPage(QuoteReq req) {
+        return new ResultBean<>(quoteBiz.quotePage(req));
     }
+
+
+    @ApiOperation(value = "报价库列表详情-分页", httpMethod = "GET", notes = "报价库列表详情-分页")
+    @GetMapping(value = "/price/detail")
+    public ResultBean<PageResult<QuoteResp>> priceDetailPage(QuoteReq req) {
+        CheckUtil.notEmpty(req.getActorSn(), "达人编号不能为空");
+        return new ResultBean<>(quoteBiz.starPricePage(req));
+    }
+
+
 }
 

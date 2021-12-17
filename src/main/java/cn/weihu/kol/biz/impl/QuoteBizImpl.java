@@ -6,6 +6,7 @@ import cn.weihu.kol.biz.FieldsBiz;
 import cn.weihu.kol.biz.QuoteBiz;
 import cn.weihu.kol.db.dao.QuoteDao;
 import cn.weihu.kol.db.po.Fields;
+import cn.weihu.kol.db.po.Project;
 import cn.weihu.kol.db.po.Quote;
 import cn.weihu.kol.http.req.QuoteReq;
 import cn.weihu.kol.http.resp.QuoteResp;
@@ -70,32 +71,93 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
     }
 
     @Override
-    public PageResult<QuoteResp> page(QuoteReq req) {
-        //4 是报价历史
-        Fields                    fields    = fieldsBiz.getById(4);
-        String                    fieldList = fields.getFieldList();
-        LambdaQueryWrapper<Quote> wrapper   = Wrappers.lambdaQuery(Quote.class);
+    public PageResult<QuoteResp> quotePage(QuoteReq req) {
 
-        // 达人名称
+        //4 是报价历史
+        Fields fields    = fieldsBiz.getById(4);
+        String fieldList = fields.getFieldList();
+
+        LambdaQueryWrapper<Quote> wrapper = Wrappers.lambdaQuery(Quote.class);
+
+
+        //达人名称
         if(StringUtils.isNotBlank(req.getStarName())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
         }
+
         // 媒体平台
         if(StringUtils.isNotBlank(req.getPlatform())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
         }
-        // 资源位置
-        if(StringUtils.isNotBlank(req.getPricesForm())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.address\")) like {0}", "%" + req.getPricesForm() + "%");
-        }
+        wrapper.last("GROUP BY actor_sn ORDER BY count(1) DESC");
 
-        Page<Quote> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
-        List<QuoteResp> quoteRespList = page.getRecords().stream().map(x -> {
+        Page<Quote> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
+
+        List<QuoteResp> respList = pricesPage.getRecords().stream().map(x -> {
             QuoteResp resp = new QuoteResp();
             BeanUtils.copyProperties(x, resp);
             return resp;
         }).collect(Collectors.toList());
-        return new PageResult<>(page.getTotal(), quoteRespList, fieldList);
+        return new PageResult<>(pricesPage.getTotal(), respList, fieldList);
+    }
+
+//    @Override
+//    public PageResult<QuoteResp> page(QuoteReq req) {
+//        //4 是报价历史
+//        Fields                    fields    = fieldsBiz.getById(4);
+//        String                    fieldList = fields.getFieldList();
+//        LambdaQueryWrapper<Quote> wrapper   = Wrappers.lambdaQuery(Quote.class);
+//
+//        // 达人名称
+//        if(StringUtils.isNotBlank(req.getStarName())) {
+//            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
+//        }
+//        // 媒体平台
+//        if(StringUtils.isNotBlank(req.getPlatform())) {
+//            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.media\")) like {0}", "%" + req.getPlatform() + "%");
+//        }
+//        // 资源位置
+//        if(StringUtils.isNotBlank(req.getPricesForm())) {
+//            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.address\")) like {0}", "%" + req.getPricesForm() + "%");
+//        }
+//
+//        Page<Quote> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
+//        List<QuoteResp> quoteRespList = page.getRecords().stream().map(x -> {
+//            QuoteResp resp = new QuoteResp();
+//            BeanUtils.copyProperties(x, resp);
+//            return resp;
+//        }).collect(Collectors.toList());
+//        return new PageResult<>(page.getTotal(), quoteRespList, fieldList);
+//    }
+
+
+    @Override
+    public PageResult<QuoteResp> starPricePage(QuoteReq req) {
+        //4 是报价历史
+        Fields                    fields    = fieldsBiz.getById(4);
+        String                    fieldList = fields.getFieldList();
+        LambdaQueryWrapper<Quote> wrapper   = new LambdaQueryWrapper<>();
+        //报价形式
+        if(StringUtils.isNotBlank(req.getPricesForm())) {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.address\")) like {0}", "%" + req.getPricesForm() + "%");
+        }
+
+        //达人编号
+        wrapper.eq(Quote::getActorSn, req.getActorSn());
+
+        //创建时间
+        if(req.getStartTime() != null && req.getEndTime() != null) {
+            wrapper.between(Quote::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
+        }
+
+        Page<Quote> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
+
+        List<QuoteResp> respList = pricesPage.getRecords().stream().map(x -> {
+            QuoteResp resp = new QuoteResp();
+            BeanUtils.copyProperties(x, resp);
+            return resp;
+        }).collect(Collectors.toList());
+        return new PageResult<>(pricesPage.getTotal(), respList, fieldList);
     }
 
     @Override
@@ -142,4 +204,6 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
             }
         }
     }
+
+
 }
