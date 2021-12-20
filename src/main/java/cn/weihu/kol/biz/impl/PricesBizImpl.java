@@ -224,7 +224,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
         //0未重新询价，1则重新询价 状态
-        wrapper.eq(Prices::getIsReQuote, 0);
+        wrapper.eq(Prices::getIsReQuote, 0).eq(Prices::getPriceOnlyDay,"0");
 
         wrapper.between(Prices::getInsureEndtime, new Date(), expirtDate(new Date()));
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);

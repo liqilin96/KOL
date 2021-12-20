@@ -672,6 +672,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setData(workOrderDataUpdateReq.getData());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+            workOrderData.setPriceOnlyDay(workOrderDataUpdateReq.getPriceOnlyDay());
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
@@ -798,6 +799,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 unSelect.setStatus(Constants.WORK_ORDER_DATA_QUOTE_UNSELECTED);
                 unSelect.setUtime(DateUtil.date());
                 unSelect.setUpdateUserId(UserInfoContext.getUserId());
+//                unSelect.setPriceOnlyDay();
                 workOrderDataList.add(unSelect);
 
                 map = GsonUtils.gson.fromJson(unSelect.getData(), type);
@@ -974,6 +976,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 prices.setUtime(DateUtil.date());
                 prices.setCreateUserId(UserInfoContext.getUserId());
                 prices.setUpdateUserId(UserInfoContext.getUserId());
+                prices.setPriceOnlyDay(workOrderData.getPriceOnlyDay());
                 pricesList.add(prices);
             }
             // 报价记录表

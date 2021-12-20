@@ -55,5 +55,6 @@ public class WorkOrderData implements Serializable {
     @ApiModelProperty(value = "更新人id")
     private Long updateUserId;
 
-
+    @ApiModelProperty(value = "报价仅保留一天，0否1是")
+    private String priceOnlyDay;
 }

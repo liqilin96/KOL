@@ -31,4 +31,7 @@ public class WorkOrderDataUpdateReq {
 
     @ApiModelProperty(value = "是否库内,0:否,1:是")
     private Integer inbound;
+
+    @ApiModelProperty(value = "报价仅保留一天，0否1是")
+    private String priceOnlyDay;
 }
