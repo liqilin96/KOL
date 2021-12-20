@@ -151,8 +151,8 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
     @Override
     public void exportStarData(HttpServletResponse response, PricesLogsReq req) {
-        //4 是报价历史
-        Fields fields = fieldsBiz.getById(4);
+
+        Fields fields = fieldsBiz.getById(5);
         //获取字段列表
         List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
         }.getType());
