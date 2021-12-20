@@ -5,6 +5,7 @@ import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.PageResult;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.QuoteBiz;
+import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.req.QuoteReq;
 import cn.weihu.kol.http.resp.QuoteResp;
 import io.swagger.annotations.Api;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -49,6 +52,12 @@ public class QuoteController {
     public ResultBean<PageResult<QuoteResp>> priceDetailPage(QuoteReq req) {
         CheckUtil.notEmpty(req.getActorSn(), "达人编号不能为空");
         return new ResultBean<>(quoteBiz.starPricePage(req));
+    }
+
+    @ApiOperation(value = "报价库详情导出", httpMethod = "GET", notes = "报价库详情导出")
+    @GetMapping(value = "/detail/export")
+    public void export(PricesLogsReq req, HttpServletResponse response) {
+        quoteBiz.exportQuoteData(response, req);
     }
 
 

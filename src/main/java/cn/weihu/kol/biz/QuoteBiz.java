@@ -2,9 +2,11 @@ package cn.weihu.kol.biz;
 
 import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.Quote;
+import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.req.QuoteReq;
 import cn.weihu.kol.http.resp.QuoteResp;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -28,4 +30,6 @@ public interface QuoteBiz extends Biz<Quote> {
     PageResult<QuoteResp> quotePage(QuoteReq req);
 
     PageResult<QuoteResp> starPricePage(QuoteReq req);
+
+    void exportQuoteData(HttpServletResponse response, PricesLogsReq req);
 }

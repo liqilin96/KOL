@@ -1,5 +1,5 @@
 package cn.weihu.kol;
 
 public class Version {
-    public static String version = "1.0.0.16";
+    public static String version = "1.0.0.16_1";
 }

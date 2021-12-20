@@ -672,7 +672,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setData(workOrderDataUpdateReq.getData());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
-            workOrderData.setPriceOnlyDay(workOrderDataUpdateReq.getPriceOnlyDay());
+            Map<String, String> dataMap = GsonUtils.gson.fromJson(workOrderDataUpdateReq.getData(),
+                                                                  new com.google.common.reflect.TypeToken<Map<String, String>>() {
+                                                                  }.getType());
+            workOrderData.setPriceOnlyDay((dataMap == null || dataMap.get("priceOnlyDay") == null || "否".equals(dataMap.get("priceOnlyDay"))) ? "0" : "1");
             workOrderDataList.add(workOrderData);
         }
         updateBatchById(workOrderDataList);
@@ -912,7 +915,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         Date xinyiTime = null;
         Date weigeTime = null;
 
-        User xinyi     = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
+        User xinyi = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
         if(xinyi != null && xinyi.getContractTime() != null) {
             xinyiTime = xinyi.getContractTime();
         }
@@ -961,7 +964,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 } else {
 
                 }
-                if(contractTime != null ) {
+                if(contractTime != null) {
                     if(contractTime.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
                         prices.setInsureEndtime(DateUtil.offsetMonth(contractTime, 0));
                     } else {
@@ -1146,13 +1149,16 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     public void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response) {
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
-                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW_PASS);
+//                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW_PASS);
+                .eq(WorkOrderData::getStatus, req.getStatus());
 
         List<WorkOrderData> orderData = list(wrapper);
-        WorkOrderDataExport(orderData, response, "已下单数据");
+        WorkOrderDataExport(orderData, response, "导出数据");
     }
 
     @Override
+
+
     public void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
 
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
