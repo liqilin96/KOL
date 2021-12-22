@@ -1,5 +1,6 @@
 package cn.weihu.kol.util;
 
+import cn.weihu.kol.biz.bo.TableHead;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.ExcelWriter;
@@ -7,7 +8,9 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.metadata.fill.FillConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.ResourceUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -80,16 +83,42 @@ public class EasyExcelUtil {
             response.setContentType("mutipart/form-data");
             response.setCharacterEncoding("utf-8");
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
+            /**
+             * 修改模版路径为你的本地 绝对路径
+             */
+            String templatePath = "/Users/yanjietu/Documents/weihu/java_kol/src/main/resources/static/temp.xlsx";
 
-            excelWriter = EasyExcel.write(response.getOutputStream()).build();
+            File file =  ResourceUtils.getFile(templatePath);
+
+            InputStream is = new FileInputStream(file);
+
+            excelWriter = EasyExcel.write(response.getOutputStream()).withTemplate(is).build();
+
+            WriteSheet writeSheet = EasyExcel.writerSheet("需求单").build();
+
+            List<TableHead> listTableHead = new ArrayList<>();
 
             for(int i = 0; i < list.size(); i++) {
-                List data = (List) list.get(i);
+                List data = (List) list.get(2);
                 if(data.size() == 1)
                     continue;
-                WriteSheet writeSheet = EasyExcel.writerSheet(sheetNames.get(i)).build();
-                excelWriter.write(data, writeSheet);
+
+                for (Object row : data) {
+                    List rowList = (List) row;
+                    TableHead th = new TableHead();
+
+                    th.setAccount((String) rowList.get(0));
+                    th.setIDorLink((String) rowList.get(1));
+                    th.setMedia((String) rowList.get(2));
+
+                    listTableHead.add(th);
+                }
             }
+
+            FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+
+            excelWriter.fill(listTableHead, fillConfig ,writeSheet);
+            excelWriter.finish();
 //            WriteSheet writeSheet = EasyExcel.writerSheet("库外数据").build();
 //            excelWriter.write((List)list.get(0), writeSheet);
 //            writeSheet = EasyExcel.writerSheet("新意").build();
@@ -99,7 +128,9 @@ public class EasyExcelUtil {
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            excelWriter.finish();
+            if (excelWriter != null) {
+                excelWriter.finish();
+            }
         }
     }
 

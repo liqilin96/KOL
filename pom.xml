@@ -202,12 +202,12 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>3.17</version>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>3.17</version>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
@@ -223,7 +223,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>easyexcel</artifactId>
-            <version>2.2.10</version>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.nls</groupId>
