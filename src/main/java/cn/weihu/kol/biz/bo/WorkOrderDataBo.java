@@ -125,6 +125,9 @@ public class WorkOrderDataBo {
         // 折扣
         String sale;
 
+        // 仅保价一天
+        String priceOnlyDay;
+
         /**
          * 逻辑字段
          */
