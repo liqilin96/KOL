@@ -41,6 +41,7 @@ public class WorkOrderDataController {
         CheckUtil.notNull(req.getWorkOrderId(), "工单ID不能为空");
         return new ResultBean<>(dataBiz.workOrderDataList(req));
     }
+
     @ApiOperation(value = "已下单导出", httpMethod = "GET", notes = "已下单导出")
     @GetMapping(value = "/list/pass/export")
     public void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response) {
@@ -134,6 +135,30 @@ public class WorkOrderDataController {
         CheckUtil.notNull(req.getWorkerOrderDataIds(), "需求工单ID不能为空");
         dataBiz.supplierExport(req, response);
     }
+
+    @ApiOperation(value = "取消合作", httpMethod = "DELETE", notes = "取消合作")
+    @DeleteMapping(value = "/cancel/agreement/{workOrderDataId}")
+    public ResultBean<String> delete(@PathVariable("workOrderDataId") String workOrderDataId) {
+        CheckUtil.notEmpty(workOrderDataId, "工单数据id不能为空");
+        return new ResultBean<>(dataBiz.delete(workOrderDataId));
+    }
+
+    @ApiOperation(value = "违约记录列表", httpMethod = "GET", notes = "违约记录列表")
+    @GetMapping(value = "/lostPromise/list/{workOrderId}")
+    public ResultBean<List<WorkOrderDataResp>> lostPromiseList(@PathVariable("workOrderId") String workOrderId) {
+        CheckUtil.notNull(workOrderId, "工单ID不能为空");
+        return new ResultBean<>(dataBiz.lostPromiseList(workOrderId));
+    }
+
+    @ApiOperation(value = "违约", httpMethod = "PUT", notes = "违约")
+    @PutMapping(value = "/lostPromise/{workOrderDataId}/{price}")
+    public ResultBean<String> lostPromise(@PathVariable("workOrderDataId") String workOrderDataId,@PathVariable("price") double price) {
+        CheckUtil.notEmpty(workOrderDataId, "工单id不能为空");
+        CheckUtil.notNull(price, "违约金不能为空");
+        return new ResultBean<>(dataBiz.lostPromise(workOrderDataId,price));
+    }
+
+    
 
 }
 

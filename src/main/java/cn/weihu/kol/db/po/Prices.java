@@ -66,4 +66,7 @@ public class Prices implements Serializable {
     @ApiModelProperty(value = "报价仅保留一天，0否1是")
     private String priceOnlyDay;
 
+    @ApiModelProperty(value = "关联的违约工单号")
+    private Long joinWorkOrderId;
+
 }

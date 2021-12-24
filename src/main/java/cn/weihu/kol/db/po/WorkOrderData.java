@@ -2,6 +2,7 @@ package cn.weihu.kol.db.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -57,4 +58,8 @@ public class WorkOrderData implements Serializable {
 
     @ApiModelProperty(value = "报价仅保留一天，0否1是")
     private String priceOnlyDay;
+
+    @ApiModelProperty(value = "逻辑删除")
+    @TableLogic
+    private String isDelete;
 }

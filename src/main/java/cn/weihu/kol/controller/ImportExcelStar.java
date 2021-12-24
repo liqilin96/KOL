@@ -60,16 +60,16 @@ public class ImportExcelStar {
                              0  ---> "平台",
                              1  ---> "序号",
                              2 ---> "名称",
-                             3 ---> "ID",
+                             3 ---> "账号ID",
                              4 ---> "粉丝数",
                              5 ---> "账号类型",
-                             6---> "报价形式",
+                             6---> "资源形式",
                              7  ---> "@",
                              8  ---> "话题",
                              9 ---> "电商链接",
                             10  ---> "双微转发",
-                            11 ---> "报备",
-                            12 ---> "微任务",
+                            11 ---> "报备（针对小红书）",
+                            12 ---> "微任务（针对微博）",
                             13  ---> "星图/快接单",
                             14  ---> "电商肖像授权",
                             15  ---> "信息流授权",
@@ -84,7 +84,7 @@ public class ImportExcelStar {
         Date xinyiTime = null;
         Date weigeTime = null;
 
-        User xinyi     = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
+        User xinyi = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
         if(xinyi != null && xinyi.getContractTime() != null) {
             xinyiTime = xinyi.getContractTime();
         }
@@ -108,7 +108,7 @@ public class ImportExcelStar {
 
                 }
 
-                if(time != null ) {
+                if(time != null) {
                     if(time.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
 //                        prices.setInsureEndtime(user.getContractTime());
                         prices.setInsureEndtime(DateUtil.offsetMonth(time, 0));
@@ -120,7 +120,7 @@ public class ImportExcelStar {
                     prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
 //                    bo.put(21, DateToStr(new Date()));
                 }
-                bo.put(21, DateToStr(new Date()));
+//                bo.put(21, DateToStr(new Date()));
                 switch(bo.get(0)) {
 
                     case "小红书": {
@@ -229,12 +229,9 @@ public class ImportExcelStar {
 
 
     public List<String> titles() {
-        return Arrays.asList("媒体", "序号", "账号", "账号ID或链接", "粉丝数",
-                             "账号类型", "资源位置", "@", "话题", "电商链接", "品牌双微转发授权", "报备", "微任务",
-                             "星图/快接单", "电商肖像授权", "信息流授权", "线下探店", "报价", "佣金", "备注", "入库时间", "保价到期时间", "供应商");
-//        return Arrays.asList("平台", "序号", "名称", "ID", "粉丝数", "账号类型", "报价形式", "@", "话题", "电商链接", "双微转发",
-//                             "报备", "微任务", "星图/快接单", "电商授权", "肖像授权", "信息流授权", "线下探店", "费用", "佣金", "备注",
-//                             "入库时间", "保价到期时间", "供应商");
+        return Arrays.asList("平台", "序号", "名称", "账号ID", "粉丝数", "账号类型", "资源形式", "@", "话题", "电商链接", "双微转发", "报备（针对小红书）",
+                             "微任务（针对微博）", "星图/快接单", "电商肖像授权", "信息流授权", "线下探店", "费用", "佣金",
+                             "备注", "入库时间", "保价到期时间", "供应商");
     }
 
 

@@ -17,11 +17,12 @@
         <result column="create_user_id" property="createUserId" />
         <result column="update_user_id" property="updateUserId" />
         <result column="price_only_day" property="priceOnlyDay" />
+        <result column="join_work_order_id" property="joinWorkOrderId" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, actor_sn, actor_data, commission, price, provider,is_re_quote, insure_endtime, ctime, utime, create_user_id, update_user_id
+        id, actor_sn, actor_data, commission, price, provider,is_re_quote, insure_endtime, ctime, utime, create_user_id, update_user_id,join_work_order_id
     </sql>
 
 </mapper>

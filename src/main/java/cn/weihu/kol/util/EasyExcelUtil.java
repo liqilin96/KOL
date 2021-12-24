@@ -23,6 +23,24 @@ import java.util.Map;
 @Slf4j
 public class EasyExcelUtil {
 
+    public static List<Object> readExcelOnlySheet1(InputStream excelInputStream) {
+        ExcelListener excelListener = new ExcelListener();
+        ExcelReader   excelReader   = getReader(excelInputStream, excelListener);
+        if(excelReader == null) {
+            return new ArrayList<>();
+        }
+        List<ReadSheet> readSheetList = excelReader.excelExecutor().sheetList();
+        for(ReadSheet readSheet : readSheetList) {
+            //只读sheet 1
+            if(readSheet.getSheetNo() != null && readSheet.getSheetNo() == 1) {
+                excelReader.read(readSheet);
+            }
+        }
+        excelReader.finish();
+        return excelListener.getDataList();
+    }
+
+
     public static List<Object> readExcel(InputStream excelInputStream) {
         ExcelListener excelListener = new ExcelListener();
         ExcelReader   excelReader   = getReader(excelInputStream, excelListener);

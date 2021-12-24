@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -1157,8 +1158,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-
-
     public void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
 
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
@@ -1177,6 +1176,82 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         WorkOrderDataExport(orderData, response, "已报价-报完价待确认数据");
     }
 
+
+    @Override
+    public String delete(String workOrderDataId) {
+        removeById(workOrderDataId);
+        return null;
+    }
+
+
+    @Override
+    @Transactional
+    public String lostPromise(String workOrderDataId, double price) {
+
+        //查询违约工单数据
+        WorkOrderData workOrderData = getById(workOrderDataId);
+        if(workOrderData == null) {
+            throw new CheckException("工单数据不存在");
+        }
+        Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
+        }.getType());
+
+        Prices prices = new Prices();
+        prices.setActorSn(map.get("actorSn"));
+        if(map.get("commission") != null) {
+            prices.setCommission(Integer.parseInt(map.get("commission")));
+        }
+        prices.setPrice(price);
+        prices.setProvider(map.get("supplier"));
+        prices.setCtime(new Date());
+        prices.setUtime(new Date());
+        prices.setCreateUserId(-1L);
+        prices.setUpdateUserId(-1L);
+
+        //星图/快接单
+        map.put("star", "不涉及");
+        //信息流授权
+        map.put("msgAuth", "不涉及");
+        //品牌双微转发授权
+        map.put("shareAuth", "不涉及");
+        //线下探店
+        map.put("face", "不涉及");
+        //@
+        map.put("at", "不涉及");
+        //电商链接
+        map.put("linkPrice", "不涉及");
+        //报备
+        map.put("report", "不涉及");
+        //话题
+        map.put("topic", "不涉及");
+        //电商肖像授权
+        map.put("storeAuth", "不涉及");
+        //微任务
+        map.put("microTask", "不涉及");
+//        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
+        prices.setActorData(GsonUtils.gson.toJson(map));
+        prices.setJoinWorkOrderId(workOrderData.getWorkOrderId());
+        pricesBiz.save(prices);
+
+        //逻辑删除违约工单
+        delete(workOrderDataId);
+        return prices.getId() + "";
+    }
+
+    @Override
+    public List<WorkOrderDataResp> lostPromiseList(String workOrderId) {
+
+        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Prices::getJoinWorkOrderId,workOrderId);
+        List<Prices> pricesList = pricesBiz.list(wrapper);
+
+        List<WorkOrderDataResp> resps = pricesList.stream().map(x -> {
+            WorkOrderDataResp resp = new WorkOrderDataResp();
+            resp.setData(x.getActorData());
+            return resp;
+        }).collect(Collectors.toList());
+        return resps;
+    }
 
     private void reviewReject(Long workOrderId, String rejectReason) {
         // 更新工单数据状态 -> 已报价

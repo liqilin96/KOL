@@ -15,6 +15,9 @@ import lombok.Setter;
 @ApiModel(value = "工单请求实体类", description = "描述")
 public class WorkOrderReq {
 
+    @ApiModelProperty(value = "模板类型，1抖音快手，其他非抖音快手")
+    private String excelType;
+
     @ApiModelProperty(value = "页数")
     private Integer pageNo = 1;
 

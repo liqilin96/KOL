@@ -27,6 +27,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
  * @since 2021-11-10
  */
 @Service
+@Slf4j
 public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> implements WorkOrderBiz {
 
 
@@ -72,26 +74,24 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
         List<Object> orderBos = null;
         try {
-            orderBos = EasyExcelUtil.readExcel(file.getInputStream());
+            orderBos = EasyExcelUtil.readExcelOnlySheet1(file.getInputStream());
         } catch(Exception e) {
             log.error(">>> Excel读取失败:{}", e);
             throw new CheckException("Excel读取失败,请联系管理员");
         }
 
+        List<String> selfTitle = excelTitle(req.getExcelType());
         if(null != orderBos) {
-            // 判断表头
-            LinkedHashMap<Integer, String> title      = (LinkedHashMap<Integer, String>) orderBos.get(0);
+            // 判断表头             数字8是读取模板标题名称（可能会改动）
+            LinkedHashMap<Integer, String> title      = (LinkedHashMap<Integer, String>) orderBos.get(8);
             List<String>                   list       = title.values().stream().collect(Collectors.toList());
             String                         excelTitle = list.toString();
 
-            List<String> selfTitle = excelTitle();
             if(!selfTitle.toString().equalsIgnoreCase(excelTitle)) {
-                throw new CheckException("Excel文件标题不匹配");
+                throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
             }
         }
-
         WorkOrder workOrder = new WorkOrder();
-
         try {
             String        name          = "示例数据";
             WorkOrderData workOrderData = null;
@@ -102,35 +102,51 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrder.setProjectName(project.getName());
                 create(workOrder, Constants.WORK_ORDER_DEMAND, Constants.WORK_ORDER_NEW);
             }
-            for(int x = 1; x < orderBos.size(); x++) {
+            // x = 9 ===》 模板序号规定
+            for(int x = 9; x < orderBos.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBos.get(x);
-                /**具体配置如下
-                 *
-                 *  0     -----》序号
-                 *  1     -----》媒体
-                 *  2     -----》账号
-                 *  3     -----》账号ID或链接
-                 *  4     -----》账号类型
-                 //                 *  5     -----》粉丝数
-                 *  5     -----》资源位置
-                 *  6     -----》数量
-                 *  7     -----》发布开始时间
-                 *  8     -----》发布结束时间
-                 *  9    -----》电商链接
-                 *  10    -----》@
-                 *  11    -----》话题
-                 *  12    -----》电商肖像授权
-                 *  13    -----》品牌双微转发授权
-                 *  14    -----》微任务
-                 *  15    -----》其他
-                 *  16    -----》产品提供方
-                 *  17    -----》发布内容brief概述
+                /**具体配置如下             非抖音快手平台                                抖音快手平台
+                 *     0                     "平台",                                       "平台",
+                 *     1                     "序号",                                       "序号",
+                 *     2                     "名称",                                       "名称",
+                 *     3                     "账号ID",                                     "账号ID",
+                 *     4                     "粉丝数（个）",                                "粉丝数（个）",
+                 *     5                     "账号类型",                                    "账号类型",
+                 *     6                     "资源形式",                                    "资源形式",
+                 *     7                     "数量",                                        "数量",
+                 *     8                     "发布时间",                                    "发布时间",
+                 *     9                     "@",                                           "@",
+                 *     10                    "话题",                                        "话题"
+                 *     11                    "电商链接",                                     "电商链接",
+                 *     12                    "双微转发",                                     "双微转发",
+                 *     13                    "电商肖像授权",                                 "电商肖像授权",
+                 *     14                    "信息流授权",                                   "信息流授权",
+                 *     15                    "微任务（针对微博）",                           "星图（针对抖音）",
+                 *     16                    "报备（针对小红书）",                           "快接单（针对快手）",
+                 *     17                    "线下探店",                                     "线下探店",
+                 *     18(选填)              "其他特殊说明",                                 "其他特殊说明",
+                 *     19                    "产品提供方",                                   "产品提供方",
+                 *     20                    "发布内容brief概述",                            "发布内容brief概述",
+                 *     21                    "总价",                                         "星图/快接单平台截图",
+                 *     22                    "佣金",                                         "截图时间",
+                 *     23                    "备注"                                          "星图/快接单平台报价（元）",
+                 *     24                                                                    "折扣（%）",
+                 *     25                                                                    "执行报价（元）",
+                 *     26                                                                    "佣金",
+                 *     27                                                                    "备注"
                  */
+
+                //如果填写的数据小于字段必填数则视为错误数据跳过
+//                if(bo.size() < list().size()-1) {
+//                    log.info("表单数据不完整，表达数据为：{}",orderBos.get(x));
+//                    continue;
+//                }
                 //获取第一条数据的账号，如果等于示例数据则跳过
                 String accountName = bo.get(2);
                 if(name.equalsIgnoreCase(accountName)) {
                     continue;
                 }
+
                 workOrderData = new WorkOrderData();
 
                 workOrderData.setProjectId(workOrder.getProjectId());
@@ -143,25 +159,23 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
                 }.getType());
 
-                Map<String, String> map   = new HashMap<>();
-                List<String>        title = excelTitle();
+                Map<String, String> map = new HashMap<>();
+//                List<String>        title = excelTitle();
                 for(int i = 0; i < fieldsBos.size(); i++) {
-                    for(int j = 0; j < title.size(); j++) {
-                        if(title.get(j).equalsIgnoreCase(fieldsBos.get(i).getTitle())) {
+                    for(int j = 0; j < selfTitle.size(); j++) {
+                        if(selfTitle.get(j).equalsIgnoreCase(fieldsBos.get(i).getTitle())) {
                             map.put(fieldsBos.get(i).getDataIndex(), bo.get(j));
                         }
                     }
-//                    if(title.contains(fieldsBos.get(i).getTitle())) {
-//                        map.put(fieldsBos.get(i).getDataIndex(), bo.get(i));
-//                    }
                 }
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_NEW);
                 workOrderData.setData(GsonUtils.gson.toJson(map));
+                // map 处理！！！TODO
                 workOrderData.setCtime(new Date());
                 workOrderData.setUtime(new Date());
                 workOrderData.setCreateUserId(UserInfoContext.getUserId());
                 workOrderData.setUpdateUserId(UserInfoContext.getUserId());
-                workOrderDataBiz.save(workOrderData);
+//                workOrderDataBiz.save(workOrderData);
             }
         } catch(Exception e) {
             log.error(">>> 数据导入异常:", e);
@@ -272,9 +286,30 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         FileUtil.download(response, picturePath, false);
     }
 
-    public List<String> excelTitle() {
-        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "档期范围开始时间",
-                             "档期范围结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "信息流授权", "报备",
-                             "星图/快接单", "线下探店", "其他", "产品提供方", "发布内容brief概述");
+//    public List<String> excelTitle() {
+//        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "档期范围开始时间",
+//                             "档期范围结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "信息流授权", "报备",
+//                             "星图/快接单", "线下探店", "其他", "产品提供方", "发布内容brief概述");
+//    }
+
+
+    /**
+     * @param type 1是抖音快手模板，其他是非抖音快手模板
+     * @return 模板表头
+     */
+    private List<String> excelTitle(String type) {
+        if("1".equals(type)) {
+            return Arrays.asList("平台", "序号", "名称", "账号ID", "粉丝数（个）", "账号类型", "资源形式", "数量", "发布时间", "@", "话题",
+                                 "电商链接", "双微转发", "电商肖像授权", "信息流授权", "星图（针对抖音）", "快接单（针对快手）", "线下探店",
+                                 "其他特殊说明", "产品提供方", "发布内容brief概述",
+                    /* 供应商填写*/     "星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
+        } else {
+            return Arrays.asList("平台", "序号", "名称", "账号ID", "粉丝数（个）", "账号类型", "资源形式", "数量", "发布时间", "@", "话题",
+                                 "电商链接", "双微转发", "电商肖像授权", "信息流授权", "微任务（针对微博）", "报备（针对小红书）", "线下探店",
+                                 "其他特殊说明", "产品提供方", "发布内容brief概述",
+                    /* 供应商填写*/     "总价", "佣金", "备注");
+        }
     }
+
+
 }
