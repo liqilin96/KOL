@@ -1179,7 +1179,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public String delete(String workOrderIds) {
-        String[] split = workOrderIds.split(";");
+        String[] split = workOrderIds.split(",");
         removeByIds(Arrays.asList(split));
         return null;
     }
