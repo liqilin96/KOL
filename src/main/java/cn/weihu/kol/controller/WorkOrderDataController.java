@@ -4,10 +4,7 @@ package cn.weihu.kol.controller;
 import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.WorkOrderDataBiz;
-import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
-import cn.weihu.kol.http.req.WorkOrderDataOrderReq;
-import cn.weihu.kol.http.req.WorkOrderDataReq;
-import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
+import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
@@ -138,7 +135,7 @@ public class WorkOrderDataController {
 
     @ApiOperation(value = "取消合作", httpMethod = "PUT", notes = "取消合作")
     @PutMapping(value = "/cancel/agreement")
-    public ResultBean<String> delete(WorkOrderDataReq req) {
+    public ResultBean<String> delete(@RequestBody OrderReq req) {
         CheckUtil.notNull(req.getWorkOrderIds(), "工单数据id不能为空");
         return new ResultBean<>(dataBiz.delete(req.getWorkOrderIds()));
     }
@@ -151,19 +148,19 @@ public class WorkOrderDataController {
     }
 
     @ApiOperation(value = "违约", httpMethod = "PUT", notes = "违约")
-    @PutMapping(value = "/lostPromise/{workOrderDataId}/{price}")
-    public ResultBean<String> lostPromise(@PathVariable("workOrderDataId") String workOrderDataId,@PathVariable("price") double price) {
-        CheckUtil.notEmpty(workOrderDataId, "工单id不能为空");
-        CheckUtil.notNull(price, "违约金不能为空");
-        return new ResultBean<>(dataBiz.lostPromise(workOrderDataId,price));
+    @PutMapping(value = "/lostPromise")
+    public ResultBean<String> lostPromise(@RequestBody OrderReq req) {
+        CheckUtil.notEmpty(req.getWorkOrderDataId(), "工单id不能为空");
+        CheckUtil.notNull(req.getPrice(), "违约金不能为空");
+        return new ResultBean<>(dataBiz.lostPromise(req.getWorkOrderDataId(), req.getPrice()));
     }
 
     @ApiOperation(value = "重新制作", httpMethod = "PUT", notes = "重新制作")
-    @PutMapping(value = "/remake/{workOrderDataId}/{price}")
-    public ResultBean<String> remake(@PathVariable("workOrderDataId") String workOrderDataId,@PathVariable("price") double price) {
-        CheckUtil.notEmpty(workOrderDataId, "工单id不能为空");
-        CheckUtil.notNull(price, "制作费用不能为空");
-        return new ResultBean<>(dataBiz.remake(workOrderDataId,price));
+    @PutMapping(value = "/remake")
+    public ResultBean<String> remake(@RequestBody OrderReq req) {
+        CheckUtil.notEmpty(req.getWorkOrderDataId(), "工单id不能为空");
+        CheckUtil.notNull(req.getPrice(), "制作费用不能为空");
+        return new ResultBean<>(dataBiz.remake(req.getWorkOrderDataId(), req.getPrice()));
     }
 
 }

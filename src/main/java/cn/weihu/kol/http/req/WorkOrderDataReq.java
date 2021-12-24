@@ -20,6 +20,4 @@ public class WorkOrderDataReq {
     @ApiModelProperty(value = "状态")
     private String status;
 
-    @ApiModelProperty(value = "取消合作的ids，英文逗号分割")
-    private String workOrderIds;
 }
