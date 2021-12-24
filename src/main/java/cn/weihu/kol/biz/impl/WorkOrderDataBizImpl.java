@@ -1228,6 +1228,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         map.put("storeAuth", "不涉及");
         //微任务
         map.put("microTask", "不涉及");
+        map.put("address", "违约记录");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
         prices.setJoinWorkOrderId(workOrderData.getWorkOrderId());
