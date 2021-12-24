@@ -136,11 +136,11 @@ public class WorkOrderDataController {
         dataBiz.supplierExport(req, response);
     }
 
-    @ApiOperation(value = "取消合作", httpMethod = "DELETE", notes = "取消合作")
-    @DeleteMapping(value = "/cancel/agreement/{workOrderDataId}")
-    public ResultBean<String> delete(@PathVariable("workOrderDataId") String workOrderDataId) {
-        CheckUtil.notEmpty(workOrderDataId, "工单数据id不能为空");
-        return new ResultBean<>(dataBiz.delete(workOrderDataId));
+    @ApiOperation(value = "取消合作", httpMethod = "PUT", notes = "取消合作")
+    @PutMapping(value = "/cancel/agreement")
+    public ResultBean<String> delete(WorkOrderDataReq req) {
+        CheckUtil.notNull(req.getWorkOrderIds(), "工单数据id不能为空");
+        return new ResultBean<>(dataBiz.delete(req.getWorkOrderIds()));
     }
 
     @ApiOperation(value = "违约记录列表", httpMethod = "GET", notes = "违约记录列表")
@@ -158,7 +158,13 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.lostPromise(workOrderDataId,price));
     }
 
-    
+    @ApiOperation(value = "重新制作", httpMethod = "PUT", notes = "重新制作")
+    @PutMapping(value = "/remake/{workOrderDataId}/{price}")
+    public ResultBean<String> remake(@PathVariable("workOrderDataId") String workOrderDataId,@PathVariable("price") double price) {
+        CheckUtil.notEmpty(workOrderDataId, "工单id不能为空");
+        CheckUtil.notNull(price, "制作费用不能为空");
+        return new ResultBean<>(dataBiz.remake(workOrderDataId,price));
+    }
 
 }
 

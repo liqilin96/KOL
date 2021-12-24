@@ -1178,8 +1178,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
 
     @Override
-    public String delete(String workOrderDataId) {
-        removeById(workOrderDataId);
+    public String delete(String workOrderIds) {
+        String[] split = workOrderIds.split(";");
+        removeByIds(Arrays.asList(split));
         return null;
     }
 
@@ -1229,6 +1230,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         //微任务
         map.put("microTask", "不涉及");
         map.put("address", "违约记录");
+        map.put("price",price+"");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
         prices.setJoinWorkOrderId(workOrderData.getWorkOrderId());
@@ -1243,7 +1245,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     public List<WorkOrderDataResp> lostPromiseList(String workOrderId) {
 
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Prices::getJoinWorkOrderId,workOrderId);
+        wrapper.eq(Prices::getJoinWorkOrderId, workOrderId);
         List<Prices> pricesList = pricesBiz.list(wrapper);
 
         List<WorkOrderDataResp> resps = pricesList.stream().map(x -> {
@@ -1252,6 +1254,65 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             return resp;
         }).collect(Collectors.toList());
         return resps;
+    }
+
+
+    @Override
+    @Transactional
+    public String remake(String workOrderDataId, double price) {
+
+        //查询重新制作的工单数据
+        WorkOrderData workOrderData = getById(workOrderDataId);
+        if(workOrderData == null) {
+            throw new CheckException("指定工单数据不存在");
+        }
+        Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
+        }.getType());
+
+        Prices prices = new Prices();
+
+
+        prices.setActorSn(map.get("actorSn"));
+        if(map.get("commission") != null) {
+            prices.setCommission(Integer.parseInt(map.get("commission")));
+        }
+
+        prices.setPrice(price);
+        prices.setProvider(map.get("supplier"));
+        prices.setCtime(new Date());
+        prices.setUtime(new Date());
+        prices.setCreateUserId(-1L);
+        prices.setUpdateUserId(-1L);
+
+        //星图/快接单
+        map.put("star", "不涉及");
+        //信息流授权
+        map.put("msgAuth", "不涉及");
+        //品牌双微转发授权
+        map.put("shareAuth", "不涉及");
+        //线下探店
+        map.put("face", "不涉及");
+        //@
+        map.put("at", "不涉及");
+        //电商链接
+        map.put("linkPrice", "不涉及");
+        //报备
+        map.put("report", "不涉及");
+        //话题
+        map.put("topic", "不涉及");
+        //电商肖像授权
+        map.put("storeAuth", "不涉及");
+        //微任务
+        map.put("microTask", "不涉及");
+        map.put("address", "重新制作");
+        map.put("price",price+"");
+        String data = GsonUtils.gson.toJson(map);
+        prices.setActorData(data);
+        workOrderData.setData(data);
+        pricesBiz.save(prices);
+        //重新制作
+        save(workOrderData);
+        return workOrderData.getId() + "";
     }
 
     private void reviewReject(Long workOrderId, String rejectReason) {

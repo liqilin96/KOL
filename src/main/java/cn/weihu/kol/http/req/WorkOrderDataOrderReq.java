@@ -18,4 +18,6 @@ public class WorkOrderDataOrderReq {
 
     @ApiModelProperty(value = "工单数据ID集合")
     private List<Long> workOrderDataIds;
+
+    private String workOrderIds;
 }
