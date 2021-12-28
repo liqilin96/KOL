@@ -36,7 +36,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1156,7 +1155,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 .eq(WorkOrderData::getStatus, req.getStatus());
 
         List<WorkOrderData> orderData = list(wrapper);
-        workOrderDataTemplateExport(orderData, response, "导出数据",req.getTemplateType());
+        workOrderDataTemplateExport(orderData, response, "导出数据", req.getTemplateType());
     }
 
     @Override
@@ -1232,7 +1231,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         //微任务
         map.put("microTask", "不涉及");
         map.put("address", "违约记录");
-        map.put("price",price+"");
+        map.put("price", price + "");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
         prices.setJoinWorkOrderId(workOrderData.getWorkOrderId());
@@ -1309,7 +1308,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         //微任务
         map.put("microTask", "不涉及");
         map.put("address", "重新制作");
-        map.put("price",price+"");
+        map.put("price", price + "");
         String data = GsonUtils.gson.toJson(map);
         prices.setActorData(data);
         workOrderData.setData(data);
@@ -1346,18 +1345,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-    public void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType) {
+    public void workOrderDataTemplateExport(List<WorkOrderData> orderData, HttpServletResponse response, String excelName, String templateType) {
 
         List<WorkOrderDataBo> excelList = new ArrayList<>();
 
         for(int i = 0; i < orderData.size(); i++) {
-            WorkOrderData workOrderData = orderData.get(i);
+            WorkOrderData   workOrderData   = orderData.get(i);
             WorkOrderDataBo workOrderDataBo = GsonUtils.gson.fromJson(workOrderData.getData(), WorkOrderDataBo.class);
+            workOrderDataBo.setPrice(Integer.parseInt(workOrderDataBo.getPrice() == null ? "0" : workOrderDataBo.getPrice()) + "");
             excelList.add(workOrderDataBo);
         }
 
         try {
-            EasyExcelUtil.writeExcelSheet(response, excelList, excelName,templateType);
+            EasyExcelUtil.writeExcelSheet(response, excelList, excelName, templateType);
         } catch(Exception e) {
             e.printStackTrace();
         }
