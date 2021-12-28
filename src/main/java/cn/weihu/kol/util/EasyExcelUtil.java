@@ -123,7 +123,7 @@ public class EasyExcelUtil {
             Map<String, String> fillData = new HashMap<>();
 
             for(WorkOrderDataBo wb : excelList) {
-                total += Integer.parseInt(wb.getPrice() == null ? "0" : wb.getPrice());
+                total += Double.parseDouble(wb.getPrice() == null ? "0" : wb.getPrice());
             }
 
             fillData.put("total", Integer.toString(total));
