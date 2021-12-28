@@ -10,6 +10,9 @@ import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.fill.FillConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.system.ApplicationHome;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ResourceUtils;
 
 import javax.servlet.http.HttpServletResponse;
@@ -76,21 +79,20 @@ public class EasyExcelUtil {
         }
     }
 
-    public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName){
+    public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName, String templateType) {
         ExcelWriter excelWriter = null;
         try {
             //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
             response.setContentType("mutipart/form-data");
             response.setCharacterEncoding("utf-8");
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
-            /**
-             * 修改模版路径为你的本地 绝对路径
-             */
-            String templatePath = "/Users/yanjietu/Documents/weihu/java_kol/src/main/resources/static/temp.xlsx";
+            InputStream is = null;
+            if("1".equals(templateType)) {
+                is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板.xlsx").getInputStream();
+            } else {
+                is = new ClassPathResource("【KOL】非抖音、快手询价单订单导出模板.xlsx").getInputStream();
 
-            File file =  ResourceUtils.getFile(templatePath);
-
-            InputStream is = new FileInputStream(file);
+            }
 
             excelWriter = EasyExcel.write(response.getOutputStream()).withTemplate(is).build();
 
@@ -102,19 +104,19 @@ public class EasyExcelUtil {
 
             Map<String, String> fillData = new HashMap<>();
 
-            for (WorkOrderDataBo wb: excelList){
-                total += Integer.parseInt(wb.getPrice());
+            for(WorkOrderDataBo wb : excelList) {
+                total += Integer.parseInt(wb.getPrice() == null ? "0" : wb.getPrice());
             }
 
             fillData.put("total", Integer.toString(total));
 
-            excelWriter.fill(excelList, fillConfig ,writeSheet);
-            excelWriter.fill(fillData, fillConfig ,writeSheet);
+            excelWriter.fill(excelList, fillConfig, writeSheet);
+            excelWriter.fill(fillData, fillConfig, writeSheet);
             excelWriter.finish();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            if (excelWriter != null) {
+            if(excelWriter != null) {
                 excelWriter.finish();
             }
         }

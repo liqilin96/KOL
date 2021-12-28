@@ -23,7 +23,7 @@ public class WorkOrderDataBo {
         // 账号类型
         private String accountType;
 
-        // 资源位置
+        // 资源形式
         private String address;
 
         // 数量

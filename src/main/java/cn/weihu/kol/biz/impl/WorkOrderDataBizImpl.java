@@ -1155,7 +1155,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 .eq(WorkOrderData::getStatus, req.getStatus());
 
         List<WorkOrderData> orderData = list(wrapper);
-        workOrderDataTemplateExport(orderData, response, "导出数据");
+        workOrderDataTemplateExport(orderData, response, "导出数据",req.getTemplateType());
     }
 
     @Override
@@ -1207,7 +1207,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-    public void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName) {
+    public void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType) {
 
         List<WorkOrderDataBo> excelList = new ArrayList<>();
 
@@ -1218,7 +1218,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
 
         try {
-            EasyExcelUtil.writeExcelSheet(response, excelList, excelName);
+            EasyExcelUtil.writeExcelSheet(response, excelList, excelName,templateType);
         } catch(Exception e) {
             e.printStackTrace();
         }
