@@ -81,7 +81,10 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         if(StringUtils.isNotBlank(req.getStarName())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
         }
-
+        if(StringUtils.isNotBlank(req.getOrderBy())) {
+            //按粉丝数排序
+            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT) " + req.getOrderBy());
+        }
 
         //达人id
         if(StringUtils.isNotBlank(req.getStarId())) {
@@ -89,11 +92,6 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
         } else {
             wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
-        }
-
-        if(StringUtils.isNotBlank(req.getOrderBy())) {
-            //按粉丝数排序
-            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT) " + req.getOrderBy());
         }
 
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
