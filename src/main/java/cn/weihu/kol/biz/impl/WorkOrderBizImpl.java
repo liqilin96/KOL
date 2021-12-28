@@ -83,11 +83,14 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         List<String> selfTitle = excelTitle(req.getExcelType());
         if(null != orderBos) {
             // 判断表头             数字9是读取模板标题名称（可能会改动）
-            LinkedHashMap<Integer, String> title      = (LinkedHashMap<Integer, String>) orderBos.get(9);
-            List<String>                   list       = title.values().stream().collect(Collectors.toList());
-            String                         excelTitle = list.toString();
-
-            if(!selfTitle.toString().equalsIgnoreCase(excelTitle)) {
+            LinkedHashMap<Integer, String> title = (LinkedHashMap<Integer, String>) orderBos.get(9);
+            List<String>                   list  = title.values().stream().collect(Collectors.toList());
+            if(list.size() < selfTitle.size()) {
+                throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
+            }
+            //截取需要填写的字段
+            List<String> titleList = list.subList(0, selfTitle.size());
+            if(!selfTitle.toString().equalsIgnoreCase(titleList.toString())) {
                 throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
             }
         }
@@ -319,13 +322,13 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         if("1".equals(type)) {
             return Arrays.asList("平台", "序号", "名称", "账号ID", "账号类型", "资源形式", "数量", "档期范围开始时间", "档期范围结束时间", "@", "话题",
                                  "电商链接", "双微转发", "电商肖像授权", "信息流授权", "星图/快接单", "线下探店",
-                                 "其他特殊说明", "产品提供方", "发布内容brief概述",
-                    /* 供应商填写*/     "星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
+                                 "其他特殊说明", "产品提供方", "发布内容brief概述"
+                    /* *//* 供应商填写*//*    , "星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注"*/);
         } else {
             return Arrays.asList("平台", "序号", "名称", "账号ID", "账号类型", "资源形式", "数量", "档期范围开始时间", "档期范围结束时间", "@", "话题",
                                  "电商链接", "双微转发", "电商肖像授权", "信息流授权", "微任务（微博）", "报备（小红书）", "线下探店",
-                                 "其他特殊说明", "产品提供方", "发布内容brief概述",
-                    /* 供应商填写*/     "总价", "佣金", "备注");
+                                 "其他特殊说明", "产品提供方", "发布内容brief概述"
+                    /* 供应商填写*//*     ,"总价（元）", "佣金", "备注"*/);
         }
     }
 
