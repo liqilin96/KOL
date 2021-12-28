@@ -44,6 +44,7 @@ public class WorkOrderDataController {
     public void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
         CheckUtil.notNull(req.getStatus(), "工单状态不能为空");
+        CheckUtil.notNull(req.getTemplateType(), "模板类型不能为空");
         dataBiz.workOrderDataListExport(req, response);
     }
 

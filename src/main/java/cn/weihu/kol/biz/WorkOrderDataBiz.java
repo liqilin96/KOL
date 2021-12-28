@@ -58,4 +58,6 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
     List<WorkOrderDataResp> lostPromiseList(String workOrderId);
 
     String remake(String workOrderDataId, double price);
+
+    void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType);
 }

@@ -20,4 +20,9 @@ public class WorkOrderDataReq {
     @ApiModelProperty(value = "状态")
     private String status;
 
+    @ApiModelProperty(value = "模板类型，1为抖音快手，其他为非抖音快手")
+    private String templateType;
+
 }
+
+

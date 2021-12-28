@@ -1,5 +1,6 @@
 package cn.weihu.kol.util;
 
+import cn.weihu.kol.biz.bo.WorkOrderDataBo;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.ExcelWriter;
@@ -7,11 +8,17 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.metadata.fill.FillConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.system.ApplicationHome;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.ResourceUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,6 +97,48 @@ public class EasyExcelUtil {
         }
     }
 
+    public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName, String templateType) {
+        ExcelWriter excelWriter = null;
+        try {
+            //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
+            response.setContentType("mutipart/form-data");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
+            InputStream is = null;
+            if("1".equals(templateType)) {
+                is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板.xlsx").getInputStream();
+            } else {
+                is = new ClassPathResource("【KOL】非抖音、快手询价单订单导出模板.xlsx").getInputStream();
+
+            }
+
+            excelWriter = EasyExcel.write(response.getOutputStream()).withTemplate(is).build();
+
+            WriteSheet writeSheet = EasyExcel.writerSheet("需求单").build();
+
+            FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+
+            int total = 0;
+
+            Map<String, String> fillData = new HashMap<>();
+
+            for(WorkOrderDataBo wb : excelList) {
+                total += Integer.parseInt(wb.getPrice() == null ? "0" : wb.getPrice());
+            }
+
+            fillData.put("total", Integer.toString(total));
+
+            excelWriter.fill(excelList, fillConfig, writeSheet);
+            excelWriter.fill(fillData, fillConfig, writeSheet);
+            excelWriter.finish();
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(excelWriter != null) {
+                excelWriter.finish();
+            }
+        }
+    }
 
     public static void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName, List<String> sheetNames) {
         ExcelWriter excelWriter = null;
@@ -98,8 +147,6 @@ public class EasyExcelUtil {
             response.setContentType("mutipart/form-data");
             response.setCharacterEncoding("utf-8");
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
-
-            excelWriter = EasyExcel.write(response.getOutputStream()).build();
 
             for(int i = 0; i < list.size(); i++) {
                 List data = (List) list.get(i);
