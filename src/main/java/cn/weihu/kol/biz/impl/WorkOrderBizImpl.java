@@ -82,8 +82,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 
         List<String> selfTitle = excelTitle(req.getExcelType());
         if(null != orderBos) {
-            // 判断表头             数字8是读取模板标题名称（可能会改动）
-            LinkedHashMap<Integer, String> title      = (LinkedHashMap<Integer, String>) orderBos.get(8);
+            // 判断表头             数字9是读取模板标题名称（可能会改动）
+            LinkedHashMap<Integer, String> title      = (LinkedHashMap<Integer, String>) orderBos.get(9);
             List<String>                   list       = title.values().stream().collect(Collectors.toList());
             String                         excelTitle = list.toString();
 
@@ -102,8 +102,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 workOrder.setProjectName(project.getName());
                 create(workOrder, Constants.WORK_ORDER_DEMAND, Constants.WORK_ORDER_NEW);
             }
-            // x = 9 ===》 模板序号规定
-            for(int x = 9; x < orderBos.size(); x++) {
+            // x = 10 ===》 模板序号规定
+            for(int x = 10; x < orderBos.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) orderBos.get(x);
                 /**具体配置如下             非抖音快手平台                                抖音快手平台
                  *     0                     "平台",                                       "平台",

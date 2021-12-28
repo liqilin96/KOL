@@ -1251,6 +1251,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         List<WorkOrderDataResp> resps = pricesList.stream().map(x -> {
             WorkOrderDataResp resp = new WorkOrderDataResp();
             resp.setData(x.getActorData());
+            resp.setWorkOrderId(x.getJoinWorkOrderId());
+
             return resp;
         }).collect(Collectors.toList());
         return resps;
