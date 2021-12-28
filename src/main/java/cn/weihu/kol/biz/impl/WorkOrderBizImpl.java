@@ -274,6 +274,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
         }
+        wrapper.orderByDesc(WorkOrder::getUtime);
         Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<WorkOrderResp> respList = page.getRecords().stream()
                 .map(WorkOrderConverter::entity2WorkOrderResp)
