@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.kol.biz.*;
 import cn.weihu.kol.biz.bo.FieldsBo;
+import cn.weihu.kol.biz.bo.WorkOrderDataBo;
 import cn.weihu.kol.constants.Constants;
 import cn.weihu.kol.container.PlatformRulesContainer;
 import cn.weihu.kol.convert.WorkOrderConverter;
@@ -34,6 +35,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1153,7 +1155,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 .eq(WorkOrderData::getStatus, req.getStatus());
 
         List<WorkOrderData> orderData = list(wrapper);
-        WorkOrderDataExport(orderData, response, "导出数据");
+        workOrderDataTemplateExport(orderData, response, "导出数据");
     }
 
     @Override
@@ -1202,6 +1204,25 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         c.setTime(date);
         c.add(Calendar.DATE, StartupRunner.PRICE_EXPIRE_REMIND_DAY);
         return c.getTime();
+    }
+
+    @Override
+    public void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName) {
+
+        List<WorkOrderDataBo> excelList = new ArrayList<>();
+
+        for(int i = 0; i < orderData.size(); i++) {
+            WorkOrderData workOrderData = orderData.get(i);
+            WorkOrderDataBo workOrderDataBo = GsonUtils.gson.fromJson(workOrderData.getData(), WorkOrderDataBo.class);
+            excelList.add(workOrderDataBo);
+        }
+
+        try {
+            EasyExcelUtil.writeExcelSheet(response, excelList, excelName);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response, String excelName) {

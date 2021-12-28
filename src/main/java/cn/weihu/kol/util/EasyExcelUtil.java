@@ -1,6 +1,6 @@
 package cn.weihu.kol.util;
 
-import cn.weihu.kol.biz.bo.TableHead;
+import cn.weihu.kol.biz.bo.WorkOrderDataBo;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.ExcelWriter;
@@ -15,6 +15,7 @@ import org.springframework.util.ResourceUtils;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -75,8 +76,7 @@ public class EasyExcelUtil {
         }
     }
 
-
-    public static void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName, List<String> sheetNames) {
+    public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName){
         ExcelWriter excelWriter = null;
         try {
             //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
@@ -96,29 +96,45 @@ public class EasyExcelUtil {
 
             WriteSheet writeSheet = EasyExcel.writerSheet("需求单").build();
 
-            List<TableHead> listTableHead = new ArrayList<>();
-
-            for(int i = 0; i < list.size(); i++) {
-                List data = (List) list.get(2);
-                if(data.size() == 1)
-                    continue;
-
-                for (Object row : data) {
-                    List rowList = (List) row;
-                    TableHead th = new TableHead();
-
-                    th.setAccount((String) rowList.get(0));
-                    th.setIDorLink((String) rowList.get(1));
-                    th.setMedia((String) rowList.get(2));
-
-                    listTableHead.add(th);
-                }
-            }
-
             FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
 
-            excelWriter.fill(listTableHead, fillConfig ,writeSheet);
+            int total = 0;
+
+            Map<String, String> fillData = new HashMap<>();
+
+            for (WorkOrderDataBo wb: excelList){
+                total += Integer.parseInt(wb.getPrice());
+            }
+
+            fillData.put("total", Integer.toString(total));
+
+            excelWriter.fill(excelList, fillConfig ,writeSheet);
+            excelWriter.fill(fillData, fillConfig ,writeSheet);
             excelWriter.finish();
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (excelWriter != null) {
+                excelWriter.finish();
+            }
+        }
+    }
+
+    public static void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName, List<String> sheetNames) {
+        ExcelWriter excelWriter = null;
+        try {
+            //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
+            response.setContentType("mutipart/form-data");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
+
+            for(int i = 0; i < list.size(); i++) {
+                List data = (List) list.get(i);
+                if(data.size() == 1)
+                    continue;
+                WriteSheet writeSheet = EasyExcel.writerSheet(sheetNames.get(i)).build();
+                excelWriter.write(data, writeSheet);
+            }
 //            WriteSheet writeSheet = EasyExcel.writerSheet("库外数据").build();
 //            excelWriter.write((List)list.get(0), writeSheet);
 //            writeSheet = EasyExcel.writerSheet("新意").build();
@@ -128,9 +144,7 @@ public class EasyExcelUtil {
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            if (excelWriter != null) {
-                excelWriter.finish();
-            }
+            excelWriter.finish();
         }
     }
 

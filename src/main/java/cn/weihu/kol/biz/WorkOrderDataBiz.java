@@ -50,4 +50,6 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
     void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response);
 
     void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response);
+
+    void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName);
 }
