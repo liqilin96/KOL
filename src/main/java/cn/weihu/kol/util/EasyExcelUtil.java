@@ -148,6 +148,8 @@ public class EasyExcelUtil {
             response.setCharacterEncoding("utf-8");
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
 
+            excelWriter = EasyExcel.write(response.getOutputStream()).build();
+
             for(int i = 0; i < list.size(); i++) {
                 List data = (List) list.get(i);
                 if(data.size() == 1)
