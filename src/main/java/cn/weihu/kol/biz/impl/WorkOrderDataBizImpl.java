@@ -971,7 +971,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 if(contractTime != null) {
                     //报价一天
                     if("1".equals(workOrderData.getPriceOnlyDay())) {
-                        insureEndtime = DateUtil.offsetDay(new Date(), 1);
+                        insureEndtime = DateUtil.endOfDay(new Date());
                     } else {
                         if(contractTime.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
                             insureEndtime = DateUtil.offsetMonth(contractTime, 0);
@@ -981,7 +981,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     }
                 } else {
                     if("1".equals(workOrderData.getPriceOnlyDay())) {
-                        insureEndtime = DateUtil.offsetDay(new Date(), 1);
+                        insureEndtime = DateUtil.endOfDay(new Date());
                     } else {
                         insureEndtime = DateUtil.offsetMonth(DateUtil.date(), 6);
                     }

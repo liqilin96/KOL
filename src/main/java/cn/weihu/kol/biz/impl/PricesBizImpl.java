@@ -13,6 +13,7 @@ import cn.weihu.kol.http.req.PricesLogsReq;
 import cn.weihu.kol.http.resp.PricesDetailsResp;
 import cn.weihu.kol.http.resp.PricesLogsResp;
 import cn.weihu.kol.runner.StartupRunner;
+import cn.weihu.kol.util.DateTimeUtils;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -155,14 +156,20 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public void exportStarData(HttpServletResponse response, PricesLogsReq req) {
 
-        Fields fields = fieldsBiz.getById(5);
+        //合并字段组   kol资源库 + kol资源库详情
+        Fields kolFields       = fieldsBiz.getById(1);
+        Fields kolDetailFields = fieldsBiz.getById(5);
         //获取字段列表
-        List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
+        List<FieldsBo> kolFieldsBos = GsonUtils.gson.fromJson(kolFields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
+        }.getType());
+        List<FieldsBo> kolDetailFieldss = GsonUtils.gson.fromJson(kolDetailFields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
         }.getType());
 
         List<List<String>> exprotData = new ArrayList<>();
 
-        List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+        List<FieldsBo> newList  = kolFieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+        List<FieldsBo> newList2 = kolDetailFieldss.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
+        newList.addAll(newList2);
         //获取中文表头
         List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
 
@@ -173,6 +180,8 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             for(Prices prices : pricesList) {
                 List<String>            data    = new ArrayList<>();
                 HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+                //手动赋值 入库时间
+                hashMap.put("inTime", DateTimeUtils.dateToString(prices.getCtime(), "yyyy/MM/dd"));
                 addExportData(exprotData, data, hashMap, newList);
             }
         } else {
@@ -183,11 +192,13 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 String                  id      = split[i];
                 Prices                  prices  = getById(id);
                 HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+                //手动赋值 入库时间
+                hashMap.put("inTime", DateTimeUtils.dateToString(prices.getCtime(), "yyyy/MM/dd"));
                 addExportData(exprotData, data, hashMap, newList);
             }
         }
         try {
-            EasyExcelUtil.writeExcel(response, exprotData, "数据详情");
+            EasyExcelUtil.writeExcel(response, exprotData, "KOL资源库");
         } catch(
                 Exception e) {
             e.printStackTrace();

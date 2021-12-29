@@ -85,7 +85,7 @@ public class EasyExcelUtil {
             response.setCharacterEncoding("utf-8");
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
             excelWriter = EasyExcel.write(response.getOutputStream()).build();
-            WriteSheet writeSheet = EasyExcel.writerSheet("数据不存在").build();
+            WriteSheet writeSheet = EasyExcel.writerSheet("数据详情").build();
             excelWriter.write(list, writeSheet);
         } catch(Exception e) {
             e.printStackTrace();
@@ -251,34 +251,34 @@ public class EasyExcelUtil {
         }
     }
 
-    /**
-     * 下载本地文件
-     *
-     * @param
-     * @throws
-     */
-    public static void downloadLocal(HttpServletResponse response) throws IOException {
-        // 下载本地文件
-        // 文件的默认保存名
-        String fileName = "【KOL】询价单模版.xlsx";
-        // 读到流中
-        // 文件的存放路径
-        try(InputStream inStream = new FileInputStream("src/main/resources/【KOL】询价单模版.xlsx")) {
-            // 设置输出的格式
-            response.reset();
-            response.setContentType("MSEXCEL");
-            response.setHeader("Content-Disposition", "attachment; filename=" + java.net.URLEncoder.encode(fileName, "UTF-8"));
-            // 循环取出流中的数据
-            byte[] b = new byte[100];
-            int    len;
-            try {
-                while((len = inStream.read(b)) > 0) {
-                    response.getOutputStream().write(b, 0, len);
-                }
-            } catch(IOException e) {
-                log.error("本地文件下载失败 ：{}", e);
-            }
-        }
-
-    }
+//    /**
+//     * 下载本地文件
+//     *
+//     * @param
+//     * @throws
+//     */
+//    public static void downloadLocal(HttpServletResponse response) throws IOException {
+//        // 下载本地文件
+//        // 文件的默认保存名
+//        String fileName = "【KOL】询价单模版.xlsx";
+//        // 读到流中
+//        // 文件的存放路径
+//        try(InputStream inStream = new FileInputStream("src/main/resources/【KOL】询价单模版.xlsx")) {
+//            // 设置输出的格式
+//            response.reset();
+//            response.setContentType("MSEXCEL");
+//            response.setHeader("Content-Disposition", "attachment; filename=" + java.net.URLEncoder.encode(fileName, "UTF-8"));
+//            // 循环取出流中的数据
+//            byte[] b = new byte[100];
+//            int    len;
+//            try {
+//                while((len = inStream.read(b)) > 0) {
+//                    response.getOutputStream().write(b, 0, len);
+//                }
+//            } catch(IOException e) {
+//                log.error("本地文件下载失败 ：{}", e);
+//            }
+//        }
+//
+//    }
 }

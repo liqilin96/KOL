@@ -214,7 +214,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     @Override
     public void exportTemplate(HttpServletResponse response) {
         try {
-            EasyExcelUtil.downloadLocal(response);
+//            EasyExcelUtil.downloadLocal(response);
         } catch(Exception e) {
             e.printStackTrace();
         }
