@@ -20,5 +20,5 @@ public class OrderReq {
     private String workOrderDataId;
 
     @ApiModelProperty(value = "违约金or制作费")
-    private double price;
+    private String price;
 }

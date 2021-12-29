@@ -146,6 +146,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 long count = bo.values().stream().filter(y -> y != null).count();
                 //简单校验
                 if("1".equals(req.getExcelType())) {
+                    if(!("抖音".equals(bo.get(0)) || "快手".equals(bo.get(0)))) {
+                        continue;
+                    }
                     //抖音快手需要填写的字段20-1
                     if(bo.get(17) == null || bo.get(17) == "null" || bo.get(17).trim() == "") {
                         if(count < 19) {
@@ -157,6 +160,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                         }
                     }
                 } else {
+                    if("抖音".equals(bo.get(0)) || "快手".equals(bo.get(0))) {
+                        continue;
+                    }
                     //非抖音快手需要填写的字段21-1
                     if(bo.get(18) == null || bo.get(18) == "null" || bo.get(18).trim() == "") {
                         if(count < 20) {
@@ -232,6 +238,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
         }
         wrapper.isNull(WorkOrder::getParentId);
+        wrapper.orderByDesc(WorkOrder::getUtime);
         Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<WorkOrderResp> respList = page.getRecords().stream()
                 .map(WorkOrderConverter::entity2WorkOrderResp)
@@ -273,6 +280,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
         }
+        wrapper.orderByDesc(WorkOrder::getUtime);
         Page<WorkOrder> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<WorkOrderResp> respList = page.getRecords().stream()
                 .map(WorkOrderConverter::entity2WorkOrderResp)

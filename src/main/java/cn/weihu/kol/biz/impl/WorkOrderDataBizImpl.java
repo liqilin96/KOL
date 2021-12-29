@@ -959,6 +959,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 //合同过期时间
                 Date contractTime = null;
 
+                Date insureEndtime = null;
+
                 if(Constants.SUPPLIER_XIN_YI.equals(provider)) {
                     contractTime = xinyiTime;
                 } else if(Constants.SUPPLIER_WEI_GE.equals(provider)) {
@@ -967,14 +969,25 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
                 }
                 if(contractTime != null) {
-                    if(contractTime.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
-                        prices.setInsureEndtime(DateUtil.offsetMonth(contractTime, 0));
+                    //报价一天
+                    if("1".equals(workOrderData.getPriceOnlyDay())) {
+                        insureEndtime = DateUtil.offsetDay(new Date(), 1);
                     } else {
-                        prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                        if(contractTime.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
+                            insureEndtime = DateUtil.offsetMonth(contractTime, 0);
+                        } else {
+                            insureEndtime = DateUtil.offsetMonth(DateUtil.date(), 6);
+                        }
                     }
                 } else {
-                    prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                    if("1".equals(workOrderData.getPriceOnlyDay())) {
+                        insureEndtime = DateUtil.offsetDay(new Date(), 1);
+                    } else {
+                        insureEndtime = DateUtil.offsetMonth(DateUtil.date(), 6);
+                    }
                 }
+
+                prices.setInsureEndtime(insureEndtime);
 
                 log.info("供应商：{},合同到期时间：{}，预计报价到期时间：{}，实际报价到期时间：{}", provider, contractTime, DateUtil.offsetMonth(DateUtil.date(), 6), prices.getInsureEndtime());
                 prices.setCtime(DateUtil.date());
@@ -1188,7 +1201,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     @Transactional
-    public String lostPromise(String workOrderDataId, double price) {
+    public String lostPromise(String workOrderDataId, String price) {
+
+        if(!price.matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || price.length() > 18) {
+            throw new CheckException("金额输入有误，或者超出最大范围");
+        }
 
         //查询违约工单数据
         WorkOrderData workOrderData = getById(workOrderDataId);
@@ -1203,7 +1220,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(map.get("commission") != null) {
             prices.setCommission(Integer.parseInt(map.get("commission")));
         }
-        prices.setPrice(price);
+        prices.setPrice(Double.parseDouble(price));
         prices.setProvider(map.get("supplier"));
         prices.setCtime(new Date());
         prices.setUtime(new Date());
@@ -1262,7 +1279,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     @Transactional
-    public String remake(String workOrderDataId, double price) {
+    public String remake(String workOrderDataId, String price) {
+
+        if(!price.matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || price.length() > 18) {
+            throw new CheckException("金额输入有误，或者超出最大范围");
+        }
 
         //查询重新制作的工单数据
         WorkOrderData workOrderData = getById(workOrderDataId);
@@ -1280,7 +1301,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             prices.setCommission(Integer.parseInt(map.get("commission")));
         }
 
-        prices.setPrice(price);
+        prices.setPrice(Double.parseDouble(price));
         prices.setProvider(map.get("supplier"));
         prices.setCtime(new Date());
         prices.setUtime(new Date());
@@ -1352,7 +1373,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(int i = 0; i < orderData.size(); i++) {
             WorkOrderData   workOrderData   = orderData.get(i);
             WorkOrderDataBo workOrderDataBo = GsonUtils.gson.fromJson(workOrderData.getData(), WorkOrderDataBo.class);
-            workOrderDataBo.setPrice(Integer.parseInt(workOrderDataBo.getPrice() == null ? "0" : workOrderDataBo.getPrice()) + "");
+            //Double => int
+            Double price = Double.parseDouble(workOrderDataBo.getPrice() == null ? "0.0" : workOrderDataBo.getPrice());
+            workOrderDataBo.setPrice(price.intValue() + "");
             excelList.add(workOrderDataBo);
         }
 

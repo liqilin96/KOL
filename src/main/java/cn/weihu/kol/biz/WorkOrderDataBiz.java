@@ -53,11 +53,11 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     String delete(String workOrderIds);
 
-    String lostPromise(String workOrderDataId,double price);
+    String lostPromise(String workOrderDataId,String price);
 
     List<WorkOrderDataResp> lostPromiseList(String workOrderId);
 
-    String remake(String workOrderDataId, double price);
+    String remake(String workOrderDataId, String price);
 
     void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType);
 }

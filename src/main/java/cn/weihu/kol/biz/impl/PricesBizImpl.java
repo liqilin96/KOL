@@ -16,6 +16,7 @@ import cn.weihu.kol.runner.StartupRunner;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.reflect.TypeToken;
@@ -54,7 +55,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         Fields fields    = fieldsBiz.getById(1);
         String fieldList = fields.getFieldList();
 
-        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+        QueryWrapper<Prices> wrapper = new QueryWrapper<>();
 
         //媒体平台
         if(StringUtils.isNotBlank(req.getPlatform())) {
@@ -81,19 +82,23 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         if(StringUtils.isNotBlank(req.getStarName())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.account\")) like {0}", "%" + req.getStarName() + "%");
         }
-        if(StringUtils.isNotBlank(req.getOrderBy())) {
-            //按粉丝数排序
-            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT) " + req.getOrderBy());
-        }
+
 
         //达人id
         if(StringUtils.isNotBlank(req.getStarId())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(actor_data,\"$.IDorLink\")) = {0}", req.getStarId());
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
+//            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
+            wrapper.groupBy("JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\")) = " + req.getStarId());
         } else {
-            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
+            //last 只适用一次，以最后为准，有注入风险
+//            wrapper.last("GROUP BY JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
+            wrapper.groupBy("JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.IDorLink\"))");
         }
 
+        if(StringUtils.isNotBlank(req.getOrderBy())) {
+            //按粉丝数排序
+            wrapper.last("ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(actor_data, \"$.fansCount\")) AS INT) " + req.getOrderBy());
+        }
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
 
         List<PricesLogsResp> respList = pricesPage.getRecords().stream().map(x -> {
@@ -222,7 +227,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
         LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
         //0未重新询价，1则重新询价 状态
-        wrapper.eq(Prices::getIsReQuote, 0).eq(Prices::getPriceOnlyDay,"0");
+        wrapper.eq(Prices::getIsReQuote, 0).eq(Prices::getPriceOnlyDay, "0");
 
         wrapper.between(Prices::getInsureEndtime, new Date(), expirtDate(new Date()));
         Page<Prices> pricesPage = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
