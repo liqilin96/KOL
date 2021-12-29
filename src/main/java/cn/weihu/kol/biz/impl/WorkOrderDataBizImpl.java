@@ -1272,7 +1272,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         map.put("price", price + "");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
-        prices.setJoinWorkOrderDataId(workOrderData.getId());
+        prices.setJoinWorkOrderDataId(Long.parseLong(workOrderDataId));
         pricesBiz.save(prices);
 
         return prices.getId() + "";
