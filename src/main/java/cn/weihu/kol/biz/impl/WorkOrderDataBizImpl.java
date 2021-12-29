@@ -93,7 +93,16 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             list.addAll(dataList);
         }
 
-        return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
+        return list.stream().sorted((x, y) -> {
+            //排序
+            HashMap<String, String> xMap = GsonUtils.gson.fromJson(x.getData(), HashMap.class);
+            HashMap<String, String> yMap = GsonUtils.gson.fromJson(y.getData(), HashMap.class);
+            if(xMap.get("actorSn") == null) {
+                return -1;
+            } else {
+                return xMap.get("actorSn").compareTo(yMap.get("actorSn"));
+            }
+        }).map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
 
     @Override
