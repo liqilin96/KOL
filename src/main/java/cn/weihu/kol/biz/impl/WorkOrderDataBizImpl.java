@@ -1212,12 +1212,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         String[]     split = workOrderIds.split(",");
         List<String> ids   = Arrays.asList(split);
 
-        List<WorkOrderData> workOrderDataList = list(new LambdaQueryWrapper<>(WorkOrderData.class).in(WorkOrderData::getId, ids));
 
-        if(workOrderDataList != null && workOrderDataList.size() > 0) {
-
+        List<Prices> pricesList = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderDataId, ids));
+        if(pricesList != null && pricesList.size() > 0) {
+            throw new CheckException("重新制作或违约数据无法被取消合作");
         }
-
         removeByIds(ids);
         return null;
     }
