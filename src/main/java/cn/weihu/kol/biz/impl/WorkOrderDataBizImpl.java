@@ -1367,6 +1367,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         String data = GsonUtils.gson.toJson(map);
         prices.setActorData(data);
         workOrderData.setData(data);
+        prices.setJoinWorkOrderDataId(Long.parseLong(workOrderDataId));
         pricesBiz.save(prices);
         //重新制作
         save(workOrderData);
