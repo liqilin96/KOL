@@ -19,6 +19,7 @@ import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import cn.weihu.kol.runner.StartupRunner;
 import cn.weihu.kol.userinfo.UserInfoContext;
+import cn.weihu.kol.util.DateTimeUtils;
 import cn.weihu.kol.util.EasyExcelUtil;
 import cn.weihu.kol.util.GsonUtils;
 import cn.weihu.kol.util.MD5Util;
@@ -66,9 +67,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private ProjectDao    projectDao;
     @Resource
     private WorkOrderDao  workOrderDao;
-
     @Autowired
-    private UserBiz userBiz;
+    private UserBiz       userBiz;
 
 
     @Override
@@ -80,6 +80,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
         }
         List<WorkOrderData> list = list(wrapper);
+        //拼凑违约记录数据
+        List<Long>   idList = list.stream().map(WorkOrderData::getWorkOrderId).collect(Collectors.toList());
+        List<Prices> prices = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderId, idList));
+        if(prices != null && prices.size() > 0) {
+            List<WorkOrderData> dataList = prices.stream().map(x -> {
+                WorkOrderData workOrderData = new WorkOrderData();
+                workOrderData.setData(x.getActorData());
+                workOrderData.setWorkOrderId(x.getJoinWorkOrderId());
+                return workOrderData;
+            }).collect(Collectors.toList());
+            list.addAll(dataList);
+        }
+
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
 
@@ -1168,7 +1181,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 .eq(WorkOrderData::getStatus, req.getStatus());
 
         List<WorkOrderData> orderData = list(wrapper);
-        workOrderDataTemplateExport(orderData, response, "导出数据", req.getTemplateType());
+        workOrderDataTemplateExport(orderData, response, "已下单数据-" + DateTimeUtils.getDate("yyyy-MM-dd"), req.getTemplateType());
     }
 
     @Override
@@ -1214,12 +1227,15 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
         }.getType());
+        map.put("price", "0");
+        map.put("commission", "0");
+        workOrderData.setData(GsonUtils.gson.toJson(map));
+        //修改违约工单 =》报价、佣金清零
+        updateById(workOrderData);
 
         Prices prices = new Prices();
         prices.setActorSn(map.get("actorSn"));
-        if(map.get("commission") != null) {
-            prices.setCommission(Integer.parseInt(map.get("commission")));
-        }
+        prices.setCommission(0);
         prices.setPrice(Double.parseDouble(price));
         prices.setProvider(map.get("supplier"));
         prices.setCtime(new Date());
@@ -1247,15 +1263,15 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         map.put("storeAuth", "不涉及");
         //微任务
         map.put("microTask", "不涉及");
-        map.put("address", "违约记录");
+        //备注
+        map.put("remark", "未执行");
+        map.put("address", "违约费用");
         map.put("price", price + "");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
         prices.setJoinWorkOrderId(workOrderData.getWorkOrderId());
         pricesBiz.save(prices);
 
-        //逻辑删除违约工单
-        delete(workOrderDataId);
         return prices.getId() + "";
     }
 
