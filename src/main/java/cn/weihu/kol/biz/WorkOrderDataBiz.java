@@ -55,7 +55,7 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     String lostPromise(String workOrderDataId,String price);
 
-    List<WorkOrderDataResp> lostPromiseList(String workOrderId);
+//    List<WorkOrderDataResp> lostPromiseList(String workOrderId);
 
     String remake(String workOrderDataId, String price);
 

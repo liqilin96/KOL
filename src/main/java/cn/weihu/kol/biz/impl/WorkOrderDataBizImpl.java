@@ -81,13 +81,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         List<WorkOrderData> list = list(wrapper);
         //拼凑违约记录数据
-        List<Long>   idList = list.stream().map(WorkOrderData::getWorkOrderId).collect(Collectors.toList());
-        List<Prices> prices = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderId, idList));
+        List<Long>   idList = list.stream().map(WorkOrderData::getId).collect(Collectors.toList());
+        List<Prices> prices = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderDataId, idList));
         if(prices != null && prices.size() > 0) {
             List<WorkOrderData> dataList = prices.stream().map(x -> {
                 WorkOrderData workOrderData = new WorkOrderData();
                 workOrderData.setData(x.getActorData());
-                workOrderData.setWorkOrderId(x.getJoinWorkOrderId());
+                workOrderData.setWorkOrderId(x.getJoinWorkOrderDataId());
                 return workOrderData;
             }).collect(Collectors.toList());
             list.addAll(dataList);
@@ -95,13 +95,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
         return list.stream().sorted((x, y) -> {
             //排序
-            HashMap<String, String> xMap = GsonUtils.gson.fromJson(x.getData(), HashMap.class);
-            HashMap<String, String> yMap = GsonUtils.gson.fromJson(y.getData(), HashMap.class);
-            if(xMap.get("actorSn") == null) {
-                return -1;
-            } else {
-                return xMap.get("actorSn").compareTo(yMap.get("actorSn"));
-            }
+           return x.getWorkOrderId().compareTo(y.getWorkOrderId());
         }).map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
 
@@ -1278,28 +1272,28 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         map.put("price", price + "");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
-        prices.setJoinWorkOrderId(workOrderData.getWorkOrderId());
+        prices.setJoinWorkOrderDataId(workOrderData.getId());
         pricesBiz.save(prices);
 
         return prices.getId() + "";
     }
 
-    @Override
-    public List<WorkOrderDataResp> lostPromiseList(String workOrderId) {
-
-        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Prices::getJoinWorkOrderId, workOrderId);
-        List<Prices> pricesList = pricesBiz.list(wrapper);
-
-        List<WorkOrderDataResp> resps = pricesList.stream().map(x -> {
-            WorkOrderDataResp resp = new WorkOrderDataResp();
-            resp.setData(x.getActorData());
-            resp.setWorkOrderId(x.getJoinWorkOrderId());
-
-            return resp;
-        }).collect(Collectors.toList());
-        return resps;
-    }
+//    @Override
+//    public List<WorkOrderDataResp> lostPromiseList(String workOrderId) {
+//
+//        LambdaQueryWrapper<Prices> wrapper = new LambdaQueryWrapper<>();
+//        wrapper.eq(Prices::getJoinWorkOrderId, workOrderId);
+//        List<Prices> pricesList = pricesBiz.list(wrapper);
+//
+//        List<WorkOrderDataResp> resps = pricesList.stream().map(x -> {
+//            WorkOrderDataResp resp = new WorkOrderDataResp();
+//            resp.setData(x.getActorData());
+//            resp.setWorkOrderId(x.getJoinWorkOrderId());
+//
+//            return resp;
+//        }).collect(Collectors.toList());
+//        return resps;
+//    }
 
 
     @Override

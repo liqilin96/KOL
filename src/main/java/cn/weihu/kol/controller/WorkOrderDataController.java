@@ -141,12 +141,12 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.delete(req.getWorkOrderIds()));
     }
 
-    @ApiOperation(value = "违约记录列表", httpMethod = "GET", notes = "违约记录列表")
-    @GetMapping(value = "/lostPromise/list/{workOrderId}")
-    public ResultBean<List<WorkOrderDataResp>> lostPromiseList(@PathVariable("workOrderId") String workOrderId) {
-        CheckUtil.notNull(workOrderId, "工单ID不能为空");
-        return new ResultBean<>(dataBiz.lostPromiseList(workOrderId));
-    }
+//    @ApiOperation(value = "违约记录列表", httpMethod = "GET", notes = "违约记录列表")
+//    @GetMapping(value = "/lostPromise/list/{workOrderId}")
+//    public ResultBean<List<WorkOrderDataResp>> lostPromiseList(@PathVariable("workOrderId") String workOrderId) {
+//        CheckUtil.notNull(workOrderId, "工单ID不能为空");
+//        return new ResultBean<>(dataBiz.lostPromiseList(workOrderId));
+//    }
 
     @ApiOperation(value = "违约", httpMethod = "PUT", notes = "违约")
     @PutMapping(value = "/lostPromise")
