@@ -109,11 +109,15 @@ public class EasyExcelUtil {
 
             }
 
-            excelWriter = EasyExcel.write(response.getOutputStream()).withTemplate(is).build();
+            excelWriter = EasyExcel.write(response.getOutputStream())
+//                    .registerWriteHandler(new CustomCellWriteHandler())
+                    .withTemplate(is)
+                    .build();
 
             WriteSheet writeSheet = EasyExcel.writerSheet("需求单").build();
 
             FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+            fillConfig.setAutoStyle(Boolean.FALSE);
 
             int total = 0;
 
@@ -124,7 +128,6 @@ public class EasyExcelUtil {
             }
 
             fillData.put("total", Integer.toString(total));
-
             excelWriter.fill(excelList, fillConfig, writeSheet);
             excelWriter.fill(fillData, fillConfig, writeSheet);
             excelWriter.finish();
