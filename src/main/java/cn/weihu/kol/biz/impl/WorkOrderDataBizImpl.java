@@ -87,7 +87,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             List<WorkOrderData> dataList = prices.stream().map(x -> {
                 WorkOrderData workOrderData = new WorkOrderData();
                 workOrderData.setData(x.getActorData());
-                workOrderData.setWorkOrderId(x.getJoinWorkOrderDataId());
+                workOrderData.setId(x.getJoinWorkOrderDataId());
                 return workOrderData;
             }).collect(Collectors.toList());
             list.addAll(dataList);
@@ -95,7 +95,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
         return list.stream().sorted((x, y) -> {
             //排序
-           return x.getWorkOrderId().compareTo(y.getWorkOrderId());
+           return x.getId().compareTo(y.getId());
         }).map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
 
