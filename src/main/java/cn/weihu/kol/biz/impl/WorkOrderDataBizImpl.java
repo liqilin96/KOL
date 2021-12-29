@@ -95,7 +95,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
         return list.stream().sorted((x, y) -> {
             //排序
-           return x.getId().compareTo(y.getId());
+            return x.getId().compareTo(y.getId());
         }).map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
     }
 
@@ -1209,8 +1209,16 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public String delete(String workOrderIds) {
-        String[] split = workOrderIds.split(",");
-        removeByIds(Arrays.asList(split));
+        String[]     split = workOrderIds.split(",");
+        List<String> ids   = Arrays.asList(split);
+
+        List<WorkOrderData> workOrderDataList = list(new LambdaQueryWrapper<>(WorkOrderData.class).in(WorkOrderData::getId, ids));
+
+        if(workOrderDataList != null && workOrderDataList.size() > 0) {
+
+        }
+
+        removeByIds(ids);
         return null;
     }
 
@@ -1228,8 +1236,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(workOrderData == null) {
             throw new CheckException("工单数据不存在");
         }
+
         Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
         }.getType());
+
+        if("重新制作".equals(map.get("address"))) {
+            throw new CheckException("重新制作数据无法被违约");
+        }
         map.put("price", "0");
         map.put("commission", "0");
         workOrderData.setData(GsonUtils.gson.toJson(map));
@@ -1312,6 +1325,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
         }.getType());
 
+        if("违约费用".equals(map.get("address"))) {
+            throw new CheckException("违约数据无法被重新制作");
+        }
         Prices prices = new Prices();
 
 
