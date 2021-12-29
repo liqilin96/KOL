@@ -146,6 +146,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                 long count = bo.values().stream().filter(y -> y != null).count();
                 //简单校验
                 if("1".equals(req.getExcelType())) {
+                    if(!("抖音".equals(bo.get(0)) || "快手".equals(bo.get(0)))) {
+                        continue;
+                    }
                     //抖音快手需要填写的字段20-1
                     if(bo.get(17) == null || bo.get(17) == "null" || bo.get(17).trim() == "") {
                         if(count < 19) {
@@ -157,6 +160,9 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                         }
                     }
                 } else {
+                    if("抖音".equals(bo.get(0)) || "快手".equals(bo.get(0))) {
+                        continue;
+                    }
                     //非抖音快手需要填写的字段21-1
                     if(bo.get(18) == null || bo.get(18) == "null" || bo.get(18).trim() == "") {
                         if(count < 20) {

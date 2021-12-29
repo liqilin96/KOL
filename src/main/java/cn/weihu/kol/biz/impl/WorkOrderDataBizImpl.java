@@ -1201,7 +1201,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     @Transactional
-    public String lostPromise(String workOrderDataId, double price) {
+    public String lostPromise(String workOrderDataId, String price) {
+
+        if(!price.matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || price.length() > 18) {
+            throw new CheckException("金额输入有误，或者超出最大范围");
+        }
 
         //查询违约工单数据
         WorkOrderData workOrderData = getById(workOrderDataId);
@@ -1216,7 +1220,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(map.get("commission") != null) {
             prices.setCommission(Integer.parseInt(map.get("commission")));
         }
-        prices.setPrice(price);
+        prices.setPrice(Double.parseDouble(price));
         prices.setProvider(map.get("supplier"));
         prices.setCtime(new Date());
         prices.setUtime(new Date());
@@ -1275,7 +1279,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     @Transactional
-    public String remake(String workOrderDataId, double price) {
+    public String remake(String workOrderDataId, String price) {
+
+        if(!price.matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || price.length() > 18) {
+            throw new CheckException("金额输入有误，或者超出最大范围");
+        }
 
         //查询重新制作的工单数据
         WorkOrderData workOrderData = getById(workOrderDataId);
@@ -1293,7 +1301,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             prices.setCommission(Integer.parseInt(map.get("commission")));
         }
 
-        prices.setPrice(price);
+        prices.setPrice(Double.parseDouble(price));
         prices.setProvider(map.get("supplier"));
         prices.setCtime(new Date());
         prices.setUtime(new Date());
@@ -1365,7 +1373,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(int i = 0; i < orderData.size(); i++) {
             WorkOrderData   workOrderData   = orderData.get(i);
             WorkOrderDataBo workOrderDataBo = GsonUtils.gson.fromJson(workOrderData.getData(), WorkOrderDataBo.class);
-            workOrderDataBo.setPrice(Integer.parseInt(workOrderDataBo.getPrice() == null ? "0" : workOrderDataBo.getPrice()) + "");
+            //Double => int
+            Double price = Double.parseDouble(workOrderDataBo.getPrice() == null ? "0.0" : workOrderDataBo.getPrice());
+            workOrderDataBo.setPrice(price.intValue() + "");
             excelList.add(workOrderDataBo);
         }
 

@@ -152,7 +152,7 @@ public class WorkOrderDataController {
     @PutMapping(value = "/lostPromise")
     public ResultBean<String> lostPromise(@RequestBody OrderReq req) {
         CheckUtil.notEmpty(req.getWorkOrderDataId(), "工单id不能为空");
-        CheckUtil.notNull(req.getPrice(), "违约金不能为空");
+        CheckUtil.notEmpty(req.getPrice(), "违约金不能为空");
         return new ResultBean<>(dataBiz.lostPromise(req.getWorkOrderDataId(), req.getPrice()));
     }
 
@@ -160,7 +160,7 @@ public class WorkOrderDataController {
     @PutMapping(value = "/remake")
     public ResultBean<String> remake(@RequestBody OrderReq req) {
         CheckUtil.notEmpty(req.getWorkOrderDataId(), "工单id不能为空");
-        CheckUtil.notNull(req.getPrice(), "制作费用不能为空");
+        CheckUtil.notEmpty(req.getPrice(), "制作费用不能为空");
         return new ResultBean<>(dataBiz.remake(req.getWorkOrderDataId(), req.getPrice()));
     }
 
