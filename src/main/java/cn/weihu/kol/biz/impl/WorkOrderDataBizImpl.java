@@ -366,6 +366,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         String              compareFlag;
         boolean             existXinYi           = false;
         boolean             existWeiGe           = false;
+        boolean             exitAskWorkOrderData = false;
         for(WorkOrderDataUpdateReq workOrderDataUpdateReq : req.getList()) {
             workOrderData = new WorkOrderData();
             workOrderData.setId(workOrderDataUpdateReq.getId());
@@ -431,6 +432,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     existWeiGe = true;
                 }
             }
+            exitAskWorkOrderData = true;
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             workOrderDataList.add(workOrderData);
@@ -447,7 +449,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
         }
         // 更新需求工单状态
-        workOrder.setStatus(Constants.WORK_ORDER_ASK);
+        if(exitAskWorkOrderData) {
+            workOrder.setStatus(Constants.WORK_ORDER_ASK);
+        } else {
+            workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
+        }
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
         workOrder.setUtime(DateUtil.date());
         workOrderDao.updateById(workOrder);
