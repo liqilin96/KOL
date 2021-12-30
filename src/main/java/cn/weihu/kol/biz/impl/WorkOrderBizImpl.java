@@ -83,6 +83,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         List<String> selfTitle = excelTitle(req.getExcelType());
         if(null != orderBos) {
             // 判断表头             数字9是读取模板标题名称（可能会改动）
+            if(orderBos.size() < 10) throw new CheckException("Excel不匹配,请勿修改或重新下载模版");
             LinkedHashMap<Integer, String> title = (LinkedHashMap<Integer, String>) orderBos.get(9);
             List<String>                   list  = title.values().stream().collect(Collectors.toList());
             if(list.size() < selfTitle.size()) {
