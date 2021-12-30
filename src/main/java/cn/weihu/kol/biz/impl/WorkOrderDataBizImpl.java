@@ -188,13 +188,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                             workOrderDataResp1.setData(GsonUtils.gson.toJson(map));
                             workOrderDataResp1.setInbound(0);
                             list.add(workOrderDataResp1);
-
-                            // 更新询价工单状态
-                            WorkOrder workOrder = workOrderDao.selectById(req.getWorkOrderId());
-                            workOrder.setStatus(Constants.WORK_ORDER_QUOTE);
-                            workOrder.setUpdateUserId(UserInfoContext.getUserId());
-                            workOrder.setUtime(DateUtil.date());
-                            workOrderDao.updateById(workOrder);
                         }
 
                         flag = screeningOther(quoteXinYi.getActorData(), updateReq.getData());
