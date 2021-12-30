@@ -124,7 +124,9 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         User user = UserConverter.userSaveReq2Entity(req);
         user.setId(Long.parseLong(id));
         user.setUtime(DateUtil.date());
-        user.setContractTime(new Date(req.getContractTime()));
+        if(req.getContractTime() != null && req.getContractTime() > 0) {
+            user.setContractTime(new Date(req.getContractTime()));
+        }
         updateById(user);
 
         // 删除历史用户与角色绑定记录

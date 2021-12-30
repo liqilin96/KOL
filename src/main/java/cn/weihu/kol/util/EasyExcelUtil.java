@@ -106,7 +106,6 @@ public class EasyExcelUtil {
                 is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板.xlsx").getInputStream();
             } else {
                 is = new ClassPathResource("【KOL】非抖音、快手询价单订单导出模板.xlsx").getInputStream();
-
             }
 
             excelWriter = EasyExcel.write(response.getOutputStream())

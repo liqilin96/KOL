@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lql
@@ -68,13 +69,13 @@ public class ImportExcelStar {
                              8  ---> "话题",
                              9 ---> "电商链接",
                             10  ---> "双微转发",
-                            11 ---> "报备（针对小红书）",
-                            12 ---> "微任务（针对微博）",
+                            11 ---> "报备（小红书）",
+                            12 ---> "微任务（微博）",
                             13  ---> "星图/快接单",
                             14  ---> "电商肖像授权",
                             15  ---> "信息流授权",
                             16   ---> "线下探店",
-                            17   ---> "费用",
+                            17   ---> "报价",
                             18   ---> "佣金",
                             19  ---> "备注",
                             20   ---> "入库时间",
@@ -229,8 +230,8 @@ public class ImportExcelStar {
 
 
     public List<String> titles() {
-        return Arrays.asList("平台", "序号", "名称", "账号ID", "粉丝数", "账号类型", "资源形式", "@", "话题", "电商链接", "双微转发", "报备（针对小红书）",
-                             "微任务（针对微博）", "星图/快接单", "电商肖像授权", "信息流授权", "线下探店", "费用", "佣金",
+        return Arrays.asList("平台", "序号", "名称", "账号ID", "粉丝数", "账号类型", "资源形式", "@", "话题", "电商链接", "双微转发", "报备（小红书）",
+                             "微任务（微博）", "星图/快接单", "电商肖像授权", "信息流授权", "线下探店", "报价", "佣金",
                              "备注", "入库时间", "保价到期时间", "供应商");
     }
 
@@ -254,4 +255,45 @@ public class ImportExcelStar {
         return format;
     }
 
+    //资源库导出固定表头(按照顺序)
+    public static List<String> kolTitle() {
+
+        String[] arr = {"平台", "序号", "名称", "账号ID", "粉丝数", "账号类型", "资源形式", "@", "话题", "电商链接", "双微转发",
+                        "电商肖像授权", "信息流授权", "报备（小红书）", "微任务（微博）",
+                        "星图/快接单", "线下探店", "报价", "佣金", "备注", "入库时间", "保价到期时间", "供应商"};
+
+        return new ArrayList<>(Arrays.asList(arr));
+    }
+
+    public static List<FieldsBo> title2List(List<FieldsBo> fieldsBos, List<String> titles) {
+
+        List<FieldsBo> newList = new ArrayList<>();
+        for(String title : titles) {
+            for(int i = 0; i < fieldsBos.size(); i++) {
+                if(title.equals(fieldsBos.get(i).getTitle())) {
+                    newList.add(fieldsBos.get(i));
+                }
+            }
+        }
+        return newList;
+    }
+
+    public static List<String> list2Title(List<FieldsBo> fieldsBos, List<String> titles) {
+
+        List<FieldsBo> newStr = new ArrayList<>();
+
+        for(int i = 0; i < fieldsBos.size(); i++) {
+            boolean flag = false;
+            for(String title : titles) {
+                if(title.equals(fieldsBos.get(i).getTitle())) {
+                    flag = true;
+                    break;
+                }
+            }
+            if(!flag) {
+                newStr.add(fieldsBos.get(i));
+            }
+        }
+        return newStr.stream().filter(x -> x.isEffect()).map(FieldsBo::getTitle).collect(Collectors.toList());
+    }
 }
