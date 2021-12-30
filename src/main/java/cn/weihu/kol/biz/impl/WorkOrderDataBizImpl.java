@@ -601,6 +601,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataXinYi.setWorkOrderId(workOrder.getId());
             workOrderDataXinYi.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+            map.put(Constants.ACTOR_DATA_SN, prices.getActorSn());
             map.put(Constants.ACTOR_KOL_PRICE_ID, String.valueOf(prices.getId()));
             map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_XIN_YI);
             map.put(Constants.ACTOR_INBOUND, "0");
@@ -619,6 +620,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataWeiGe.setWorkOrderId(workOrder.getId());
             workOrderDataWeiGe.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             map = GsonUtils.gson.fromJson(prices.getActorData(), type);
+            map.put(Constants.ACTOR_DATA_SN, prices.getActorSn());
             map.put(Constants.ACTOR_KOL_PRICE_ID, String.valueOf(prices.getId()));
             map.put(Constants.SUPPLIER_FIELD, Constants.SUPPLIER_WEI_GE);
             map.put(Constants.ACTOR_INBOUND, "0");
