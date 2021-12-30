@@ -556,6 +556,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     private void expire() {
         List<Prices> pricesList = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class)
+                                                         .eq(Prices::getIsReQuote, 0)
                                                          .between(Prices::getInsureEndtime, new Date(), expireDate(new Date())));
         if(CollectionUtils.isEmpty(pricesList)) {
             throw new CheckException("重新询价数据不存在");
