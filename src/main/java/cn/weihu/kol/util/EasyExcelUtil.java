@@ -109,14 +109,14 @@ public class EasyExcelUtil {
             }
 
             excelWriter = EasyExcel.write(response.getOutputStream())
-//                    .registerWriteHandler(new CustomCellWriteHandler())
+                    .registerWriteHandler(new CustomCellWriteHandler())
                     .withTemplate(is)
                     .build();
 
             WriteSheet writeSheet = EasyExcel.writerSheet("需求单").build();
 
             FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
-            fillConfig.setAutoStyle(Boolean.FALSE);
+//            fillConfig.setAutoStyle(Boolean.FALSE);
 
             int total = 0;
 
