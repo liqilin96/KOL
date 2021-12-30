@@ -100,6 +100,7 @@ public class WorkOrderDataController {
     @GetMapping(value = "/quote/list/export")
     public void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        CheckUtil.notNull(req.getTemplateType(), "模板类型不能为空");
         dataBiz.quoteListExport(req, response);
     }
 
@@ -119,10 +120,11 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.review(req));
     }
 
-    @ApiOperation(value = "初次创建需求单详情导出", httpMethod = "GET", notes = "初次创建需求单详情导出")
+    @ApiOperation(value = "库内外筛选导出导出", httpMethod = "GET", notes = "库内外筛选导出导出")
     @GetMapping(value = "/detail/export")
     public void expirtPricesExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        CheckUtil.notNull(req.getTemplateType(), "模板类型不能为空");
         dataBiz.detailExport(req, response);
     }
 
@@ -131,6 +133,7 @@ public class WorkOrderDataController {
     @GetMapping(value = "/supplier/export")
     public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkerOrderDataIds(), "需求工单ID不能为空");
+        CheckUtil.notNull(req.getTemplateType(), "模板类型不能为空");
         dataBiz.supplierExport(req, response);
     }
 

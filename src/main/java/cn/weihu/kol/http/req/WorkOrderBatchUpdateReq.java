@@ -27,4 +27,7 @@ public class WorkOrderBatchUpdateReq {
 
     @ApiModelProperty("到期询价的ID集")
     private List<Long> priceIds;
+
+    @ApiModelProperty(value = "模板类型，1为抖音快手，其他为非抖音快手")
+    private String templateType;
 }
