@@ -82,15 +82,17 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         List<WorkOrderData> list = list(wrapper);
         //拼凑违约记录数据
         List<Long>   idList = list.stream().map(WorkOrderData::getId).collect(Collectors.toList());
-        List<Prices> prices = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderDataId, idList));
-        if(prices != null && prices.size() > 0) {
-            List<WorkOrderData> dataList = prices.stream().map(x -> {
-                WorkOrderData workOrderData = new WorkOrderData();
-                workOrderData.setData(x.getActorData());
-                workOrderData.setId(x.getJoinWorkOrderDataId());
-                return workOrderData;
-            }).collect(Collectors.toList());
-            list.addAll(dataList);
+        if(idList!=null && idList.size() > 0) {
+            List<Prices> prices = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderDataId, idList));
+            if(prices != null && prices.size() > 0) {
+                List<WorkOrderData> dataList = prices.stream().map(x -> {
+                    WorkOrderData workOrderData = new WorkOrderData();
+                    workOrderData.setData(x.getActorData());
+                    workOrderData.setId(x.getJoinWorkOrderDataId());
+                    return workOrderData;
+                }).collect(Collectors.toList());
+                list.addAll(dataList);
+            }
         }
 
         return list.stream().sorted((x, y) -> {
