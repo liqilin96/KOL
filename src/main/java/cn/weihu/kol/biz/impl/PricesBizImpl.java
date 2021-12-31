@@ -147,7 +147,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         List<PricesLogsResp>       resps      = pageResult.getRecords();
         Map<String, String>        map        = new HashMap<>();
 
-        long sum = resps.stream().filter(x -> x.getInsureEndtime().after(new Date())).map(x -> {
+        long sum = resps.stream().filter(x -> x.getInsureEndtime() != null).filter(x -> x.getInsureEndtime().after(new Date())).map(x -> {
 
             HashMap<String, String> hashMap = GsonUtils.gson.fromJson(x.getActorData(), HashMap.class);
             return map.put(hashMap.get("address"), x.getPrice() + "");
@@ -158,7 +158,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
     @Override
     public void exportStarData(HttpServletResponse response, PricesLogsReq req) {
 
-        Fields kolFields       = fieldsBiz.getById(5);
+        Fields kolFields = fieldsBiz.getById(5);
         //获取字段列表
         List<FieldsBo> newList = GsonUtils.gson.fromJson(kolFields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
         }.getType());
@@ -175,7 +175,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             List<Prices> pricesList = this.list();
             //导出所有数据
             for(Prices prices : pricesList) {
-                List<String>            data    = new ArrayList<>();
+                List<String> data = new ArrayList<>();
 //                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
@@ -187,9 +187,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 
             String[] split = req.getIds().split(",");
             for(int i = 0; i < split.length; i++) {
-                List<String>            data    = new ArrayList<>();
-                String                  id      = split[i];
-                Prices                  prices  = getById(id);
+                List<String> data   = new ArrayList<>();
+                String       id     = split[i];
+                Prices       prices = getById(id);
 //                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
@@ -278,7 +278,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             }).collect(Collectors.toList());
             //导出所有数据
             for(Prices prices : pricesList) {
-                List<String>            data    = new ArrayList<>();
+                List<String> data = new ArrayList<>();
 //                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
@@ -287,9 +287,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         } else {
             String[] split = req.getIds().split(",");
             for(int i = 0; i < split.length; i++) {
-                List<String>            data    = new ArrayList<>();
-                String                  id      = split[i];
-                Prices                  prices  = getById(id);
+                List<String> data   = new ArrayList<>();
+                String       id     = split[i];
+                Prices       prices = getById(id);
 //                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
@@ -326,7 +326,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 String dataIndex = newList.get(j).getDataIndex();
                 if(key.equalsIgnoreCase(dataIndex)) {
                     if("commission".equals(key) || "sale".equals(key)) {
-                        if(hashMap.get(key)!=null && hashMap.get(key).matches("\\d+")) {
+                        if(hashMap.get(key) != null && hashMap.get(key).matches("\\d+")) {
                             data.add(hashMap.get(key) + "%");
                         } else {
                             data.add(hashMap.get(key));
@@ -353,9 +353,6 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         c.add(Calendar.DATE, StartupRunner.PRICE_EXPIRE_REMIND_DAY);
         return c.getTime();
     }
-
-
-
 
 
 }
