@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -238,7 +239,9 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
             //导出所有数据
             for(Quote quote : quotes) {
                 List<String>            data    = new ArrayList<>();
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), HashMap.class);
+//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), HashMap.class);
+                Map<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), new TypeToken<Map<String, String>>() {
+                }.getType());
                 pricesBiz.addExportData(exprotData, data, hashMap, fieldsBos);
             }
         } else {
@@ -248,7 +251,9 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
                 List<String>            data    = new ArrayList<>();
                 String                  id      = split[i];
                 Quote                   quote   = getById(id);
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), HashMap.class);
+//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), HashMap.class);
+                Map<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), new TypeToken<Map<String, String>>() {
+                }.getType());
                 pricesBiz.addExportData(exprotData, data, hashMap, fieldsBos);
             }
         }

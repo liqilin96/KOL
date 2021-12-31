@@ -176,7 +176,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             //导出所有数据
             for(Prices prices : pricesList) {
                 List<String>            data    = new ArrayList<>();
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+                Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
+                }.getType());
                 //手动赋值 入库时间
                 hashMap.put("inTime", DateTimeUtils.dateToString(prices.getCtime(), "yyyy/MM/dd"));
                 addExportData(exprotData, data, hashMap, fieldsBos);
@@ -188,7 +190,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 List<String>            data    = new ArrayList<>();
                 String                  id      = split[i];
                 Prices                  prices  = getById(id);
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+                Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
+                }.getType());
                 //手动赋值 入库时间
                 hashMap.put("inTime", DateTimeUtils.dateToString(prices.getCtime(), "yyyy/MM/dd"));
                 addExportData(exprotData, data, hashMap, fieldsBos);
@@ -275,7 +279,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             //导出所有数据
             for(Prices prices : pricesList) {
                 List<String>            data    = new ArrayList<>();
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+                Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
+                }.getType());
                 addExportData(exprotData, data, hashMap, newList);
             }
         } else {
@@ -284,7 +290,9 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 List<String>            data    = new ArrayList<>();
                 String                  id      = split[i];
                 Prices                  prices  = getById(id);
-                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
+                Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
+                }.getType());
                 addExportData(exprotData, data, hashMap, newList);
             }
         }
@@ -310,14 +318,22 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
      * @param newList    导出的头
      */
     @Override
-    public void addExportData(List<List<String>> exprotData, List<String> data, HashMap<String, String> hashMap, List<FieldsBo> newList) {
+    public void addExportData(List<List<String>> exprotData, List<String> data, Map<String, String> hashMap, List<FieldsBo> newList) {
 
         for(int j = 0; j < newList.size(); j++) {
             boolean flag = true;
             for(String key : hashMap.keySet()) {
                 String dataIndex = newList.get(j).getDataIndex();
                 if(key.equalsIgnoreCase(dataIndex)) {
-                    data.add(hashMap.get(key));
+                    if("commission".equals(key) || "sale".equals(key)) {
+                        if(hashMap.get(key)!=null && hashMap.get(key).matches("\\d+")) {
+                            data.add(hashMap.get(key) + "%");
+                        } else {
+                            data.add(hashMap.get(key));
+                        }
+                    } else {
+                        data.add(hashMap.get(key));
+                    }
                     flag = false;
                     break;
                 }
