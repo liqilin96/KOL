@@ -13,7 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,6 +126,12 @@ public class EasyExcelUtil {
             Map<String, String> fillData = new HashMap<>();
 
             for(WorkOrderDataBo wb : excelList) {
+                if(wb.getCommission()!=null && wb.getCommission().matches("\\d+")) {
+                    wb.setCommission(wb.getCommission() + "%");
+                }
+                if(wb.getSale()!=null && wb.getSale().matches("\\d+")) {
+                    wb.setSale(wb.getSale() + "%");
+                }
                 total += Double.parseDouble(wb.getPrice() == null ? "0" : wb.getPrice());
             }
 
