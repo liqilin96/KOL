@@ -236,7 +236,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                         .or()
                         .likeRight(WorkOrder::getOrderSn, req.getName()))
                 //status != NEW
-                .ne(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, "NEW")
+                .ne(WorkOrder::getStatus, "NEW")
                 .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, req.getStatus());
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
@@ -314,8 +314,35 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
     }
 
     @Override
-    public void downloadPicTure(String picturePath, HttpServletResponse response) {
+    public String uploadPDF(MultipartFile file, String workOrderId) {
+        WorkOrder workOrder = getById(workOrderId);
+        if(workOrder == null) {
+            throw new CheckException("工单不存在");
+        }
+        String fileName    = file.getOriginalFilename();
+        String contentType = StringUtils.substringAfterLast(fileName, ".");
+        if(!contentType.equalsIgnoreCase("pdf")) {
+            throw new CheckException("PDF格式上传错误");
+        }
+        String filePath    = DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
+        String newFileName = UUID.randomUUID() + "." + contentType;
+        String path        = null;
+        try {
+            FileUtil.uploadFile(file.getBytes(), filePath, newFileName);
+            path = (filePath + newFileName).replace("\\", "/");
+            workOrder.setPdfPath(path);
+            workOrder.setUtime(new Date());
+            workOrder.setUpdateUserId(UserInfoContext.getUserId());
+            updateById(workOrder);
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new CheckException("上传PDF文件失败");
+        }
+        return path;
+    }
 
+    @Override
+    public void downloadPicTure(String picturePath, HttpServletResponse response) {
         FileUtil.download(response, picturePath, false);
     }
 

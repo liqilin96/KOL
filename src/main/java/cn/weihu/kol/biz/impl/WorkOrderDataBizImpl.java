@@ -791,87 +791,174 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
             throw new CheckException("下单工单数据不能为空");
         }
-        /**
-         * 需求工单直接提审
-         * 保价到期订单，媒介选择的达人信息不需要提审，未选择的数据直接入报价库
-         */
+
         WorkOrder workOrder = workOrderDao.selectById(req.getWorkOrderId());
-        // 更新工单数据状态
-        List<Long>          actorData         = new ArrayList<>();
+
+        if(workOrder == null || StringUtils.isBlank(workOrder.getPdfPath())) {
+            throw new CheckException("无法下单，请检查工单状态或报备图是否上传!");
+        }
+
+        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+                                                .in(WorkOrderData::getId, req.getWorkOrderDataIds()));
+        if(CollectionUtils.isEmpty(list)) {
+            throw new CheckException("工单数据不存在");
+        }
+
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
-        WorkOrderData       workOrderData;
-        for(Long workOrderDataId : req.getWorkOrderDataIds()) {
-            workOrderData = new WorkOrderData();
-            workOrderData.setId(workOrderDataId);
-            if(Constants.WORK_ORDER_EXPIRE_DEMAND != workOrder.getType()) {
-                workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW);
-            } else {
-                // 保价到期工单数据
-                workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW_PASS);
-                actorData.add(workOrderDataId);
-            }
+        List<Prices>        pricesList        = new ArrayList<>();
+        List<PricesLogs>    pricesLogsList    = new ArrayList<>();
+        List<Quote>         quoteList         = new ArrayList<>();
+        Map<String, String> map;
+        String              inbound;
+        String              actorSn;
+        Prices              prices;
+        PricesLogs          pricesLogs;
+        Quote               quote;
+
+        // 合同到期时间处理
+        Date xinyiTime = null;
+        Date weigeTime = null;
+
+        User xinyi = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
+        if(xinyi != null && xinyi.getContractTime() != null) {
+            xinyiTime = xinyi.getContractTime();
+        }
+        User weige = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "weige"));
+        if(weige != null && weige.getContractTime() != null) {
+            weigeTime = weige.getContractTime();
+        }
+
+        for(WorkOrderData workOrderData : list) {
+            // 更新工单数据
+            workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW_PASS);
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             workOrderDataList.add(workOrderData);
+            // 判断库内外,库外新增,工单数据更新记录
+            map = GsonUtils.gson.fromJson(workOrderData.getData(), type);
+            inbound = map.get(Constants.ACTOR_INBOUND);
+            actorSn = MD5Util.getMD5(StringUtils.join(map.get(Constants.TITLE_MEDIA),
+                                                      map.get(Constants.TITLE_ID_OR_LINK),
+                                                      map.get(Constants.TITLE_RESOURCE_LOCATION)));
+            if("0".equals(inbound)) {
+                // 库外数据审核通过 入kol库,并更新报价库enable标识
+                // kol资源表
+                prices = new Prices();
+                prices.setActorSn(actorSn);
+                // 移除档期开始时间和档期结束时间
+                map.remove(Constants.ACTOR_SCHEDULE_START_TIME);
+                map.remove(Constants.ACTOR_SCHEDULE_END_TIME);
+                //
+                prices.setActorData(GsonUtils.gson.toJson(map));
+                prices.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                     Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+                prices.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+
+                String provider = map.get(Constants.ACTOR_PROVIDER);
+                prices.setProvider(provider);
+
+                //合同过期时间
+                Date contractTime = null;
+
+                Date insureEndtime = null;
+
+                if(Constants.SUPPLIER_XIN_YI.equals(provider)) {
+                    contractTime = xinyiTime;
+                } else if(Constants.SUPPLIER_WEI_GE.equals(provider)) {
+                    contractTime = weigeTime;
+                } else {
+
+                }
+                if(contractTime != null) {
+                    //报价一天
+                    if("1".equals(workOrderData.getPriceOnlyDay())) {
+                        insureEndtime = DateUtil.endOfDay(new Date());
+                    } else {
+                        if(contractTime.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
+                            insureEndtime = DateUtil.offsetMonth(contractTime, 0);
+                        } else {
+                            insureEndtime = DateUtil.offsetMonth(DateUtil.date(), 6);
+                        }
+                    }
+                } else {
+                    if("1".equals(workOrderData.getPriceOnlyDay())) {
+                        insureEndtime = DateUtil.endOfDay(new Date());
+                    } else {
+                        insureEndtime = DateUtil.offsetMonth(DateUtil.date(), 6);
+                    }
+                }
+
+                prices.setInsureEndtime(insureEndtime);
+
+                log.info("供应商：{},合同到期时间：{}，预计报价到期时间：{}，实际报价到期时间：{}", provider, contractTime, DateUtil.offsetMonth(DateUtil.date(), 6), prices.getInsureEndtime());
+                prices.setCtime(DateUtil.date());
+                prices.setUtime(DateUtil.date());
+                prices.setCreateUserId(UserInfoContext.getUserId());
+                prices.setUpdateUserId(UserInfoContext.getUserId());
+                prices.setPriceOnlyDay(workOrderData.getPriceOnlyDay());
+                pricesList.add(prices);
+            }
+            // 报价记录表
+            pricesLogs = new PricesLogs();
+            pricesLogs.setActorSn(actorSn);
+            pricesLogs.setActorData(workOrderData.getData());
+            if("1".equals(inbound)) {
+                pricesLogs.setInbound(1);
+                pricesLogs.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+            } else {
+                pricesLogs.setInbound(0);
+                pricesLogs.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
+            }
+            pricesLogs.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                     Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+            pricesLogs.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                                Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+            pricesLogs.setProvider(map.get(Constants.ACTOR_PROVIDER));
+            pricesLogs.setCtime(DateUtil.date());
+            pricesLogs.setUtime(DateUtil.date());
+            pricesLogs.setCreateUserId(UserInfoContext.getUserId());
+            pricesLogs.setUpdateUserId(UserInfoContext.getUserId());
+            pricesLogsList.add(pricesLogs);
+
+            //报价库
+            quote = new Quote();
+            if("0".equals(map.get(Constants.ACTOR_INBOUND))) {
+                quote = new Quote();
+                quote.setProjectId(req.getProjectId());
+                quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
+                quote.setActorData(workOrderData.getData());
+                quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+                                    Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+                quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+                               Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+                quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
+                // 保价到期时间14天后
+                quote.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
+                quote.setEnableFlag(1);
+                quote.setCtime(DateUtil.date());
+                quote.setUtime(DateUtil.date());
+                quote.setCreateUserId(UserInfoContext.getUserId());
+                quote.setUpdateUserId(UserInfoContext.getUserId());
+                quoteList.add(quote);
+            }
         }
         updateBatchById(workOrderDataList);
-        //
-        if(!CollectionUtils.isEmpty(actorData)) {
-            List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
-                                                    .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
-                                                    .in(WorkOrderData::getId, actorData));
-            updatePrice(list);
+        if(!CollectionUtils.isEmpty(pricesList)) {
+            pricesBiz.saveBatch(pricesList);
         }
-        // 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
-        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
-                                                .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
-        if(!CollectionUtils.isEmpty(list)) {
-            workOrderDataList.clear();
-            List<Quote> quoteList = new ArrayList<>();
-            Quote       quote;
-            Type type = new TypeToken<Map<String, String>>() {
-            }.getType();
-            Map<String, String> map;
-            for(WorkOrderData unSelect : list) {
-                unSelect.setStatus(Constants.WORK_ORDER_DATA_QUOTE_UNSELECTED);
-                unSelect.setUtime(DateUtil.date());
-                unSelect.setUpdateUserId(UserInfoContext.getUserId());
-//                unSelect.setPriceOnlyDay();
-                workOrderDataList.add(unSelect);
-
-                map = GsonUtils.gson.fromJson(unSelect.getData(), type);
-                if("0".equals(map.get(Constants.ACTOR_INBOUND))) {
-                    quote = new Quote();
-                    quote.setProjectId(req.getProjectId());
-                    quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
-                    quote.setActorData(unSelect.getData());
-                    quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
-                                        Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
-                    quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
-                                   Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
-                    quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
-                    // 保价到期时间14天后
-                    quote.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
-                    quote.setEnableFlag(1);
-                    quote.setCtime(DateUtil.date());
-                    quote.setUtime(DateUtil.date());
-                    quote.setCreateUserId(UserInfoContext.getUserId());
-                    quote.setUpdateUserId(UserInfoContext.getUserId());
-                    quoteList.add(quote);
-                }
-            }
-            updateBatchById(workOrderDataList);
+        if(!CollectionUtils.isEmpty(pricesLogsList)) {
+            pricesLogsBiz.saveBatch(pricesLogsList);
+        }
+        if(!CollectionUtils.isEmpty(quoteList)) {
             quoteBiz.batchSaveOrUpdate(quoteList);
         }
-        // 更新工单状态为 审核中
-        if(Constants.WORK_ORDER_EXPIRE_DEMAND != workOrder.getType()) {
-            workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
-        } else {
-            // 保价到期工单 直接下单
-            workOrder.setStatus(Constants.WORK_ORDER_ORDER);
-        }
-        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+        // 更新工单状态 -> 已下单
+        workOrder.setStatus(Constants.WORK_ORDER_ORDER);
         workOrder.setUtime(DateUtil.date());
+        workOrder.setUpdateUserId(UserInfoContext.getUserId());
         workOrderDao.updateById(workOrder);
         return null;
     }

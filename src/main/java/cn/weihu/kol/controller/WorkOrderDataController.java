@@ -114,7 +114,7 @@ public class WorkOrderDataController {
         dataBiz.quoteListExport(req, response);
     }
 
-    @ApiOperation(value = "提审", httpMethod = "POST", notes = "提审")
+    @ApiOperation(value = "免审下单", httpMethod = "POST", notes = "免审下单")
     @PostMapping(value = "/order")
     public ResultBean<Long> order(@RequestBody WorkOrderDataOrderReq req) {
         CheckUtil.notNull(req.getProjectId(), "项目ID不能为空");

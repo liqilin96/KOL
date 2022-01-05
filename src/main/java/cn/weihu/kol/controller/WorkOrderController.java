@@ -70,11 +70,24 @@ public class WorkOrderController {
 
     @ApiOperation(value = "截图下载", httpMethod = "GET", notes = "截图下载")
     @GetMapping(value = "/download")
-    public void downloadPicTure(String path ,HttpServletResponse response) {
+    public void downloadPicTure(String path, HttpServletResponse response) {
         CheckUtil.notNull(path, "图片地址不能为空");
         workOrderBiz.downloadPicTure(path, response);
     }
 
+    @ApiOperation(value = "上传PDF至工单", httpMethod = "POST", notes = "上传PDF至工单")
+    @PostMapping(value = "/upload/pdf")
+    public ResultBean<String> uploadPDF(@RequestParam("file") MultipartFile file, WorkOrderReq req) {
+        CheckUtil.notNull(file, "上传的PDF文件不能为空");
+        CheckUtil.notNull(req.getWorkOrderId(), "工单id不能为空");
+        return new ResultBean<>(workOrderBiz.uploadPDF(file, req.getWorkOrderId()));
+    }
 
+    @ApiOperation(value = "PDF下载", httpMethod = "GET", notes = "PDF下载")
+    @GetMapping(value = "/download/pdf")
+    public void downloadPDF(String path, HttpServletResponse response) {
+        CheckUtil.notNull(path, "PDF文件地址不能为空");
+        workOrderBiz.downloadPicTure(path, response);
+    }
 }
 

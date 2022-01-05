@@ -53,4 +53,5 @@ public interface WorkOrderBiz extends IService<WorkOrder> {
 
     void downloadPicTure(String picturePath, HttpServletResponse response);
 
+    String uploadPDF(MultipartFile file,String workOrderId);
 }
