@@ -46,4 +46,7 @@ public class WorkOrderReq {
 
     @ApiModelProperty(value = "工单数据id,多个逗号分割")
     private String workOrderDataIds;
+
+    @ApiModelProperty(value = "工单id")
+    private String workOrderId;
 }

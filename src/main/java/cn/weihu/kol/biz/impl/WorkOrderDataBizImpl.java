@@ -1510,14 +1510,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 }
                 String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
                 wrapper.clear();
-                wrapper.eq(WorkOrderData::getWorkOrderId,req.getWorkOrderDataIds());
+                wrapper.eq(WorkOrderData::getWorkOrderId,req.getWorkOrderId());
                 wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data, \"$.actorSn\")) = {0}", actorNo);
 
                 List<WorkOrderData> workOrderData = baseMapper.selectList(wrapper);
                 if(workOrderData==null || workOrderData.size() == 0) {
                     break;
                 }
-                reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderDataIds()));
+                reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
                 WorkOrderDataUpdateReq updateReq = null;
                 for(WorkOrderData workOrderDatum : workOrderData) {
                     updateReq = new WorkOrderDataUpdateReq();

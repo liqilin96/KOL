@@ -88,7 +88,7 @@ public class WorkOrderDataController {
     public ResultBean<String> enquiryImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
         CheckUtil.notNull(file, "上传的Excel数据文件为空");
         CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
-        CheckUtil.notEmpty(req.getWorkOrderDataIds(), "工单ID不能为空");
+        CheckUtil.notEmpty(req.getWorkOrderId(), "工单ID不能为空");
         return new ResultBean<>(dataBiz.enquiryImport(file, req, response));
     }
 
