@@ -876,6 +876,96 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         return null;
     }
 
+//    @Override
+//    public Long order(WorkOrderDataOrderReq req) {
+//        if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
+//            throw new CheckException("提审工单数据不能为空");
+//        }
+//        /**
+//         * 需求工单直接提审
+//         * 保价到期订单，媒介选择的达人信息不需要提审，未选择的数据直接入报价库
+//         */
+//        WorkOrder workOrder = workOrderDao.selectById(req.getWorkOrderId());
+//        // 更新工单数据状态
+//        List<Long>          actorData         = new ArrayList<>();
+//        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+//        WorkOrderData       workOrderData;
+//        for(Long workOrderDataId : req.getWorkOrderDataIds()) {
+//            workOrderData = new WorkOrderData();
+//            workOrderData.setId(workOrderDataId);
+//            if(Constants.WORK_ORDER_EXPIRE_DEMAND != workOrder.getType()) {
+//                workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW);
+//            } else {
+//                // 保价到期工单数据
+//                workOrderData.setStatus(Constants.WORK_ORDER_DATA_REVIEW_PASS);
+//                actorData.add(workOrderDataId);
+//            }
+//            workOrderData.setUtime(DateUtil.date());
+//            workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+//            workOrderDataList.add(workOrderData);
+//        }
+//        updateBatchById(workOrderDataList);
+//        //
+//        if(!CollectionUtils.isEmpty(actorData)) {
+//            List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+//                                                    .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+//                                                    .in(WorkOrderData::getId, actorData));
+//            updatePrice(list);
+//        }
+//        // 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
+//        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+//                                                .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
+//        if(!CollectionUtils.isEmpty(list)) {
+//            workOrderDataList.clear();
+//            List<Quote> quoteList = new ArrayList<>();
+//            Quote       quote;
+//            Type type = new TypeToken<Map<String, String>>() {
+//            }.getType();
+//            Map<String, String> map;
+//            for(WorkOrderData unSelect : list) {
+//                unSelect.setStatus(Constants.WORK_ORDER_DATA_QUOTE_UNSELECTED);
+//                unSelect.setUtime(DateUtil.date());
+//                unSelect.setUpdateUserId(UserInfoContext.getUserId());
+////                unSelect.setPriceOnlyDay();
+//                workOrderDataList.add(unSelect);
+//
+//                map = GsonUtils.gson.fromJson(unSelect.getData(), type);
+//                if("0".equals(map.get(Constants.ACTOR_INBOUND))) {
+//                    quote = new Quote();
+//                    quote.setProjectId(req.getProjectId());
+//                    quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
+//                    quote.setActorData(unSelect.getData());
+//                    quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
+//                                        Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+//                    quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
+//                                   Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
+//                    quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
+//                    // 保价到期时间14天后
+//                    quote.setInsureEndtime(DateUtil.offsetDay(DateUtil.date(), 14));
+//                    quote.setEnableFlag(1);
+//                    quote.setCtime(DateUtil.date());
+//                    quote.setUtime(DateUtil.date());
+//                    quote.setCreateUserId(UserInfoContext.getUserId());
+//                    quote.setUpdateUserId(UserInfoContext.getUserId());
+//                    quoteList.add(quote);
+//                }
+//            }
+//            updateBatchById(workOrderDataList);
+//            quoteBiz.batchSaveOrUpdate(quoteList);
+//        }
+//        // 更新工单状态为 审核中
+//        if(Constants.WORK_ORDER_EXPIRE_DEMAND != workOrder.getType()) {
+//            workOrder.setStatus(Constants.WORK_ORDER_REVIEW);
+//        } else {
+//            // 保价到期工单 直接下单
+//            workOrder.setStatus(Constants.WORK_ORDER_ORDER);
+//        }
+//        workOrder.setUpdateUserId(UserInfoContext.getUserId());
+//        workOrder.setUtime(DateUtil.date());
+//        workOrderDao.updateById(workOrder);
+//        return null;
+//    }
+
     private void updatePrice(List<WorkOrderData> list) {
         /**
          * 重新入库，新价格在老价格到期后生效展示
@@ -1593,14 +1683,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     map.put("img", bo.get(20));
                     map.put("imgTime", bo.get(21));
                     map.put("platPrice", bo.get(22));
-                    map.put("sale", bo.get(23));
+                    map.put("sale", bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
                     map.put("price", bo.get(24));
-                    map.put("commission", bo.get(25));
+                    map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
                     map.put("remark", bo.get(26));
                     //   Arrays.asList("星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
                 } else {
                     map.put("price", bo.get(20));
-                    map.put("commission", bo.get(21));
+                    map.put("commission", bo.get(21).endsWith("%") ? bo.get(21).substring(0, bo.get(21).indexOf("%")) : bo.get(21));
                     map.put("remark", bo.get(22));
                     //Arrays.asList("总价（元）", "佣金", "备注");
                 }
