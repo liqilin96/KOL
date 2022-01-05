@@ -20,6 +20,7 @@ public class WorkOrderConverter {
         resp.setRejectReason(workOrder.getRejectReason());
         resp.setCtime(workOrder.getCtime());
         resp.setUtime(workOrder.getUtime());
+        resp.setPdfPath(workOrder.getPdfPath());
         return resp;
     }
 

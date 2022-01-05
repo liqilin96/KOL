@@ -37,6 +37,9 @@ public class WorkOrderResp {
     @ApiModelProperty(value = "驳回原因")
     private String rejectReason;
 
+    @ApiModelProperty(value = "报备图（pdf）路径，为空无法下单")
+    private String pdfPath;
+
     @ApiModelProperty(value = "创建时间")
     private Date ctime;
 
