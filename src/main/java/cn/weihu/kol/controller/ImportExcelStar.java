@@ -213,7 +213,7 @@ public class ImportExcelStar {
             }
 
             prices.setActorData(GsonUtils.gson.toJson(map));
-            //平台+名称+资源 + MD5
+            //平台+账号ID+资源 + MD5
             prices.setActorSn(MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(6)));
             prices.setCommission(StringUtils.isNotBlank(bo.get(18)) ? (bo.get(18).substring(0, 2).matches("\\d+") ? Integer.parseInt(bo.get(18).substring(0, 2)) : null) : null);
             prices.setPrice(Double.parseDouble(bo.get(17)));

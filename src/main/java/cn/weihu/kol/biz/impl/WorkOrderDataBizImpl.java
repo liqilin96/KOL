@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -56,19 +57,21 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
 
     @Autowired
-    private FieldsBiz     fieldsBiz;
+    private FieldsBiz        fieldsBiz;
     @Autowired
-    private PricesBiz     pricesBiz;
+    private PricesBiz        pricesBiz;
     @Autowired
-    private PricesLogsBiz pricesLogsBiz;
+    private PricesLogsBiz    pricesLogsBiz;
     @Autowired
-    private QuoteBiz      quoteBiz;
+    private QuoteBiz         quoteBiz;
     @Resource
-    private ProjectDao    projectDao;
+    private ProjectDao       projectDao;
     @Resource
-    private WorkOrderDao  workOrderDao;
+    private WorkOrderDao     workOrderDao;
     @Autowired
-    private UserBiz       userBiz;
+    private UserBiz          userBiz;
+    @Autowired
+    private WorkOrderBizImpl workOrderBiz;
 
 
     @Override
@@ -81,8 +84,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         List<WorkOrderData> list = list(wrapper);
         //拼凑违约记录数据
-        List<Long>   idList = list.stream().map(WorkOrderData::getId).collect(Collectors.toList());
-        if(idList!=null && idList.size() > 0) {
+        List<Long> idList = list.stream().map(WorkOrderData::getId).collect(Collectors.toList());
+        if(idList != null && idList.size() > 0) {
             List<Prices> prices = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class).in(Prices::getJoinWorkOrderDataId, idList));
             if(prices != null && prices.size() > 0) {
                 List<WorkOrderData> dataList = prices.stream().map(x -> {
@@ -1267,8 +1270,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if("重新制作".equals(map.get("address"))) {
             throw new CheckException("重新制作数据无法被违约");
         }
-        map.put("price", "0");
-        map.put("commission", "0");
+        map.put("remark", "未执行");
+        map.put("price", "");
+        map.put("commission", "");
+        map.put("img", "");
+        map.put("imgTime", "");
+        map.put("platPrice", "");
         workOrderData.setData(GsonUtils.gson.toJson(map));
         //修改违约工单 =》报价、佣金清零
         updateById(workOrderData);
@@ -1304,9 +1311,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         //微任务
         map.put("microTask", "不涉及");
         //备注
-        map.put("remark", "未执行");
         map.put("address", "违约费用");
         map.put("price", price + "");
+        map.remove("remark");
 //        prices.setPriceOnlyDay(map.get("priceOnlyDay"));
         prices.setActorData(GsonUtils.gson.toJson(map));
         prices.setJoinWorkOrderDataId(Long.parseLong(workOrderDataId));
@@ -1352,6 +1359,16 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if("违约费用".equals(map.get("address"))) {
             throw new CheckException("违约数据无法被重新制作");
         }
+
+        map.put("price", "");
+        map.put("commission", "");
+        map.put("img", "");
+        map.put("imgTime", "");
+        map.put("platPrice", "");
+        workOrderData.setData(GsonUtils.gson.toJson(map));
+        //修改违约工单 =》报价、佣金清零
+        updateById(workOrderData);
+
         Prices prices = new Prices();
 
 
@@ -1446,6 +1463,155 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     }
 
+    @Override
+    public String enquiryImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+        //校验文件类型
+        if(!file.getOriginalFilename().endsWith("xls") && !file.getOriginalFilename().endsWith("xlsx")) {
+            log.error(file.getOriginalFilename() + "不是excel文件");
+            throw new CheckException(file.getOriginalFilename() + "不是excel文件");
+        }
+        List<Object> data = null;
+        try {
+            data = EasyExcelUtil.readExcelOnlySheet1(file.getInputStream());
+        } catch(Exception e) {
+            log.error(">>> Excel读取失败:{}", e);
+            throw new CheckException("Excel读取失败,请联系管理员");
+        }
+        List<String> selfTitle = workOrderBiz.excelTitle(req.getExcelType());
+
+        selfTitle.addAll(excelTitleBySupplier(req.getExcelType()));
+
+        if(null != data) {
+            // 判断表头             数字9是读取模板标题名称（可能会改动）
+            if(data.size() < 10)
+                throw new CheckException("Excel不匹配,请勿修改或重新下载模版");
+            LinkedHashMap<Integer, String> title = (LinkedHashMap<Integer, String>) data.get(9);
+            List<String>                   list  = title.values().stream().collect(Collectors.toList());
+
+            if(list.size() != selfTitle.size()) {
+                throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
+            }
+
+            if(!selfTitle.toString().equalsIgnoreCase(list.toString())) {
+                throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
+            }
+
+            LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
+
+            //重新询价
+            WorkOrderBatchUpdateReq      reqAgain                   = new WorkOrderBatchUpdateReq();
+            List<WorkOrderDataUpdateReq> workOrderDataUpdateReqList = new ArrayList<>();
+
+            for(int x = 10; x < data.size(); x++) {
+                LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
+                //actorNo = 平台+账号ID+资源 + MD5   0 +3 +5
+                if(bo.get(0) == null || bo.get(3) == null || bo.get(5) == null) {
+                    break;
+                }
+                String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
+                wrapper.clear();
+                wrapper.eq(WorkOrderData::getWorkOrderId,req.getWorkOrderDataIds());
+                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data, \"$.actorSn\")) = {0}", actorNo);
+
+                List<WorkOrderData> workOrderData = baseMapper.selectList(wrapper);
+                if(workOrderData==null || workOrderData.size() == 0) {
+                    break;
+                }
+                reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderDataIds()));
+                WorkOrderDataUpdateReq updateReq = null;
+                for(WorkOrderData workOrderDatum : workOrderData) {
+                    updateReq = new WorkOrderDataUpdateReq();
+                    updateReq.setData(workOrderDatum.getData());
+                    updateReq.setId(workOrderDatum.getId());
+                    workOrderDataUpdateReqList.add(updateReq);
+                }
+            }
+            reqAgain.setList(workOrderDataUpdateReqList);
+            again(reqAgain);
+        }
+        return null;
+    }
+
+    @Override
+    public String supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+        //校验文件类型
+        if(!file.getOriginalFilename().endsWith("xls") && !file.getOriginalFilename().endsWith("xlsx")) {
+            log.error(file.getOriginalFilename() + "不是excel文件");
+            throw new CheckException(file.getOriginalFilename() + "不是excel文件");
+        }
+        List<Object> data = null;
+        try {
+            data = EasyExcelUtil.readExcelOnlySheet1(file.getInputStream());
+        } catch(Exception e) {
+            log.error(">>> Excel读取失败:{}", e);
+            throw new CheckException("Excel读取失败,请联系管理员");
+        }
+
+        List<String> selfTitle = excelTitleBySupplier(req.getExcelType());
+        if(null != data) {
+            // 判断表头             数字9是读取模板标题名称（可能会改动）
+            if(data.size() < 10)
+                throw new CheckException("Excel不匹配,请勿修改或重新下载模版");
+            LinkedHashMap<Integer, String> title = (LinkedHashMap<Integer, String>) data.get(9);
+            List<String>                   list  = title.values().stream().collect(Collectors.toList());
+
+            if(list.size() < selfTitle.size()) {
+                throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
+            }
+            //截取需要填写的字段
+            List<String> titleList = list.subList(list.size() - selfTitle.size(), list.size());
+            if(!selfTitle.toString().equalsIgnoreCase(titleList.toString())) {
+                throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
+            }
+
+
+            List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
+            int                 index             = 0;
+            List<WorkOrderData> workOrderDataList = new ArrayList<>();
+            for(int x = 10; x < data.size(); x++) {
+                LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
+
+//                for(int i = list.size() - selfTitle.size(); i < list.size(); i++) {
+                if(index >= workOrderDataIds.size())
+                    break;
+                String orderDataId = workOrderDataIds.get(index);
+                index++;
+                WorkOrderData orderData = getById(orderDataId);
+                if(orderData == null)
+                    continue;
+
+                Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
+                }.getType());
+
+                if("1".equals(req.getExcelType())) {
+                    map.put("img", bo.get(20));
+                    map.put("imgTime", bo.get(21));
+                    map.put("platPrice", bo.get(22));
+                    map.put("sale", bo.get(23));
+                    map.put("price", bo.get(24));
+                    map.put("commission", bo.get(25));
+                    map.put("remark", bo.get(26));
+                    //   Arrays.asList("星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
+                } else {
+                    map.put("price", bo.get(20));
+                    map.put("commission", bo.get(21));
+                    map.put("remark", bo.get(22));
+                    //Arrays.asList("总价（元）", "佣金", "备注");
+                }
+                orderData.setData(GsonUtils.gson.toJson(map));
+                orderData.setId(Long.parseLong(orderDataId));
+                orderData.setUtime(new Date());
+                orderData.setUpdateUserId(UserInfoContext.getUserId());
+
+                workOrderDataList.add(orderData);
+//                }
+            }
+            //供应商报价修改
+            updateBatchById(workOrderDataList);
+        }
+        return null;
+    }
+
     public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response, String excelName) {
         Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_QUOTE);
         //获取字段列表
@@ -1504,5 +1670,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @param type 1是抖音快手模板，其他是非抖音快手模板
+     * @return 供应商填写模板表头
+     */
+    private List<String> excelTitleBySupplier(String type) {
+        String arr[] = null;
+        if("1".equals(type)) {
+            arr = new String[]{"星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注"};
+        } else {
+            arr = new String[]{"总价（元）", "佣金", "备注"};
+        }
+        return new ArrayList<>(Arrays.asList(arr));
     }
 }

@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * @author lql
  * @date 2021/11/10 17:35
@@ -41,4 +43,7 @@ public class WorkOrderReq {
 
     @ApiModelProperty(value = "指向用户ID")
     private Long toUser;
+
+    @ApiModelProperty(value = "工单数据id,多个逗号分割")
+    private String workOrderDataIds;
 }

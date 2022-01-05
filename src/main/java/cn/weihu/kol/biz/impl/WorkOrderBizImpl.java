@@ -83,7 +83,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         List<String> selfTitle = excelTitle(req.getExcelType());
         if(null != orderBos) {
             // 判断表头             数字9是读取模板标题名称（可能会改动）
-            if(orderBos.size() < 10) throw new CheckException("Excel不匹配,请勿修改或重新下载模版");
+            if(orderBos.size() < 10)
+                throw new CheckException("Excel不匹配,请勿修改或重新下载模版");
             LinkedHashMap<Integer, String> title = (LinkedHashMap<Integer, String>) orderBos.get(9);
             List<String>                   list  = title.values().stream().collect(Collectors.toList());
             if(list.size() < selfTitle.size()) {
@@ -234,6 +235,8 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
                         .like(WorkOrder::getName, req.getName())
                         .or()
                         .likeRight(WorkOrder::getOrderSn, req.getName()))
+                //status != NEW
+                .ne(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, "NEW")
                 .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrder::getStatus, req.getStatus());
         if(Objects.nonNull(req.getStartTime()) && Objects.nonNull(req.getEndTime())) {
             wrapper.between(WorkOrder::getCtime, DateUtil.date(req.getStartTime()), DateUtil.date(req.getEndTime()));
@@ -316,29 +319,25 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         FileUtil.download(response, picturePath, false);
     }
 
-//    public List<String> excelTitle() {
-//        return Arrays.asList("序号", "媒体", "账号", "账号ID或链接", "账号类型", "资源位置", "数量", "档期范围开始时间",
-//                             "档期范围结束时间", "电商链接", "@", "话题", "电商肖像授权", "品牌双微转发授权", "微任务", "信息流授权", "报备",
-//                             "星图/快接单", "线下探店", "其他", "产品提供方", "发布内容brief概述");
-//    }
-
 
     /**
      * @param type 1是抖音快手模板，其他是非抖音快手模板
      * @return 模板表头
      */
-    private List<String> excelTitle(String type) {
+    public List<String> excelTitle(String type) {
+        String arr[] = null;
         if("1".equals(type)) {
-            return Arrays.asList("平台", "序号", "名称", "账号ID", "账号类型", "资源形式", "数量", "档期范围开始时间", "档期范围结束时间", "@", "话题",
-                                 "电商链接", "双微转发", "电商肖像授权", "信息流授权", "星图/快接单", "线下探店",
-                                 "其他特殊说明", "产品提供方", "发布内容brief概述"
-                    /* *//* 供应商填写*//*    , "星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注"*/);
+
+            arr = new String[]{"平台", "序号", "名称", "账号ID", "账号类型", "资源形式", "数量", "档期范围开始时间", "档期范围结束时间", "@", "话题",
+                               "电商链接", "双微转发", "电商肖像授权", "信息流授权", "星图/快接单", "线下探店",
+                               "其他特殊说明", "产品提供方", "发布内容brief概述"};
+
         } else {
-            return Arrays.asList("平台", "序号", "名称", "账号ID", "账号类型", "资源形式", "数量", "档期范围开始时间", "档期范围结束时间", "@", "话题",
-                                 "电商链接", "双微转发", "电商肖像授权", "信息流授权", "微任务（微博）", "报备（小红书）", "线下探店",
-                                 "其他特殊说明", "产品提供方", "发布内容brief概述"
-                    /* 供应商填写*//*     ,"总价（元）", "佣金", "备注"*/);
+            arr = new String[]{"平台", "序号", "名称", "账号ID", "账号类型", "资源形式", "数量", "档期范围开始时间", "档期范围结束时间", "@", "话题",
+                               "电商链接", "双微转发", "电商肖像授权", "信息流授权", "微任务（微博）", "报备（小红书）", "线下探店",
+                               "其他特殊说明", "产品提供方", "发布内容brief概述"};
         }
+        return new ArrayList<>(Arrays.asList(arr));
     }
 
 

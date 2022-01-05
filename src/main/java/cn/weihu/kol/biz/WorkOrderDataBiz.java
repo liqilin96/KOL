@@ -1,14 +1,12 @@
 package cn.weihu.kol.biz;
 
 import cn.weihu.kol.db.po.WorkOrderData;
-import cn.weihu.kol.http.req.WorkOrderBatchUpdateReq;
-import cn.weihu.kol.http.req.WorkOrderDataOrderReq;
-import cn.weihu.kol.http.req.WorkOrderDataReq;
-import cn.weihu.kol.http.req.WorkOrderDataReviewReq;
+import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -60,4 +58,8 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
     String remake(String workOrderDataId, String price);
 
     void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType);
+
+    String supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
+
+    String enquiryImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
 }

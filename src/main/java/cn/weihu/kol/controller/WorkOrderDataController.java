@@ -12,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -82,6 +83,15 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.enquiryAgain(req));
     }
 
+    @ApiOperation(value = "导入重新询价", httpMethod = "POST", notes = "导入重新询价（报完价待确认）")
+    @PostMapping("/enquiry/import")
+    public ResultBean<String> enquiryImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+        CheckUtil.notNull(file, "上传的Excel数据文件为空");
+        CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
+        CheckUtil.notEmpty(req.getWorkOrderDataIds(), "工单ID不能为空");
+        return new ResultBean<>(dataBiz.enquiryImport(file, req, response));
+    }
+
     @ApiOperation(value = "报价", httpMethod = "POST", notes = "报价")
     @PostMapping(value = "/quote")
     public ResultBean<Long> quote(@RequestBody WorkOrderBatchUpdateReq req) {
@@ -120,7 +130,7 @@ public class WorkOrderDataController {
         return new ResultBean<>(dataBiz.review(req));
     }
 
-    @ApiOperation(value = "库内外筛选导出导出", httpMethod = "GET", notes = "库内外筛选导出导出")
+    @ApiOperation(value = "库内外筛选导出", httpMethod = "GET", notes = "库内外筛选导出")
     @GetMapping(value = "/detail/export")
     public void expirtPricesExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
@@ -136,6 +146,15 @@ public class WorkOrderDataController {
         CheckUtil.notNull(req.getTemplateType(), "模板类型不能为空");
         dataBiz.supplierExport(req, response);
     }
+
+    @ApiOperation(value = "供应商报价导入", httpMethod = "POST", notes = "供应商报价导入")
+    @PostMapping("/supplier/import")
+    public ResultBean<String> supplierImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+        CheckUtil.notNull(file, "上传的Excel数据文件为空");
+        CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
+        return new ResultBean<>(dataBiz.supplierImport(file, req, response));
+    }
+
 
     @ApiOperation(value = "取消合作", httpMethod = "PUT", notes = "取消合作")
     @PutMapping(value = "/cancel/agreement")
