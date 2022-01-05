@@ -346,6 +346,11 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
         FileUtil.download(response, picturePath, false);
     }
 
+    @Override
+    public void downloadPDF(String picturePath, HttpServletResponse response) {
+        FileUtil.downloadPDF(response, picturePath, false);
+    }
+
 
     /**
      * @param type 1是抖音快手模板，其他是非抖音快手模板

@@ -35,6 +35,41 @@ public class FileUtil {
         out.close();
     }
 
+    public static void downloadPDF(HttpServletResponse response, String path, Boolean isDel) {
+
+        path = saveFilePath + path;
+
+        File file = new File(path.replace("/", File.separator));
+        log.info("download filepath:{}", file.getPath());
+        InputStream inputStream = null;
+        try {
+            if(file.exists()) {
+                response.setContentType("application/pdf");
+                response.addHeader("Content-Disposition", "inline;filename=" + new String(file.getName().getBytes(), "ISO8859-1"));
+                response.addHeader("Content-Length", "" + file.length());
+                inputStream = new BufferedInputStream(new FileInputStream(file));
+                IOUtils.copy(inputStream, response.getOutputStream());
+                response.getOutputStream().close();
+            } else {
+                response.setStatus(500);
+                response.addHeader("code", "-1");
+                response.addHeader("error", "file not exist");
+            }
+        } catch(Exception e) {
+            log.error("PDF文件合成异常", e);
+        } finally {
+            if(inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(isDel) {
+                FileUtils.deleteQuietly(file);
+            }
+        }
+    }
     public static void download(HttpServletResponse response, String path, Boolean isDel) {
 
         path = saveFilePath + path;

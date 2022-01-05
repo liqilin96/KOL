@@ -87,7 +87,7 @@ public class WorkOrderController {
     @GetMapping(value = "/download/pdf")
     public void downloadPDF(String path, HttpServletResponse response) {
         CheckUtil.notNull(path, "PDF文件地址不能为空");
-        workOrderBiz.downloadPicTure(path, response);
+        workOrderBiz.downloadPDF(path, response);
     }
 }
 
