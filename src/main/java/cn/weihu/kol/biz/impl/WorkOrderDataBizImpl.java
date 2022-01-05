@@ -82,6 +82,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(StringUtils.isNotBlank(req.getSupplier())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
         }
+        wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(data, \"$.account\"))");
+
         List<WorkOrderData> list = list(wrapper);
         //拼凑违约记录数据
         List<Long> idList = list.stream().map(WorkOrderData::getId).collect(Collectors.toList());
@@ -787,7 +789,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Override
     public Long order(WorkOrderDataOrderReq req) {
         if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
-            throw new CheckException("提审下单工单数据不能为空");
+            throw new CheckException("下单工单数据不能为空");
         }
         /**
          * 需求工单直接提审
@@ -909,6 +911,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public Long review(WorkOrderDataReviewReq req) {
+
+
         if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
             throw new CheckException("审核工单数据不能为空");
         }
@@ -1219,8 +1223,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        List<WorkOrderData> orderData = null;
 
-        List<WorkOrderData> orderData = list(wrapper);
+        wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(data, \"$.account\"))");
+
         //全部导出
         if(StringUtils.isBlank(req.getWorkerOrderDataIds())) {
             orderData = baseMapper.selectList(wrapper);
@@ -1510,11 +1516,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 }
                 String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
                 wrapper.clear();
-                wrapper.eq(WorkOrderData::getWorkOrderId,req.getWorkOrderId());
+                wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
                 wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data, \"$.actorSn\")) = {0}", actorNo);
 
                 List<WorkOrderData> workOrderData = baseMapper.selectList(wrapper);
-                if(workOrderData==null || workOrderData.size() == 0) {
+                if(workOrderData == null || workOrderData.size() == 0) {
                     break;
                 }
                 reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
@@ -1565,7 +1571,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             }
 
 
-            List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
+            List<String>        workOrderDataIds  = Arrays.asList(req.getWorkOrderDataIds().split(","));
             int                 index             = 0;
             List<WorkOrderData> workOrderDataList = new ArrayList<>();
             for(int x = 10; x < data.size(); x++) {
