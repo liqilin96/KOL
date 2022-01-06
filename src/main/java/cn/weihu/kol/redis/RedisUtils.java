@@ -18,7 +18,7 @@ public class RedisUtils {
 
     public void setUserInfoByUsername(String username, UserInfo userInfo) {
         String key = RedisKeyUtil.getKey("userInfo", "username", username);
-        redisService.set(key, gson.toJson(userInfo), 12L, TimeUnit.HOURS);
+        redisService.set(key, gson.toJson(userInfo), 24L, TimeUnit.HOURS);
     }
 
     public UserInfo getUserInfoByUsername(String username) {
@@ -45,7 +45,7 @@ public class RedisUtils {
 
     public void setUserInfoByToken(String token, UserInfo userInfo) {
         String key = RedisKeyUtil.getKey("userInfo", "token", token);
-        redisService.set(key, gson.toJson(userInfo), 12L, TimeUnit.HOURS);
+        redisService.set(key, gson.toJson(userInfo), 24L, TimeUnit.HOURS);
     }
 
     public UserInfo getUserInfoByToken(String token) {
