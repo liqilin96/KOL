@@ -570,6 +570,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private void expire() {
         List<Prices> pricesList = pricesBiz.list(new LambdaQueryWrapper<>(Prices.class)
                                                          .eq(Prices::getIsReQuote, 0)
+                                                         .eq(Prices::getPriceOnlyDay, "0")
                                                          .between(Prices::getInsureEndtime, new Date(), expireDate(new Date())));
         if(CollectionUtils.isEmpty(pricesList)) {
             throw new CheckException("重新询价数据不存在");
@@ -922,14 +923,21 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             pricesLogs.setCreateUserId(UserInfoContext.getUserId());
             pricesLogs.setUpdateUserId(UserInfoContext.getUserId());
             pricesLogsList.add(pricesLogs);
+        }
 
-            //报价库
-            quote = new Quote();
+// 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
+        List<WorkOrderData> list2 = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                                                 .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
+
+        for(WorkOrderData unSelect : list2) {
+
+            map = GsonUtils.gson.fromJson(unSelect.getData(), type);
             if("0".equals(map.get(Constants.ACTOR_INBOUND))) {
+                //报价库
                 quote = new Quote();
                 quote.setProjectId(req.getProjectId());
                 quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
-                quote.setActorData(workOrderData.getData());
+                quote.setActorData(unSelect.getData());
                 quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
                                     Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
                 quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
@@ -945,6 +953,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 quoteList.add(quote);
             }
         }
+
         updateBatchById(workOrderDataList);
         if(!CollectionUtils.isEmpty(pricesList)) {
             pricesBiz.saveBatch(pricesList);
@@ -1625,7 +1634,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-    public void workOrderDataTemplateExport(List<WorkOrderData> orderData, HttpServletResponse response, String excelName, String templateType) {
+    public void workOrderDataTemplateExport(List<WorkOrderData> orderData, HttpServletResponse response, String
+            excelName, String templateType) {
 
         List<WorkOrderDataBo> excelList = new ArrayList<>();
 
@@ -1770,14 +1780,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     map.put("img", bo.get(20));
                     map.put("imgTime", bo.get(21));
                     map.put("platPrice", bo.get(22));
-                    map.put("sale", bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+                    map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
                     map.put("price", bo.get(24));
-                    map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                    map.put("commission", bo.get(25) == null ? "0" : bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
                     map.put("remark", bo.get(26));
                     //   Arrays.asList("星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
                 } else {
                     map.put("price", bo.get(20));
-                    map.put("commission", bo.get(21).endsWith("%") ? bo.get(21).substring(0, bo.get(21).indexOf("%")) : bo.get(21));
+                    map.put("commission", bo.get(21) == null ? "0" : bo.get(21).endsWith("%") ? bo.get(21).substring(0, bo.get(21).indexOf("%")) : bo.get(21));
                     map.put("remark", bo.get(22));
                     //Arrays.asList("总价（元）", "佣金", "备注");
                 }
@@ -1795,7 +1805,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         return null;
     }
 
-    public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response, String excelName) {
+    public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response, String
+            excelName) {
         Fields fields = fieldsBiz.getById(Constants.FIELD_TYPE_QUOTE);
         //获取字段列表
         List<FieldsBo> fieldsBos = GsonUtils.gson.fromJson(fields.getFieldList(), new TypeToken<ArrayList<FieldsBo>>() {
