@@ -112,7 +112,7 @@ public class EasyExcelUtil {
             }
 
             excelWriter = EasyExcel.write(response.getOutputStream())
-                    .registerWriteHandler(new CustomCellWriteHandler())
+//                    .registerWriteHandler(new CustomCellWriteHandler())
                     .withTemplate(is)
                     .build();
 
