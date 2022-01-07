@@ -74,7 +74,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private UserBiz          userBiz;
     @Autowired
     private WorkOrderBizImpl workOrderBiz;
-    @Autowired
+    @Resource
     private WorkOrderDataDao workOrderDataDao;
 
 
@@ -115,11 +115,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
-        if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
+        if(StartupRunner.SUPPLIER_USER_XIN_YI == 12) {
             // 新意
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_XIN_YI);
         } else {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_WEI_GE);
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}1", Constants.SUPPLIER_WEI_GE);
         }
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
@@ -631,6 +631,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataXinYi.setData(GsonUtils.gson.toJson(map));
             workOrderDataXinYi.setCtime(DateUtil.date());
             workOrderDataXinYi.setUtime(DateUtil.date());
+            workOrderDataXinYi.setPriceOnlyDay("0");
+            workOrderDataXinYi.setIsDelete("0");
             workOrderDataList.add(workOrderDataXinYi);
 
             workOrderDataWeiGe = new WorkOrderData();
@@ -647,6 +649,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataWeiGe.setData(GsonUtils.gson.toJson(map));
             workOrderDataWeiGe.setCtime(DateUtil.date());
             workOrderDataWeiGe.setUtime(DateUtil.date());
+            workOrderDataWeiGe.setPriceOnlyDay("0");
+            workOrderDataWeiGe.setIsDelete("0");
             workOrderDataList.add(workOrderDataWeiGe);
         }
 //        saveBatch(workOrderDataList,workOrderDataList.size());
@@ -1331,11 +1335,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
-
-        String[] split = req.getWorkerOrderDataIds().split(",");
-
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
-        wrapper.in(WorkOrderData::getId, Arrays.asList(split));
+        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
         List<WorkOrderData> orderData = baseMapper.selectList(wrapper);
         workOrderDataTemplateExport(orderData, response, "供应商报价-" + DateTimeUtils.getDate("yyyy-MM-dd"), req.getTemplateType());
 

@@ -143,7 +143,7 @@ public class WorkOrderDataController {
     @ApiOperation(value = "供应商报价导出", httpMethod = "GET", notes = "供应商报价导出")
     @GetMapping(value = "/supplier/export")
     public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
-        CheckUtil.notNull(req.getWorkerOrderDataIds(), "需求工单ID不能为空");
+        CheckUtil.notNull(req.getWorkOrderId(), "工单ID不能为空");
         CheckUtil.notNull(req.getTemplateType(), "模板类型不能为空");
         dataBiz.supplierExport(req, response);
     }
