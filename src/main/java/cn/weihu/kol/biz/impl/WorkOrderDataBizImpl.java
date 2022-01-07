@@ -115,11 +115,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
-        if(StartupRunner.SUPPLIER_USER_XIN_YI == 12) {
+        if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
             // 新意
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_XIN_YI);
         } else {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}1", Constants.SUPPLIER_WEI_GE);
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_WEI_GE);
         }
         List<WorkOrderData> list = list(wrapper);
         return list.stream().map(WorkOrderConverter::entity2WorkOrderDataResp).collect(Collectors.toList());
@@ -1337,6 +1337,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
+            // 新意
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_XIN_YI);
+        } else {
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_WEI_GE);
+        }
         List<WorkOrderData> orderData = baseMapper.selectList(wrapper);
         workOrderDataTemplateExport(orderData, response, "供应商报价-" + DateTimeUtils.getDate("yyyy-MM-dd"), req.getTemplateType());
 
