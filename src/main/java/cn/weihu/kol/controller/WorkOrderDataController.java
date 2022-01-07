@@ -8,6 +8,7 @@ import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
+import cn.weihu.kol.http.resp.SupplierImportResp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,11 +150,19 @@ public class WorkOrderDataController {
 
     @ApiOperation(value = "供应商报价导入", httpMethod = "POST", notes = "供应商报价导入")
     @PostMapping("/supplier/import")
-    public ResultBean<String> supplierImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+    public ResultBean<List<SupplierImportResp>> supplierImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
         CheckUtil.notNull(file, "上传的Excel数据文件为空");
         CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
         return new ResultBean<>(dataBiz.supplierImport(file, req, response));
     }
+
+//    @ApiOperation(value = "供应商报价导入确认入库", httpMethod = "POST", notes = "供应商报价导入确认入库")
+//    @PostMapping("/supplier/import")
+//    public ResultBean<List<SupplierImportResp>> supplierImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+//        CheckUtil.notNull(file, "上传的Excel数据文件为空");
+//        CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
+//        return new ResultBean<>(dataBiz.supplierImport(file, req, response));
+//    }
 
 
     @ApiOperation(value = "取消合作", httpMethod = "PUT", notes = "取消合作")

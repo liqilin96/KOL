@@ -14,6 +14,7 @@ import cn.weihu.kol.db.dao.WorkOrderDao;
 import cn.weihu.kol.db.dao.WorkOrderDataDao;
 import cn.weihu.kol.db.po.*;
 import cn.weihu.kol.http.req.*;
+import cn.weihu.kol.http.resp.SupplierImportResp;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
@@ -30,6 +31,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +74,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private UserBiz          userBiz;
     @Autowired
     private WorkOrderBizImpl workOrderBiz;
+    @Autowired
+    private WorkOrderDataDao workOrderDataDao;
 
 
     @Override
@@ -645,7 +649,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataWeiGe.setUtime(DateUtil.date());
             workOrderDataList.add(workOrderDataWeiGe);
         }
-        saveBatch(workOrderDataList);
+//        saveBatch(workOrderDataList,workOrderDataList.size());
+        workOrderDataDao.insertBatch(workOrderDataList);
+
         pricesBiz.updateBatchById(isReQuoteList);
         //
         WorkOrder workOrderXinYi = new WorkOrder();
@@ -1726,7 +1732,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
-    public String supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
+    public List<SupplierImportResp> supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
         //校验文件类型
         if(!file.getOriginalFilename().endsWith("xls") && !file.getOriginalFilename().endsWith("xlsx")) {
             log.error(file.getOriginalFilename() + "不是excel文件");
@@ -1740,7 +1746,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             throw new CheckException("Excel读取失败,请联系管理员");
         }
 
-        List<String> selfTitle = excelTitleBySupplier(req.getExcelType());
+        List<String>        selfTitle         = excelTitleBySupplier(req.getExcelType());
+        List<WorkOrderData> workOrderDataList = new ArrayList<>();
+
         if(null != data) {
             // 判断表头             数字9是读取模板标题名称（可能会改动）
             if(data.size() < 10)
@@ -1758,9 +1766,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             }
 
 
-            List<String>        workOrderDataIds  = Arrays.asList(req.getWorkOrderDataIds().split(","));
-            int                 index             = 0;
-            List<WorkOrderData> workOrderDataList = new ArrayList<>();
+            List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
+            int          index            = 0;
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
 
@@ -1776,18 +1783,25 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
                 }.getType());
 
+
                 if("1".equals(req.getExcelType())) {
+                    if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+                        bo.put(25, "0");
+                    }
                     map.put("img", bo.get(20));
                     map.put("imgTime", bo.get(21));
                     map.put("platPrice", bo.get(22));
                     map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
                     map.put("price", bo.get(24));
-                    map.put("commission", bo.get(25) == null ? "0" : bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                    map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
                     map.put("remark", bo.get(26));
                     //   Arrays.asList("星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
                 } else {
+                    if(bo.get(21) == null || bo.get(21).startsWith("不涉及")) {
+                        bo.put(21, "0");
+                    }
                     map.put("price", bo.get(20));
-                    map.put("commission", bo.get(21) == null ? "0" : bo.get(21).endsWith("%") ? bo.get(21).substring(0, bo.get(21).indexOf("%")) : bo.get(21));
+                    map.put("commission", bo.get(21).endsWith("%") ? bo.get(21).substring(0, bo.get(21).indexOf("%")) : bo.get(21));
                     map.put("remark", bo.get(22));
                     //Arrays.asList("总价（元）", "佣金", "备注");
                 }
@@ -1800,9 +1814,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 //                }
             }
             //供应商报价修改
-            updateBatchById(workOrderDataList);
+//            updateBatchById(workOrderDataList);
         }
-        return null;
+        return workOrderDataList.stream().map(x -> {
+            SupplierImportResp resp = new SupplierImportResp();
+            BeanUtils.copyProperties(x, resp);
+            return resp;
+        }).collect(Collectors.toList());
     }
 
     public void WorkOrderDataExport(List<WorkOrderData> orderData, HttpServletResponse response, String

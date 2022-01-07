@@ -2,6 +2,7 @@ package cn.weihu.kol.biz;
 
 import cn.weihu.kol.db.po.WorkOrderData;
 import cn.weihu.kol.http.req.*;
+import cn.weihu.kol.http.resp.SupplierImportResp;
 import cn.weihu.kol.http.resp.WorkOrderDataCompareResp;
 import cn.weihu.kol.http.resp.WorkOrderDataResp;
 import cn.weihu.kol.http.resp.WorkOrderDataScreeningResp;
@@ -59,7 +60,7 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType);
 
-    String supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
+    List<SupplierImportResp> supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
 
     String enquiryImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
 }
