@@ -598,17 +598,20 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             projectDao.insert(project);
         }
         log.info(">>> 保价即将到期项目已生成...");
+
         // 生成保价到期询价工单
         WorkOrder workOrderByTiktok = new WorkOrder();
         workOrderByTiktok.setProjectId(project.getId());
         workOrderByTiktok.setProjectName(nameByTiktok);
-        createWorkOrder(workOrderByTiktok);
-        log.info(">>> 保价即将到期工单（抖音快手）已生成...");
+
         WorkOrder workOrderByNotTiktok = new WorkOrder();
         workOrderByNotTiktok.setProjectId(project.getId());
         workOrderByNotTiktok.setProjectName(nameByNotTiktok);
-        createWorkOrder(workOrderByNotTiktok);
-        log.info(">>> 保价即将到期工单（非抖音快手）已生成...");
+
+
+        boolean falgByTiktok = false;
+        boolean falgByNotTiktok = false;
+
         // 生成工单数据及提醒消息
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
         WorkOrderData       workOrderDataXinYi;
@@ -642,9 +645,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDataWeiGe = new WorkOrderData();
 
             if("抖音".equals(media) || "快手".equals(media)) {
+                if(!falgByTiktok) {
+                    createWorkOrder(workOrderByTiktok);
+                    log.info(">>> 保价即将到期工单（抖音快手）已生成...");
+                    falgByTiktok = true;
+                }
                 workOrderDataXinYi.setWorkOrderId(workOrderByTiktok.getId());
                 workOrderDataWeiGe.setWorkOrderId(workOrderByTiktok.getId());
             } else {
+                if(!falgByNotTiktok) {
+                    createWorkOrder(workOrderByNotTiktok);
+                    log.info(">>> 保价即将到期工单（非抖音快手）已生成...");
+                    falgByNotTiktok = true;
+                }
                 workOrderDataXinYi.setWorkOrderId(workOrderByNotTiktok.getId());
                 workOrderDataWeiGe.setWorkOrderId(workOrderByNotTiktok.getId());
             }
@@ -684,49 +697,57 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             pricesBiz.updateBatchById(isReQuoteList);
         });
         //
-        WorkOrder workOrderXinYi = new WorkOrder();
-        workOrderXinYi.setOrderSn(workOrderByTiktok.getOrderSn());
-        workOrderXinYi.setName(workOrderByTiktok.getName());
-        workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
-        workOrderXinYi.setProjectId(workOrderByTiktok.getProjectId());
-        workOrderXinYi.setProjectName(workOrderByTiktok.getProjectName());
-        workOrderXinYi.setParentId(workOrderByTiktok.getId());
-        workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
-        workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
-        workOrderXinYi.setCtime(DateUtil.date());
-        workOrderXinYi.setUtime(DateUtil.date());
-        workOrderDao.insert(workOrderXinYi);
 
-        workOrderXinYi.setOrderSn(workOrderByNotTiktok.getOrderSn());
-        workOrderXinYi.setName(workOrderByNotTiktok.getName());
-        workOrderXinYi.setProjectId(workOrderByNotTiktok.getProjectId());
-        workOrderXinYi.setProjectName(workOrderByNotTiktok.getProjectName());
-        workOrderXinYi.setParentId(workOrderByNotTiktok.getId());
-        workOrderDao.insert(workOrderXinYi);
-
-        log.info(">>> 保价即将到期新意询价子工单(抖音快手，非抖音快手)已生成...");
         WorkOrder workOrderWeiGe = new WorkOrder();
-        workOrderWeiGe.setOrderSn(workOrderByTiktok.getOrderSn());
-        workOrderWeiGe.setName(workOrderByTiktok.getName());
         workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
-        workOrderWeiGe.setProjectId(workOrderByTiktok.getProjectId());
-        workOrderWeiGe.setProjectName(workOrderByTiktok.getProjectName());
-        workOrderWeiGe.setParentId(workOrderByTiktok.getId());
         workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
         workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_WEI_GE);
         workOrderWeiGe.setCtime(DateUtil.date());
         workOrderWeiGe.setUtime(DateUtil.date());
 
-        workOrderDao.insert(workOrderWeiGe);
+        WorkOrder workOrderXinYi = new WorkOrder();
+        workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
+        workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
+        workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
+        workOrderXinYi.setCtime(DateUtil.date());
+        workOrderXinYi.setUtime(DateUtil.date());
 
-        workOrderWeiGe.setOrderSn(workOrderByNotTiktok.getOrderSn());
-        workOrderWeiGe.setName(workOrderByNotTiktok.getName());
-        workOrderWeiGe.setProjectId(workOrderByNotTiktok.getProjectId());
-        workOrderWeiGe.setProjectName(workOrderByNotTiktok.getProjectName());
-        workOrderWeiGe.setParentId(workOrderByNotTiktok.getId());
 
-        workOrderDao.insert(workOrderWeiGe);
-        log.info(">>> 保价即将到期微格询价子工单(抖音快手，非抖音快手)已生成...");
+        if(!StringUtils.isBlank(workOrderByTiktok.getOrderSn())) {
+            workOrderXinYi.setOrderSn(workOrderByTiktok.getOrderSn());
+            workOrderXinYi.setName(workOrderByTiktok.getName());
+            workOrderXinYi.setProjectId(workOrderByTiktok.getProjectId());
+            workOrderXinYi.setProjectName(workOrderByTiktok.getProjectName());
+            workOrderXinYi.setParentId(workOrderByTiktok.getId());
+            workOrderDao.insert(workOrderXinYi);
+
+            workOrderWeiGe.setOrderSn(workOrderByTiktok.getOrderSn());
+            workOrderWeiGe.setName(workOrderByTiktok.getName());
+            workOrderWeiGe.setProjectId(workOrderByTiktok.getProjectId());
+            workOrderWeiGe.setProjectName(workOrderByTiktok.getProjectName());
+            workOrderWeiGe.setParentId(workOrderByTiktok.getId());
+            workOrderDao.insert(workOrderWeiGe);
+            log.info(">>> 保价即将到期新意,微格 询价子工单(抖音快手)已生成...");
+        }
+
+
+
+        if(!StringUtils.isBlank(workOrderByNotTiktok.getOrderSn())) {
+            workOrderXinYi.setOrderSn(workOrderByNotTiktok.getOrderSn());
+            workOrderXinYi.setName(workOrderByNotTiktok.getName());
+            workOrderXinYi.setProjectId(workOrderByNotTiktok.getProjectId());
+            workOrderXinYi.setProjectName(workOrderByNotTiktok.getProjectName());
+            workOrderXinYi.setParentId(workOrderByNotTiktok.getId());
+            workOrderDao.insert(workOrderXinYi);
+
+            workOrderWeiGe.setOrderSn(workOrderByNotTiktok.getOrderSn());
+            workOrderWeiGe.setName(workOrderByNotTiktok.getName());
+            workOrderWeiGe.setProjectId(workOrderByNotTiktok.getProjectId());
+            workOrderWeiGe.setProjectName(workOrderByNotTiktok.getProjectName());
+            workOrderWeiGe.setParentId(workOrderByNotTiktok.getId());
+            workOrderDao.insert(workOrderWeiGe);
+            log.info(">>> 保价即将到期新意,微格 询价子工单(非抖音快手)已生成...");
+        }
     }
 
     private void createWorkOrder(WorkOrder workOrder) {
