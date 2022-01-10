@@ -58,7 +58,7 @@ public interface WorkOrderDataBiz extends IService<WorkOrderData> {
 
     String remake(String workOrderDataId, String price);
 
-    void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType);
+    void workOrderDataTemplateExport (List<WorkOrderData> orderData, HttpServletResponse response, String excelName,String templateType,String isSupplier);
 
     List<SupplierImportResp> supplierImport(MultipartFile file, WorkOrderReq req, HttpServletResponse response);
 

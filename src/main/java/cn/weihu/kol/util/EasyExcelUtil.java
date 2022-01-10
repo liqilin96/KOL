@@ -97,7 +97,7 @@ public class EasyExcelUtil {
         }
     }
 
-    public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName, String templateType) {
+    public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName, String templateType, String isSupplier) {
         ExcelWriter excelWriter = null;
         try {
             //设置ConetentType CharacterEncoding Header,需要在excelWriter.write()之前设置
@@ -106,9 +106,17 @@ public class EasyExcelUtil {
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
             InputStream is = null;
             if("1".equals(templateType)) {
-                is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板.xlsx").getInputStream();
+                if(isSupplier != null) {
+                    is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板（供应商）.xlsx").getInputStream();
+                } else {
+                    is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板.xlsx").getInputStream();
+                }
             } else {
-                is = new ClassPathResource("【KOL】非抖音、快手询价单订单导出模板.xlsx").getInputStream();
+                if(isSupplier != null) {
+                    is = new ClassPathResource("【KOL】非抖音、快手询价单订单导出模板（供应商）.xlsx").getInputStream();
+                } else {
+                    is = new ClassPathResource("【KOL】非抖音、快手询价单订单导出模板.xlsx").getInputStream();
+                }
             }
 
             excelWriter = EasyExcel.write(response.getOutputStream())
@@ -126,10 +134,10 @@ public class EasyExcelUtil {
             Map<String, String> fillData = new HashMap<>();
 
             for(WorkOrderDataBo wb : excelList) {
-                if(wb.getCommission()!=null && wb.getCommission().matches("\\d+")) {
+                if(wb.getCommission() != null && wb.getCommission().matches("\\d+")) {
                     wb.setCommission(wb.getCommission() + "%");
                 }
-                if(wb.getSale()!=null && wb.getSale().matches("\\d+")) {
+                if(wb.getSale() != null && wb.getSale().matches("\\d+")) {
                     wb.setSale(wb.getSale() + "%");
                 }
                 total += Double.parseDouble(wb.getPrice() == null ? "0" : wb.getPrice());
