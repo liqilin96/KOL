@@ -1802,14 +1802,20 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     map.put("price", bo.get(24));
                     map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
                     map.put("remark", bo.get(26));
+                    map.put("fansCount", bo.get(27));
+                    map.put("scheduleStartTime", bo.get(28));
+                    map.put("scheduleEndTime", bo.get(29));
                     //   Arrays.asList("星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注");
                 } else {
-                    if(bo.get(21) == null || bo.get(21).startsWith("不涉及")) {
-                        bo.put(21, "0");
+                    if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+                        bo.put(22, "0");
                     }
-                    map.put("price", bo.get(20));
-                    map.put("commission", bo.get(21).endsWith("%") ? bo.get(21).substring(0, bo.get(21).indexOf("%")) : bo.get(21));
-                    map.put("remark", bo.get(22));
+                    map.put("price", bo.get(21));
+                    map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+                    map.put("remark", bo.get(23));
+                    map.put("fansCount", bo.get(24));
+                    map.put("scheduleStartTime", bo.get(25));
+                    map.put("scheduleEndTime", bo.get(26));
                     //Arrays.asList("总价（元）", "佣金", "备注");
                 }
                 orderData.setData(GsonUtils.gson.toJson(map));
@@ -1898,9 +1904,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     private List<String> excelTitleBySupplier(String type) {
         String arr[] = null;
         if("1".equals(type)) {
-            arr = new String[]{"星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注"};
+            arr = new String[]{"星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注", "粉丝数", "可发布开始时间", "发布结束时间"};
         } else {
-            arr = new String[]{"总价（元）", "佣金", "备注"};
+            arr = new String[]{"总价(元)", "佣金", "备注", "粉丝数", "可发布开始时间", "发布结束时间"};
         }
         return new ArrayList<>(Arrays.asList(arr));
     }
