@@ -153,6 +153,7 @@ public class WorkOrderDataController {
     public ResultBean<List<SupplierImportResp>> supplierImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
         CheckUtil.notNull(file, "上传的Excel数据文件为空");
         CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
+        CheckUtil.notEmpty(req.getWorkOrderDataIds(), "工单数据id不能为空");
         return new ResultBean<>(dataBiz.supplierImport(file, req, response));
     }
 

@@ -609,7 +609,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         workOrderByNotTiktok.setProjectName(nameByNotTiktok);
 
 
-        boolean falgByTiktok = false;
+        boolean falgByTiktok    = false;
         boolean falgByNotTiktok = false;
 
         // 生成工单数据及提醒消息
@@ -729,7 +729,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDao.insert(workOrderWeiGe);
             log.info(">>> 保价即将到期新意,微格 询价子工单(抖音快手)已生成...");
         }
-
 
 
         if(!StringUtils.isBlank(workOrderByNotTiktok.getOrderSn())) {
@@ -1836,65 +1835,78 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
             }
 
-            List<String> mediaList        = Arrays.asList("抖音", "快手", "微信", "微博", "小红书", "B站", "京东");
             List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
-            int          index            = 0;
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
-
-                if(!mediaList.contains(bo.get(0))) {
-                    log.info("跳过此次数据，行号：{}", x);
-                    continue;
-                }
-
-//                for(int i = list.size() - selfTitle.size(); i < list.size(); i++) {
-                if(index >= workOrderDataIds.size())
-                    break;
-                String orderDataId = workOrderDataIds.get(index);
-                index++;
-                WorkOrderData orderData = getById(orderDataId);
-                if(orderData == null)
-                    continue;
-
-                Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
-                }.getType());
-
-
-                if("1".equals(req.getExcelType())) {
-                    if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
-                        bo.put(25, "0");
-                    }
-                    map.put("img", bo.get(20));
-                    map.put("imgTime", bo.get(21));
-                    map.put("platPrice", bo.get(22));
-                    map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
-                    map.put("price", bo.get(24));
-                    map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
-                    map.put("fansCount", bo.get(26));
-                    map.put("scheduleStartTime", bo.get(27));
-                    map.put("scheduleEndTime", bo.get(28));
-                    map.put("priceOnlyDay", bo.get(29));
-                    map.put("remark", bo.get(30));
-                } else {
-                    if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
-                        bo.put(22, "0");
-                    }
-                    map.put("price", bo.get(21));
-                    map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
-                    map.put("fansCount", bo.get(23));
-                    map.put("scheduleStartTime", bo.get(24));
-                    map.put("scheduleEndTime", bo.get(25));
-                    map.put("priceOnlyDay", bo.get(26));
-                    map.put("remark", bo.get(27));
-
-                }
-                orderData.setData(GsonUtils.gson.toJson(map));
-                orderData.setId(Long.parseLong(orderDataId));
-                orderData.setUtime(new Date());
-                orderData.setUpdateUserId(UserInfoContext.getUserId());
-
-                workOrderDataList.add(orderData);
+                //actorNo = 平台+账号ID+资源 + MD5   0 +3 +5
+//                if(bo.get(0) == null || bo.get(3) == null || bo.get(5) == null) {
+//                   continue;
 //                }
+                //获取Excel中的 达人编号（唯一）
+                String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
+
+                for(String workOrderDataId : workOrderDataIds) {
+                    WorkOrderData orderData = getById(workOrderDataId);
+                    if(orderData == null)
+                        continue;
+
+                    Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
+                    }.getType());
+
+                    String actorSn = map.get(Constants.ACTOR_DATA_SN);
+                    if(actorNo.equalsIgnoreCase(actorSn)) {
+                        if("1".equals(req.getExcelType())) {
+                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+                                bo.put(25, "0");
+                            }
+                            map.put("img", bo.get(20));
+                            map.put("imgTime", bo.get(21));
+                            map.put("platPrice", bo.get(22));
+                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+                            map.put("price", bo.get(24));
+                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                            map.put("fansCount", bo.get(26));
+                            map.put("scheduleStartTime", bo.get(27));
+                            map.put("scheduleEndTime", bo.get(28));
+                            map.put("priceOnlyDay", bo.get(29));
+                            map.put("remark", bo.get(30));
+                        } else {
+                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+                                bo.put(22, "0");
+                            }
+                            map.put("price", bo.get(21));
+                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+                            map.put("fansCount", bo.get(23));
+                            map.put("scheduleStartTime", bo.get(24));
+                            map.put("scheduleEndTime", bo.get(25));
+                            map.put("priceOnlyDay", bo.get(26));
+                            map.put("remark", bo.get(27));
+
+                        }
+
+                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
+
+                        if(!workOrderDataOptional.isPresent()) {
+                            orderData.setData(GsonUtils.gson.toJson(map));
+                            orderData.setId(Long.parseLong(workOrderDataId));
+                            orderData.setUtime(new Date());
+                            orderData.setUpdateUserId(UserInfoContext.getUserId());
+                            workOrderDataList.add(orderData);
+                        } else {
+                            WorkOrderData work = workOrderDataOptional.get();
+                            work.setData(GsonUtils.gson.toJson(map));
+                            work.setUtime(new Date());
+                            work.setUpdateUserId(UserInfoContext.getUserId());
+                        }
+                        break;
+                    } else {
+                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
+                        if(!workOrderDataOptional.isPresent()) {
+                            workOrderDataList.add(orderData);
+                        }
+                    }
+                }
+
             }
             //供应商报价修改
 //            updateBatchById(workOrderDataList);
