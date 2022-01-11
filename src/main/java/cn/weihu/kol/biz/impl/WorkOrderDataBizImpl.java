@@ -84,8 +84,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
+        List<WorkOrder>                   orderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+        wrapper.in(WorkOrderData::getWorkOrderId, orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                 .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus());
         if(StringUtils.isNotBlank(req.getSupplier())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
@@ -445,17 +446,40 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
             workOrderDataList.add(workOrderData);
         }
+
+        Long xinyiId = 0L;
+        Long weigeId = 0L;
+        // 生成 询价/询档工单
+        if(existXinYi) {
+            xinyiId = createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_XIN_YI);
+        }
+        if(existWeiGe) {
+            weigeId = createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
+        }
+
+        for(WorkOrderData orderData : workOrderDataList) {
+            map = GsonUtils.gson.fromJson(orderData.getData(), type);
+            if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
+                orderData.setWorkOrderId(xinyiId);
+            } else {
+                orderData.setWorkOrderId(weigeId);
+            }
+        }
+
+        for(WorkOrderData data : workOrderDataListNew) {
+            map = GsonUtils.gson.fromJson(data.getData(), type);
+            if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
+                data.setWorkOrderId(xinyiId);
+            } else {
+                data.setWorkOrderId(weigeId);
+            }
+        }
+
         updateBatchById(workOrderDataList);
         if(!workOrderDataListNew.isEmpty()) {
             saveBatch(workOrderDataListNew);
         }
-        // 生成 询价/询档工单
-        if(existXinYi) {
-            createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_XIN_YI);
-        }
-        if(existWeiGe) {
-            createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
-        }
+
         // 更新需求工单状态
         if(exitAskWorkOrderData) {
             workOrder.setStatus(Constants.WORK_ORDER_ASK);
@@ -468,7 +492,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         return null;
     }
 
-    private void createPointWorkOrder(WorkOrder workOrder, Long userId) {
+    private Long createPointWorkOrder(WorkOrder workOrder, Long userId) {
         WorkOrder askWorkOrder = new WorkOrder();
         askWorkOrder.setOrderSn(workOrder.getOrderSn());
         askWorkOrder.setName(workOrder.getName());
@@ -483,6 +507,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         askWorkOrder.setCreateUserId(UserInfoContext.getUserId());
         askWorkOrder.setUpdateUserId(UserInfoContext.getUserId());
         workOrderDao.insert(askWorkOrder);
+        return askWorkOrder.getId();
     }
 
     @Override
