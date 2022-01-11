@@ -85,9 +85,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Override
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
         List<WorkOrder>                   orderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
-        LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        if(orderList==null || orderList.size() ==0) {
-            wrapper.eq(WorkOrderData::getWorkOrderId,req.getWorkOrderId());
+        LambdaQueryWrapper<WorkOrderData> wrapper   = Wrappers.lambdaQuery(WorkOrderData.class);
+        if(orderList == null || orderList.size() == 0) {
+            wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
         } else {
             wrapper.in(WorkOrderData::getWorkOrderId, orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                     .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus());
@@ -465,9 +465,18 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderData orderData : workOrderDataList) {
             map = GsonUtils.gson.fromJson(orderData.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                orderData.setWorkOrderId(xinyiId);
+                //合并
+                if(xinyiId!=0) {
+                    orderData.setWorkOrderId(xinyiId);
+                } else {
+                    orderData.setWorkOrderId(weigeId);
+                }
             } else {
-                orderData.setWorkOrderId(weigeId);
+                if(weigeId!=0) {
+                    orderData.setWorkOrderId(weigeId);
+                } else {
+                    orderData.setWorkOrderId(xinyiId);
+                }
             }
         }
 
@@ -858,7 +867,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         // 更新父工单状态
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
 //        wrapper.eq(WorkOrderData::getWorkOrderId, workOrder.getParentId())
-        wrapper.in(WorkOrderData::getWorkOrderId,workOrderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
+        wrapper.in(WorkOrderData::getWorkOrderId, workOrderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
         List<WorkOrderData> list = list(wrapper);
         if(CollectionUtils.isEmpty(list)) {
@@ -1066,8 +1075,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         updateBatchById(workOrderDataList);
 
         // 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
-        List<WorkOrder>                   orderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
-        List<WorkOrderData> list2 = list(new LambdaQueryWrapper<>(WorkOrderData.class).in(WorkOrderData::getWorkOrderId,orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
+        List<WorkOrder> orderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+        List<WorkOrderData> list2 = list(new LambdaQueryWrapper<>(WorkOrderData.class).in(WorkOrderData::getWorkOrderId, orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                                                  .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
         for(WorkOrderData unSelect : list2) {
             map = GsonUtils.gson.fromJson(unSelect.getData(), type);
@@ -1551,8 +1560,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     @Override
     public void quoteListExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
 
-        LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        List<WorkOrder>                   workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+        LambdaQueryWrapper<WorkOrderData> wrapper    = new LambdaQueryWrapper<>();
+        wrapper.in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()));
         List<WorkOrderData> orderData = null;
 
         wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(data, \"$.account\"))");
@@ -1563,6 +1573,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         } else {
             //按序号导出
             String[] split = req.getWorkerOrderDataIds().split(",");
+            wrapper.clear();
             wrapper.in(WorkOrderData::getId, Arrays.asList(split));
             orderData = baseMapper.selectList(wrapper);
         }
