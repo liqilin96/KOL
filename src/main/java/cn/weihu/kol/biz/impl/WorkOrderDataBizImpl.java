@@ -86,8 +86,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     public List<WorkOrderDataResp> workOrderDataList(WorkOrderDataReq req) {
         List<WorkOrder>                   orderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.in(WorkOrderData::getWorkOrderId, orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
-                .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus());
+        if(orderList==null || orderList.size() ==0) {
+            wrapper.eq(WorkOrderData::getWorkOrderId,req.getWorkOrderId());
+        } else {
+            wrapper.in(WorkOrderData::getWorkOrderId, orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
+                    .eq(StringUtils.isNotBlank(req.getStatus()), WorkOrderData::getStatus, req.getStatus());
+        }
+
         if(StringUtils.isNotBlank(req.getSupplier())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
         }
