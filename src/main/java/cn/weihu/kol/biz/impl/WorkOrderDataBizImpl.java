@@ -851,9 +851,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         workOrder.setUpdateUserId(UserInfoContext.getUserId());
         workOrder.setUtime(DateUtil.date());
         workOrderDao.updateById(workOrder);
+
+        //根据parentId查找对应子工单
+        List<WorkOrder> workOrderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, workOrder.getParentId()));
+
         // 更新父工单状态
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.eq(WorkOrderData::getWorkOrderId, workOrder.getParentId())
+//        wrapper.eq(WorkOrderData::getWorkOrderId, workOrder.getParentId())
+        wrapper.in(WorkOrderData::getWorkOrderId,workOrderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                 .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_PRICE, Constants.WORK_ORDER_DATA_ASK_DATE);
         List<WorkOrderData> list = list(wrapper);
         if(CollectionUtils.isEmpty(list)) {
@@ -1060,8 +1065,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         updateBatchById(workOrderDataList);
 
-// 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
-        List<WorkOrderData> list2 = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+        // 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
+        List<WorkOrder>                   orderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+        List<WorkOrderData> list2 = list(new LambdaQueryWrapper<>(WorkOrderData.class).in(WorkOrderData::getWorkOrderId,orderList.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                                                  .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
         for(WorkOrderData unSelect : list2) {
             map = GsonUtils.gson.fromJson(unSelect.getData(), type);
