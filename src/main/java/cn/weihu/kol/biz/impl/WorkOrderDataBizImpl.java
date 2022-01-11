@@ -584,9 +584,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             throw new CheckException("重新询价数据不存在");
         }
         // 创建保价即将到期项目   (分别抖音快手和非抖音快手)
-        String name            = "保价即将到期";
-        String nameByTiktok    = "保价即将到期(抖音快手)";
-        String nameByNotTiktok = "保价即将到期(非抖音快手)";
+        String name = "保价即将到期";
+//        String nameByTiktok    = "保价即将到期(抖音快手)";
+//        String nameByNotTiktok = "保价即将到期(非抖音快手)";
 
         Project project = projectDao.selectOne(new LambdaQueryWrapper<>(Project.class).eq(Project::getName, name));
         if(Objects.isNull(project)) {
@@ -602,15 +602,18 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         // 生成保价到期询价工单
         WorkOrder workOrderByTiktok = new WorkOrder();
         workOrderByTiktok.setProjectId(project.getId());
-        workOrderByTiktok.setProjectName(nameByTiktok);
+        workOrderByTiktok.setProjectName(name);
 
         WorkOrder workOrderByNotTiktok = new WorkOrder();
         workOrderByNotTiktok.setProjectId(project.getId());
-        workOrderByNotTiktok.setProjectName(nameByNotTiktok);
+        workOrderByNotTiktok.setProjectName(name);
 
 
         boolean falgByTiktok    = false;
         boolean falgByNotTiktok = false;
+        boolean falg            = false;
+
+        long xinyiTiktok = 0, xinyiNotTiktok = 0, weigeTiktok = 0, weigeNotTiktok = 0;
 
         // 生成工单数据及提醒消息
         List<WorkOrderData> workOrderDataList = new ArrayList<>();
@@ -646,21 +649,95 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             if("抖音".equals(media) || "快手".equals(media)) {
                 if(!falgByTiktok) {
+                    WorkOrder workOrderWeiGe = new WorkOrder();
+                    workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
+                    workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
+                    workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_WEI_GE);
+                    workOrderWeiGe.setCtime(DateUtil.date());
+                    workOrderWeiGe.setUtime(DateUtil.date());
+
+                    WorkOrder workOrderXinYi = new WorkOrder();
+                    workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
+                    workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
+                    workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
+                    workOrderXinYi.setCtime(DateUtil.date());
+                    workOrderXinYi.setUtime(DateUtil.date());
+
+                    workOrderByTiktok.setProjectName(name + "（抖音快手）");
                     createWorkOrder(workOrderByTiktok);
                     log.info(">>> 保价即将到期工单（抖音快手）已生成...");
                     falgByTiktok = true;
+                    if(!StringUtils.isBlank(workOrderByTiktok.getOrderSn())) {
+                        workOrderXinYi.setOrderSn(workOrderByTiktok.getOrderSn());
+                        workOrderXinYi.setName(workOrderByTiktok.getName());
+                        workOrderXinYi.setProjectId(workOrderByTiktok.getProjectId());
+                        workOrderXinYi.setProjectName(workOrderByTiktok.getProjectName());
+                        workOrderXinYi.setParentId(workOrderByTiktok.getId());
+                        workOrderDao.insert(workOrderXinYi);
+
+                        xinyiTiktok = workOrderXinYi.getId();
+
+                        workOrderWeiGe.setOrderSn(workOrderByTiktok.getOrderSn());
+                        workOrderWeiGe.setName(workOrderByTiktok.getName());
+                        workOrderWeiGe.setProjectId(workOrderByTiktok.getProjectId());
+                        workOrderWeiGe.setProjectName(workOrderByTiktok.getProjectName());
+                        workOrderWeiGe.setParentId(workOrderByTiktok.getId());
+                        workOrderDao.insert(workOrderWeiGe);
+                        weigeTiktok = workOrderWeiGe.getId();
+                        log.info(">>> 保价即将到期新意,微格 询价子工单(抖音快手)已生成...");
+                    }
                 }
-                workOrderDataXinYi.setWorkOrderId(workOrderByTiktok.getId());
-                workOrderDataWeiGe.setWorkOrderId(workOrderByTiktok.getId());
             } else {
                 if(!falgByNotTiktok) {
+                    workOrderByNotTiktok.setProjectName(name + "（非抖音快手）");
                     createWorkOrder(workOrderByNotTiktok);
                     log.info(">>> 保价即将到期工单（非抖音快手）已生成...");
                     falgByNotTiktok = true;
+
+                    WorkOrder workOrderWeiGe = new WorkOrder();
+                    workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
+                    workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
+                    workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_WEI_GE);
+                    workOrderWeiGe.setCtime(DateUtil.date());
+                    workOrderWeiGe.setUtime(DateUtil.date());
+
+                    WorkOrder workOrderXinYi = new WorkOrder();
+                    workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
+                    workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
+                    workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
+                    workOrderXinYi.setCtime(DateUtil.date());
+                    workOrderXinYi.setUtime(DateUtil.date());
+
+                    if(!StringUtils.isBlank(workOrderByNotTiktok.getOrderSn())) {
+                        workOrderXinYi.setOrderSn(workOrderByNotTiktok.getOrderSn());
+                        workOrderXinYi.setName(workOrderByNotTiktok.getName());
+                        workOrderXinYi.setProjectId(workOrderByNotTiktok.getProjectId());
+                        workOrderXinYi.setProjectName(workOrderByNotTiktok.getProjectName());
+                        workOrderXinYi.setParentId(workOrderByNotTiktok.getId());
+                        workOrderDao.insert(workOrderXinYi);
+
+                        xinyiNotTiktok = workOrderXinYi.getId();
+
+                        workOrderWeiGe.setOrderSn(workOrderByNotTiktok.getOrderSn());
+                        workOrderWeiGe.setName(workOrderByNotTiktok.getName());
+                        workOrderWeiGe.setProjectId(workOrderByNotTiktok.getProjectId());
+                        workOrderWeiGe.setProjectName(workOrderByNotTiktok.getProjectName());
+                        workOrderWeiGe.setParentId(workOrderByNotTiktok.getId());
+                        workOrderDao.insert(workOrderWeiGe);
+                        weigeNotTiktok = workOrderWeiGe.getId();
+                        log.info(">>> 保价即将到期新意,微格 询价子工单(非抖音快手)已生成...");
+                    }
                 }
-                workOrderDataXinYi.setWorkOrderId(workOrderByNotTiktok.getId());
-                workOrderDataWeiGe.setWorkOrderId(workOrderByNotTiktok.getId());
             }
+
+            if("抖音".equals(media) || "快手".equals(media)) {
+                workOrderDataXinYi.setWorkOrderId(xinyiTiktok);
+                workOrderDataWeiGe.setWorkOrderId(weigeTiktok);
+            } else {
+                workOrderDataXinYi.setWorkOrderId(xinyiNotTiktok);
+                workOrderDataWeiGe.setWorkOrderId(weigeNotTiktok);
+            }
+
 
             compareFlag = StringUtils.join(media,
                                            map.get(Constants.TITLE_ID_OR_LINK),
@@ -694,59 +771,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 //        saveBatch(workOrderDataList,workOrderDataList.size());
         threadPool.execute(() -> {
             workOrderDataDao.insertBatch(workOrderDataList);
-            pricesBiz.updateBatchById(isReQuoteList);
         });
-        //
+        //异步会导致消息延迟，无法及时刷新
+        pricesBiz.updateBatchById(isReQuoteList);
 
-        WorkOrder workOrderWeiGe = new WorkOrder();
-        workOrderWeiGe.setType(Constants.WORK_ORDER_ENQUIRY);
-        workOrderWeiGe.setStatus(Constants.WORK_ORDER_ASK);
-        workOrderWeiGe.setToUser(StartupRunner.SUPPLIER_USER_WEI_GE);
-        workOrderWeiGe.setCtime(DateUtil.date());
-        workOrderWeiGe.setUtime(DateUtil.date());
-
-        WorkOrder workOrderXinYi = new WorkOrder();
-        workOrderXinYi.setType(Constants.WORK_ORDER_ENQUIRY);
-        workOrderXinYi.setStatus(Constants.WORK_ORDER_ASK);
-        workOrderXinYi.setToUser(StartupRunner.SUPPLIER_USER_XIN_YI);
-        workOrderXinYi.setCtime(DateUtil.date());
-        workOrderXinYi.setUtime(DateUtil.date());
-
-
-        if(!StringUtils.isBlank(workOrderByTiktok.getOrderSn())) {
-            workOrderXinYi.setOrderSn(workOrderByTiktok.getOrderSn());
-            workOrderXinYi.setName(workOrderByTiktok.getName());
-            workOrderXinYi.setProjectId(workOrderByTiktok.getProjectId());
-            workOrderXinYi.setProjectName(workOrderByTiktok.getProjectName());
-            workOrderXinYi.setParentId(workOrderByTiktok.getId());
-            workOrderDao.insert(workOrderXinYi);
-
-            workOrderWeiGe.setOrderSn(workOrderByTiktok.getOrderSn());
-            workOrderWeiGe.setName(workOrderByTiktok.getName());
-            workOrderWeiGe.setProjectId(workOrderByTiktok.getProjectId());
-            workOrderWeiGe.setProjectName(workOrderByTiktok.getProjectName());
-            workOrderWeiGe.setParentId(workOrderByTiktok.getId());
-            workOrderDao.insert(workOrderWeiGe);
-            log.info(">>> 保价即将到期新意,微格 询价子工单(抖音快手)已生成...");
-        }
-
-
-        if(!StringUtils.isBlank(workOrderByNotTiktok.getOrderSn())) {
-            workOrderXinYi.setOrderSn(workOrderByNotTiktok.getOrderSn());
-            workOrderXinYi.setName(workOrderByNotTiktok.getName());
-            workOrderXinYi.setProjectId(workOrderByNotTiktok.getProjectId());
-            workOrderXinYi.setProjectName(workOrderByNotTiktok.getProjectName());
-            workOrderXinYi.setParentId(workOrderByNotTiktok.getId());
-            workOrderDao.insert(workOrderXinYi);
-
-            workOrderWeiGe.setOrderSn(workOrderByNotTiktok.getOrderSn());
-            workOrderWeiGe.setName(workOrderByNotTiktok.getName());
-            workOrderWeiGe.setProjectId(workOrderByNotTiktok.getProjectId());
-            workOrderWeiGe.setProjectName(workOrderByNotTiktok.getProjectName());
-            workOrderWeiGe.setParentId(workOrderByNotTiktok.getId());
-            workOrderDao.insert(workOrderWeiGe);
-            log.info(">>> 保价即将到期新意,微格 询价子工单(非抖音快手)已生成...");
-        }
     }
 
     private void createWorkOrder(WorkOrder workOrder) {
@@ -812,8 +840,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public WorkOrderDataCompareResp quoteList(WorkOrderDataReq req) {
+
+        List<WorkOrder> workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+
         List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
-                                                .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                                                .in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()))
                                                 .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE));
         WorkOrderDataCompareResp resp = null;
         if(!CollectionUtils.isEmpty(list)) {
@@ -997,13 +1028,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             pricesLogs.setUpdateUserId(UserInfoContext.getUserId());
             pricesLogsList.add(pricesLogs);
         }
+        updateBatchById(workOrderDataList);
 
 // 处理未勾选的报价数据状态(过滤直接审核通过的数据) 新增至报价表
         List<WorkOrderData> list2 = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
                                                  .notIn(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW, Constants.WORK_ORDER_DATA_REVIEW_PASS));
-
         for(WorkOrderData unSelect : list2) {
-
             map = GsonUtils.gson.fromJson(unSelect.getData(), type);
             if("0".equals(map.get(Constants.ACTOR_INBOUND))) {
                 //报价库
@@ -1012,7 +1042,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 quote.setActorSn(map.get(Constants.ACTOR_DATA_SN));
                 quote.setActorData(unSelect.getData());
                 quote.setCommission(StringUtils.isNotBlank(map.get(Constants.ACTOR_COMMISSION)) ?
-                                    Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : null);
+                                    (!"不涉及".equals(map.get(Constants.ACTOR_COMMISSION)) ? Integer.parseInt(map.get(Constants.ACTOR_COMMISSION)) : 0) : null);
                 quote.setPrice(StringUtils.isNotBlank(map.get(Constants.ACTOR_PRICE)) ?
                                Double.parseDouble(map.get(Constants.ACTOR_PRICE)) : null);
                 quote.setProvider(map.get(Constants.ACTOR_PROVIDER));
@@ -1027,7 +1057,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             }
         }
 
-        updateBatchById(workOrderDataList);
         if(!CollectionUtils.isEmpty(pricesList)) {
             pricesBiz.saveBatch(pricesList);
         }
@@ -1398,8 +1427,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public void supplierExport(WorkOrderBatchUpdateReq req, HttpServletResponse response) {
+
+        List<WorkOrder> workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+        wrapper.in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()));
         if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
             // 新意
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_XIN_YI);
@@ -1835,7 +1867,18 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 throw new CheckException("Excel文件标题不匹配,请勿修改或重新下载模版");
             }
 
-            List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
+            //重新询价的工单数据集合
+            List<WorkOrderData> reList = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId()));
+
+
+            Map<String, WorkOrderData> workOrderDataMap = reList.stream().collect(Collectors.toMap(x -> {
+                Map<String, String> map = GsonUtils.gson.fromJson(x.getData(), new TypeToken<Map<String, String>>() {
+                }.getType());
+                String actorSn = map.get(Constants.ACTOR_DATA_SN);
+                return actorSn;
+            }, a -> a, (k1, k2) -> k1));
+
+//            List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
                 //actorNo = 平台+账号ID+资源 + MD5   0 +3 +5
@@ -1845,67 +1888,111 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 //获取Excel中的 达人编号（唯一）
                 String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
 
-                for(String workOrderDataId : workOrderDataIds) {
-                    WorkOrderData orderData = getById(workOrderDataId);
-                    if(orderData == null)
-                        continue;
-
-                    Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
+                if(workOrderDataMap.containsKey(actorNo)) {
+                    WorkOrderData workOrderData = workOrderDataMap.get(actorNo);
+                    Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
                     }.getType());
-
-                    String actorSn = map.get(Constants.ACTOR_DATA_SN);
-                    if(actorNo.equalsIgnoreCase(actorSn)) {
-                        if("1".equals(req.getExcelType())) {
-                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
-                                bo.put(25, "0");
-                            }
-                            map.put("img", bo.get(20));
-                            map.put("imgTime", bo.get(21));
-                            map.put("platPrice", bo.get(22));
-                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
-                            map.put("price", bo.get(24));
-                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
-                            map.put("fansCount", bo.get(26));
-                            map.put("scheduleStartTime", bo.get(27));
-                            map.put("scheduleEndTime", bo.get(28));
-                            map.put("priceOnlyDay", bo.get(29));
-                            map.put("remark", bo.get(30));
-                        } else {
-                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
-                                bo.put(22, "0");
-                            }
-                            map.put("price", bo.get(21));
-                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
-                            map.put("fansCount", bo.get(23));
-                            map.put("scheduleStartTime", bo.get(24));
-                            map.put("scheduleEndTime", bo.get(25));
-                            map.put("priceOnlyDay", bo.get(26));
-                            map.put("remark", bo.get(27));
-
+                    if("1".equals(req.getExcelType())) {
+                        if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+                            bo.put(25, "0");
                         }
-
-                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
-
-                        if(!workOrderDataOptional.isPresent()) {
-                            orderData.setData(GsonUtils.gson.toJson(map));
-                            orderData.setId(Long.parseLong(workOrderDataId));
-                            orderData.setUtime(new Date());
-                            orderData.setUpdateUserId(UserInfoContext.getUserId());
-                            workOrderDataList.add(orderData);
-                        } else {
-                            WorkOrderData work = workOrderDataOptional.get();
-                            work.setData(GsonUtils.gson.toJson(map));
-                            work.setUtime(new Date());
-                            work.setUpdateUserId(UserInfoContext.getUserId());
-                        }
-                        break;
+                        map.put("img", bo.get(20));
+                        map.put("imgTime", bo.get(21));
+                        map.put("platPrice", bo.get(22));
+                        map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+                        map.put("price", bo.get(24));
+                        map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                        map.put("fansCount", bo.get(26));
+                        map.put("scheduleStartTime", bo.get(27));
+                        map.put("scheduleEndTime", bo.get(28));
+                        map.put("priceOnlyDay", bo.get(29));
+                        map.put("remark", bo.get(30));
                     } else {
-                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
-                        if(!workOrderDataOptional.isPresent()) {
-                            workOrderDataList.add(orderData);
+                        if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+                            bo.put(22, "0");
                         }
+                        map.put("price", bo.get(21));
+                        map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+                        map.put("fansCount", bo.get(23));
+                        map.put("scheduleStartTime", bo.get(24));
+                        map.put("scheduleEndTime", bo.get(25));
+                        map.put("priceOnlyDay", bo.get(26));
+                        map.put("remark", bo.get(27));
+
                     }
+                    workOrderData.setData(GsonUtils.gson.toJson(map));
+                    workOrderData.setId(workOrderData.getId());
+                    workOrderData.setUtime(new Date());
+                    workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+                    workOrderDataList.add(workOrderData);
                 }
+
+//                else {
+//                    continue;
+////                    throw  new CheckException("达人信息数据不一致,请勿修改数据");
+//                }
+
+//                for(String workOrderDataId : workOrderDataIds) {
+//                    WorkOrderData orderData = getById(workOrderDataId);
+//                    if(orderData == null)
+//                        continue;
+//
+//                    Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
+//                    }.getType());
+//
+//                    String actorSn = map.get(Constants.ACTOR_DATA_SN);
+//                    if(actorNo.equalsIgnoreCase(actorSn)) {
+//                        if("1".equals(req.getExcelType())) {
+//                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+//                                bo.put(25, "0");
+//                            }
+//                            map.put("img", bo.get(20));
+//                            map.put("imgTime", bo.get(21));
+//                            map.put("platPrice", bo.get(22));
+//                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+//                            map.put("price", bo.get(24));
+//                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+//                            map.put("fansCount", bo.get(26));
+//                            map.put("scheduleStartTime", bo.get(27));
+//                            map.put("scheduleEndTime", bo.get(28));
+//                            map.put("priceOnlyDay", bo.get(29));
+//                            map.put("remark", bo.get(30));
+//                        } else {
+//                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+//                                bo.put(22, "0");
+//                            }
+//                            map.put("price", bo.get(21));
+//                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+//                            map.put("fansCount", bo.get(23));
+//                            map.put("scheduleStartTime", bo.get(24));
+//                            map.put("scheduleEndTime", bo.get(25));
+//                            map.put("priceOnlyDay", bo.get(26));
+//                            map.put("remark", bo.get(27));
+//
+//                        }
+//
+//                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
+//
+//                        if(!workOrderDataOptional.isPresent()) {
+//                            orderData.setData(GsonUtils.gson.toJson(map));
+//                            orderData.setId(Long.parseLong(workOrderDataId));
+//                            orderData.setUtime(new Date());
+//                            orderData.setUpdateUserId(UserInfoContext.getUserId());
+//                            workOrderDataList.add(orderData);
+//                        } else {
+//                            WorkOrderData work = workOrderDataOptional.get();
+//                            work.setData(GsonUtils.gson.toJson(map));
+//                            work.setUtime(new Date());
+//                            work.setUpdateUserId(UserInfoContext.getUserId());
+//                        }
+//                        break;
+//                    } else {
+//                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
+//                        if(!workOrderDataOptional.isPresent()) {
+//                            workOrderDataList.add(orderData);
+//                        }
+//                    }
+//                }
 
             }
             //供应商报价修改

@@ -103,7 +103,7 @@ public class WorkOrderDataController {
     @ApiOperation(value = "报价待确认列表", httpMethod = "GET", notes = "报价待确认列表")
     @GetMapping(value = "/quote/list")
     public ResultBean<WorkOrderDataCompareResp> quoteList(WorkOrderDataReq req) {
-        CheckUtil.notNull(req.getWorkOrderId(), "需求工单ID不能为空");
+        CheckUtil.notNull(req.getWorkOrderId(), "需求父工单ID不能为空");
         return new ResultBean<>(dataBiz.quoteList(req));
     }
 
@@ -153,7 +153,7 @@ public class WorkOrderDataController {
     public ResultBean<List<SupplierImportResp>> supplierImport(@RequestParam("file") MultipartFile file, WorkOrderReq req, HttpServletResponse response) {
         CheckUtil.notNull(file, "上传的Excel数据文件为空");
         CheckUtil.notEmpty(req.getExcelType(), "Excel类型不能为空");
-        CheckUtil.notEmpty(req.getWorkOrderDataIds(), "工单数据id不能为空");
+        CheckUtil.notEmpty(req.getWorkOrderId(), "工单id不能为空");
         return new ResultBean<>(dataBiz.supplierImport(file, req, response));
     }
 
