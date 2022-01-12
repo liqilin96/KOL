@@ -462,12 +462,17 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             weigeId = createPointWorkOrder(workOrder, StartupRunner.SUPPLIER_USER_WEI_GE);
         }
 
+        //为工单数据赋值父工单id
+        if(xinyiId == 0 && weigeId == 0) {
+            xinyiId = req.getWorkOrderId();
+            weigeId = req.getWorkOrderId();
+        }
         for(WorkOrderData orderData : workOrderDataList) {
             map = GsonUtils.gson.fromJson(orderData.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                orderData.setWorkOrderId(xinyiId==0?weigeId:xinyiId);
+                orderData.setWorkOrderId(xinyiId == 0 ? weigeId : xinyiId);
             } else {
-                orderData.setWorkOrderId(weigeId==0?xinyiId:weigeId);
+                orderData.setWorkOrderId(weigeId == 0 ? xinyiId : weigeId);
             }
         }
 
@@ -909,9 +914,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
         List<WorkOrder> workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
 
-        List<WorkOrderData> list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
-                                                .in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()))
-                                                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE));
+        List<WorkOrderData> list = null;
+
+        //如果条件成立则说明父工单没有生成子工单
+        if(workOrders == null || workOrders.size() == 0) {
+            list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+                                .eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+                                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE));
+        } else {
+            list = list(new LambdaQueryWrapper<>(WorkOrderData.class)
+                                .in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()))
+                                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_QUOTE));
+        }
+
         WorkOrderDataCompareResp resp = null;
         if(!CollectionUtils.isEmpty(list)) {
             resp = new WorkOrderDataCompareResp();
@@ -958,6 +973,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
     }
 
     @Override
+    @Transactional
     public Long order(WorkOrderDataOrderReq req) {
         if(CollectionUtils.isEmpty(req.getWorkOrderDataIds())) {
             throw new CheckException("下单工单数据不能为空");
@@ -1138,12 +1154,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
 
         if(!CollectionUtils.isEmpty(pricesList)) {
-            System.out.println("-------------------------------------------------------");
-            pricesBiz.saveOrUpdateBatch(pricesList);
-            System.out.println("===========================================");
+            threadPool.execute(() -> {
+                pricesBiz.saveOrUpdateBatch(pricesList, pricesList.size());
+            });
         }
         if(!CollectionUtils.isEmpty(pricesLogsList)) {
-            pricesLogsBiz.saveBatch(pricesLogsList);
+            pricesLogsBiz.saveBatch(pricesLogsList, pricesLogsList.size());
         }
         if(!CollectionUtils.isEmpty(quoteList)) {
             quoteBiz.batchSaveOrUpdate(quoteList);
