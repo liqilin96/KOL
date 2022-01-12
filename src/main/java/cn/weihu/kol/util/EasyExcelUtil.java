@@ -106,6 +106,7 @@ public class EasyExcelUtil {
             response.setHeader("Content-disposition", "attachment;filename=" + java.net.URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
             InputStream is = null;
             if("1".equals(templateType)) {
+                log.info("========================================================模板类型：{}" ,templateType);
                 if(isSupplier != null) {
                     is = new ClassPathResource("【KOL】抖音、快手询价单订单导出模板（供应商）.xlsx").getInputStream();
                 } else {
