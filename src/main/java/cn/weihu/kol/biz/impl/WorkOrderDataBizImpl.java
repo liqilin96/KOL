@@ -474,13 +474,13 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderData data : workOrderDataListNew) {
             map = GsonUtils.gson.fromJson(data.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                if(xinyiId!=0) {
+                if(xinyiId != 0) {
                     data.setWorkOrderId(xinyiId);
                 } else {
                     data.setWorkOrderId(weigeId);
                 }
             } else {
-                if(weigeId!=0) {
+                if(weigeId != 0) {
                     data.setWorkOrderId(weigeId);
                 } else {
                     data.setWorkOrderId(xinyiId);
@@ -548,8 +548,25 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(CollectionUtils.isEmpty(req.getList())) {
             throw new CheckException("重新询价数据不能为空");
         }
-        WorkOrder           workOrder = workOrderDao.selectById(req.getWorkOrderId());
-        List<WorkOrderData> list      = new ArrayList<>();
+        WorkOrder workOrder = workOrderDao.selectById(req.getWorkOrderId());
+
+        List<WorkOrder> workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, workOrder.getId()).eq(WorkOrder::getName, workOrder.getName()));
+        //补供应商工单数据
+        long xinyiId  = 0L;
+        long weigeiId = 0L;
+        if(workOrders.size() < 2) {
+            for(WorkOrder order : workOrders) {
+                //防止子工单错误创建
+                order.setId(order.getParentId());
+                if(order.getToUser() == StartupRunner.SUPPLIER_USER_XIN_YI) {
+                    weigeiId = createPointWorkOrder(order, StartupRunner.SUPPLIER_USER_WEI_GE);
+                } else {
+                    xinyiId = createPointWorkOrder(order, StartupRunner.SUPPLIER_USER_XIN_YI);
+                }
+            }
+        }
+
+        List<WorkOrderData> list = new ArrayList<>();
         WorkOrderData       workOrderData;
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
@@ -569,6 +586,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             } else {
                 workOrderData.setStatus(Constants.WORK_ORDER_DATA_ASK_PRICE);
             }
+            if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD)) && xinyiId != 0) {
+                workOrderData.setWorkOrderId(xinyiId);
+            }
+            if(Constants.SUPPLIER_WEI_GE.equals(map.get(Constants.SUPPLIER_FIELD)) && weigeiId != 0) {
+                workOrderData.setWorkOrderId(weigeiId);
+            }
             workOrderData.setData(workOrderDataUpdateReq.getData());
             workOrderData.setUtime(DateUtil.date());
             workOrderData.setUpdateUserId(UserInfoContext.getUserId());
@@ -582,7 +605,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 existWeiGe = true;
             }
         }
-        updateBatchById(list);
         // 更新询价子工单状态
         if(existXinYi) {
             workOrder = new WorkOrder();
@@ -604,6 +626,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     .eq(WorkOrder::getParentId, req.getWorkOrderId())
                     .eq(WorkOrder::getToUser, StartupRunner.SUPPLIER_USER_WEI_GE));
         }
+        updateBatchById(list);
         // 更新工单状态
         workOrder = new WorkOrder();
         workOrder.setId(req.getWorkOrderId());
@@ -1102,7 +1125,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
 
         if(!CollectionUtils.isEmpty(pricesList)) {
-            pricesBiz.saveBatch(pricesList);
+            pricesBiz.saveOrUpdateBatch(pricesList);
         }
         if(!CollectionUtils.isEmpty(pricesLogsList)) {
             pricesLogsBiz.saveBatch(pricesLogsList);
@@ -1475,7 +1498,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         List<WorkOrder> workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
 
         LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
-        wrapper.in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()));
+        wrapper.in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()))
+                .in(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_ASK_DATE, Constants.WORK_ORDER_DATA_ASK_PRICE);
         if(StartupRunner.SUPPLIER_USER_XIN_YI == UserInfoContext.getUserId()) {
             // 新意
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", Constants.SUPPLIER_XIN_YI);
@@ -1938,45 +1962,34 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     WorkOrderData workOrderData = workOrderDataMap.get(actorNo);
                     Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
                     }.getType());
-                    List<Prices> pricesList = pricesBiz.getListActorSn(actorNo);
-                    //库内数据只需填写“询档开始时间和询档结束时间”
-                    if(pricesList != null && pricesList.size() > 0) {
-                        if("1".equals(req.getExcelType())) {
-                            map.put("scheduleStartTime", bo.get(27));
-                            map.put("scheduleEndTime", bo.get(28));
-                        } else {
-                            map.put("scheduleStartTime", bo.get(24));
-                            map.put("scheduleEndTime", bo.get(25));
-                        }
-                    } else {
-                        if("1".equals(req.getExcelType())) {
-                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
-                                bo.put(25, "0");
-                            }
-                            map.put("img", bo.get(20));
-                            map.put("imgTime", bo.get(21));
-                            map.put("platPrice", bo.get(22));
-                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
-                            map.put("price", bo.get(24));
-                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
-                            map.put("fansCount", bo.get(26));
-                            map.put("scheduleStartTime", bo.get(27));
-                            map.put("scheduleEndTime", bo.get(28));
-                            map.put("priceOnlyDay", bo.get(29));
-                            map.put("remark", bo.get(30));
-                        } else {
-                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
-                                bo.put(22, "0");
-                            }
-                            map.put("price", bo.get(21));
-                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
-                            map.put("fansCount", bo.get(23));
-                            map.put("scheduleStartTime", bo.get(24));
-                            map.put("scheduleEndTime", bo.get(25));
-                            map.put("priceOnlyDay", bo.get(26));
-                            map.put("remark", bo.get(27));
 
+                    if("1".equals(req.getExcelType())) {
+                        if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+                            bo.put(25, "0");
                         }
+                        map.put("img", bo.get(20));
+                        map.put("imgTime", bo.get(21));
+                        map.put("platPrice", bo.get(22));
+                        map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+                        map.put("price", bo.get(24));
+                        map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                        map.put("fansCount", bo.get(26));
+                        map.put("scheduleStartTime", bo.get(27));
+                        map.put("scheduleEndTime", bo.get(28));
+                        map.put("priceOnlyDay", bo.get(29));
+                        map.put("remark", bo.get(30));
+                    } else {
+                        if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+                            bo.put(22, "0");
+                        }
+                        map.put("price", bo.get(21));
+                        map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+                        map.put("fansCount", bo.get(23));
+                        map.put("scheduleStartTime", bo.get(24));
+                        map.put("scheduleEndTime", bo.get(25));
+                        map.put("priceOnlyDay", bo.get(26));
+                        map.put("remark", bo.get(27));
+
                     }
 
                     workOrderData.setData(GsonUtils.gson.toJson(map));
