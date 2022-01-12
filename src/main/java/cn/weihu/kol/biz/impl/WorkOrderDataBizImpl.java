@@ -474,9 +474,17 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderData data : workOrderDataListNew) {
             map = GsonUtils.gson.fromJson(data.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                data.setWorkOrderId(weigeId);
+                if(xinyiId!=0) {
+                    data.setWorkOrderId(xinyiId);
+                } else {
+                    data.setWorkOrderId(weigeId);
+                }
             } else {
-                data.setWorkOrderId(xinyiId);
+                if(weigeId!=0) {
+                    data.setWorkOrderId(weigeId);
+                } else {
+                    data.setWorkOrderId(xinyiId);
+                }
             }
         }
 
@@ -1930,9 +1938,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     WorkOrderData workOrderData = workOrderDataMap.get(actorNo);
                     Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
                     }.getType());
-
+                    List<Prices> pricesList = pricesBiz.getListActorSn(actorNo);
                     //库内数据只需填写“询档开始时间和询档结束时间”
-                    if("0".equals(req.getInbound())) {
+                    if(pricesList != null && pricesList.size() > 0) {
                         if("1".equals(req.getExcelType())) {
                             map.put("scheduleStartTime", bo.get(27));
                             map.put("scheduleEndTime", bo.get(28));
