@@ -465,9 +465,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderData orderData : workOrderDataList) {
             map = GsonUtils.gson.fromJson(orderData.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                orderData.setWorkOrderId(xinyiId);
+                orderData.setWorkOrderId(xinyiId==0?weigeId:xinyiId);
             } else {
-                orderData.setWorkOrderId(weigeId);
+                orderData.setWorkOrderId(weigeId==0?xinyiId:weigeId);
             }
         }
 
@@ -1070,6 +1070,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 prices.setCreateUserId(UserInfoContext.getUserId());
                 prices.setUpdateUserId(UserInfoContext.getUserId());
                 prices.setPriceOnlyDay(workOrderData.getPriceOnlyDay());
+
+                //KOL资源库有则替换，没有则新增
+                List<Prices> pricesInKOL = pricesBiz.getListActorSn(actorSn);
+
+                if(pricesInKOL != null && pricesInKOL.size() > 0) {
+                    for(Prices p : pricesInKOL) {
+                        if(screeningOther(p.getActorData(), prices.getActorData())) {
+                            prices.setId(p.getId());
+                            prices.setIsReQuote(0);
+                            break;
+                        }
+                    }
+                }
                 pricesList.add(prices);
             }
             // 报价记录表
@@ -1125,7 +1138,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
 
         if(!CollectionUtils.isEmpty(pricesList)) {
+            System.out.println("-------------------------------------------------------");
             pricesBiz.saveOrUpdateBatch(pricesList);
+            System.out.println("===========================================");
         }
         if(!CollectionUtils.isEmpty(pricesLogsList)) {
             pricesLogsBiz.saveBatch(pricesLogsList);
@@ -1850,7 +1865,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         List<String> selfTitle = workOrderBiz.excelTitle(req.getExcelType());
 
-        selfTitle.addAll(excelTitleBySupplier(req.getExcelType()));
+        selfTitle.addAll(excelTitle(req.getExcelType()));
 
         if(null != data) {
             // 判断表头             数字9是读取模板标题名称（可能会改动）
@@ -1873,6 +1888,12 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             WorkOrderBatchUpdateReq      reqAgain                   = new WorkOrderBatchUpdateReq();
             List<WorkOrderDataUpdateReq> workOrderDataUpdateReqList = new ArrayList<>();
 
+            //找到父工单id
+            List<WorkOrder> workOrderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+
+            List<Long> idList = workOrderList.stream().map(WorkOrder::getId).collect(Collectors.toList());
+
+
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
                 //actorNo = 平台+账号ID+资源 + MD5   0 +3 +5
@@ -1881,7 +1902,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 }
                 String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
                 wrapper.clear();
-                wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+//                wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
+                wrapper.in(WorkOrderData::getWorkOrderId, idList);
                 wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data, \"$.actorSn\")) = {0}", actorNo);
 
                 List<WorkOrderData> workOrderData = baseMapper.selectList(wrapper);
@@ -1897,6 +1919,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     workOrderDataUpdateReqList.add(updateReq);
                 }
             }
+            reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
             reqAgain.setList(workOrderDataUpdateReqList);
             again(reqAgain);
         }
@@ -2148,6 +2171,20 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             arr = new String[]{"星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "粉丝数", "可发布开始时间", "发布结束时间", "仅保价一天", "备注"};
         } else {
             arr = new String[]{"总价(元)", "佣金", "粉丝数", "可发布开始时间", "发布结束时间", "仅保价一天", "备注"};
+        }
+        return new ArrayList<>(Arrays.asList(arr));
+    }
+
+    /**
+     * @param type 1是抖音快手模板，其他是非抖音快手模板
+     * @return 供应商填写模板表头
+     */
+    private List<String> excelTitle(String type) {
+        String arr[] = null;
+        if("1".equals(type)) {
+            arr = new String[]{"星图/快接单平台截图", "截图时间", "星图/快接单平台报价（元）", "折扣（%）", "执行报价（元）", "佣金", "备注"};
+        } else {
+            arr = new String[]{"总价(元)", "佣金", "备注"};
         }
         return new ArrayList<>(Arrays.asList(arr));
     }
