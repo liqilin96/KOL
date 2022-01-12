@@ -49,4 +49,8 @@ public class WorkOrderReq {
 
     @ApiModelProperty(value = "工单id")
     private String workOrderId;
+
+    @ApiModelProperty(value = "是否 库内 0 库内  1 库外")
+    private String inbound;
+
 }

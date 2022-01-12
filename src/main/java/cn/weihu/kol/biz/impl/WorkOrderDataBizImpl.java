@@ -465,27 +465,18 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         for(WorkOrderData orderData : workOrderDataList) {
             map = GsonUtils.gson.fromJson(orderData.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                //合并
-                if(xinyiId!=0) {
-                    orderData.setWorkOrderId(xinyiId);
-                } else {
-                    orderData.setWorkOrderId(weigeId);
-                }
+                orderData.setWorkOrderId(xinyiId);
             } else {
-                if(weigeId!=0) {
-                    orderData.setWorkOrderId(weigeId);
-                } else {
-                    orderData.setWorkOrderId(xinyiId);
-                }
+                orderData.setWorkOrderId(weigeId);
             }
         }
 
         for(WorkOrderData data : workOrderDataListNew) {
             map = GsonUtils.gson.fromJson(data.getData(), type);
             if(Constants.SUPPLIER_XIN_YI.equals(map.get(Constants.SUPPLIER_FIELD))) {
-                data.setWorkOrderId(xinyiId);
-            } else {
                 data.setWorkOrderId(weigeId);
+            } else {
+                data.setWorkOrderId(xinyiId);
             }
         }
 
@@ -1939,34 +1930,47 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                     WorkOrderData workOrderData = workOrderDataMap.get(actorNo);
                     Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
                     }.getType());
-                    if("1".equals(req.getExcelType())) {
-                        if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
-                            bo.put(25, "0");
-                        }
-                        map.put("img", bo.get(20));
-                        map.put("imgTime", bo.get(21));
-                        map.put("platPrice", bo.get(22));
-                        map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
-                        map.put("price", bo.get(24));
-                        map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
-                        map.put("fansCount", bo.get(26));
-                        map.put("scheduleStartTime", bo.get(27));
-                        map.put("scheduleEndTime", bo.get(28));
-                        map.put("priceOnlyDay", bo.get(29));
-                        map.put("remark", bo.get(30));
-                    } else {
-                        if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
-                            bo.put(22, "0");
-                        }
-                        map.put("price", bo.get(21));
-                        map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
-                        map.put("fansCount", bo.get(23));
-                        map.put("scheduleStartTime", bo.get(24));
-                        map.put("scheduleEndTime", bo.get(25));
-                        map.put("priceOnlyDay", bo.get(26));
-                        map.put("remark", bo.get(27));
 
+                    //库内数据只需填写“询档开始时间和询档结束时间”
+                    if("0".equals(req.getInbound())) {
+                        if("1".equals(req.getExcelType())) {
+                            map.put("scheduleStartTime", bo.get(27));
+                            map.put("scheduleEndTime", bo.get(28));
+                        } else {
+                            map.put("scheduleStartTime", bo.get(24));
+                            map.put("scheduleEndTime", bo.get(25));
+                        }
+                    } else {
+                        if("1".equals(req.getExcelType())) {
+                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+                                bo.put(25, "0");
+                            }
+                            map.put("img", bo.get(20));
+                            map.put("imgTime", bo.get(21));
+                            map.put("platPrice", bo.get(22));
+                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+                            map.put("price", bo.get(24));
+                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                            map.put("fansCount", bo.get(26));
+                            map.put("scheduleStartTime", bo.get(27));
+                            map.put("scheduleEndTime", bo.get(28));
+                            map.put("priceOnlyDay", bo.get(29));
+                            map.put("remark", bo.get(30));
+                        } else {
+                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+                                bo.put(22, "0");
+                            }
+                            map.put("price", bo.get(21));
+                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+                            map.put("fansCount", bo.get(23));
+                            map.put("scheduleStartTime", bo.get(24));
+                            map.put("scheduleEndTime", bo.get(25));
+                            map.put("priceOnlyDay", bo.get(26));
+                            map.put("remark", bo.get(27));
+
+                        }
                     }
+
                     workOrderData.setData(GsonUtils.gson.toJson(map));
                     workOrderData.setId(workOrderData.getId());
                     workOrderData.setUtime(new Date());
