@@ -1909,31 +1909,90 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             List<Long> idList = workOrderList.stream().map(WorkOrder::getId).collect(Collectors.toList());
 
+            wrapper.in(WorkOrderData::getWorkOrderId, idList);
+
+            List<WorkOrderData> workOrderData = baseMapper.selectList(wrapper);
+            if(workOrderData == null || workOrderData.size() == 0) {
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+
+            Map<String, WorkOrderData> workOrderDataMap = workOrderData.stream().collect(Collectors.toMap(x -> {
+                Map<String, String> map = GsonUtils.gson.fromJson(x.getData(), new TypeToken<Map<String, String>>() {
+                }.getType());
+                //平台+账户id+资源报价
+                String media     = map.get("media");
+                String IDorLink  = map.get("IDorLink");
+                String address   = map.get("address");
+                String at        = map.get("at") == null ? "" : map.get("at");
+                String topic     = map.get("topic") == null ? "" : map.get("topic");
+                String linkPrice = map.get("linkPrice") == null ? "" : map.get("linkPrice");
+                String shareAuth = map.get("shareAuth") == null ? "" : map.get("shareAuth");
+                String storeAuth = map.get("storeAuth") == null ? "" : map.get("storeAuth");
+                String msgAuth   = map.get("msgAuth") == null ? "" : map.get("msgAuth");
+                String face      = map.get("face") == null ? "" : map.get("face");
+
+                if("1".equals(req.getExcelType())) {
+                    sb.delete(0, sb.length());
+                    //@+话题+电商链接+双微转发+电商肖像授权+信息流授权+星图/快接单+线下探店      ====>抖音快手权益
+                    String star = map.get("star") == null ? "" : map.get("star");
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(star).append(face);
+                    return MD5Util.getMD5(sb.toString());
+                } else {
+                    sb.delete(0, sb.length());
+                    //@+话题+电商链接+双微转发+电商肖像授权+信息流授权+微任务（微博）+报备（小红书）+线下探店      ====>非 抖音快手权益
+                    String microTask = map.get("microTask") == null ? "" : map.get("microTask");
+                    String report    = map.get("report") == null ? "" : map.get("report");
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(microTask).append(report).append(face);
+                    return MD5Util.getMD5(sb.toString());
+                }
+
+            }, a -> a, (k1, k2) -> k1));
+
 
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
-                //actorNo = 平台+账号ID+资源 + MD5   0 +3 +5
-                if(bo.get(0) == null || bo.get(3) == null || bo.get(5) == null) {
-                    break;
-                }
-                String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
-                wrapper.clear();
-//                wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId());
-                wrapper.in(WorkOrderData::getWorkOrderId, idList);
-                wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data, \"$.actorSn\")) = {0}", actorNo);
 
-                List<WorkOrderData> workOrderData = baseMapper.selectList(wrapper);
-                if(workOrderData == null || workOrderData.size() == 0) {
-                    break;
+                String media     = bo.get(0) == null ? "" : bo.get(0);
+                String IDorLink  = bo.get(3) == null ? "" : bo.get(3);
+                String address   = bo.get(5) == null ? "" : bo.get(5);
+                String at        = bo.get(9) == null ? "" : bo.get(9);
+                String topic     = bo.get(10) == null ? "" : bo.get(10);
+                String linkPrice = bo.get(11) == null ? "" : bo.get(11);
+                String shareAuth = bo.get(12) == null ? "" : bo.get(12);
+                String storeAuth = bo.get(13) == null ? "" : bo.get(13);
+                String msgAuth   = bo.get(14) == null ? "" : bo.get(14);
+
+                if("1".equals(req.getExcelType())) {
+                    sb.delete(0, sb.length());
+                    String star = bo.get(15) == null ? "" : bo.get(15);
+                    String face = bo.get(16) == null ? "" : bo.get(16);
+
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(star).append(face);
+                } else {
+                    sb.delete(0, sb.length());
+                    //@+话题+电商链接+双微转发+电商肖像授权+信息流授权+微任务（微博）+报备（小红书）+线下探店      ====>非 抖音快手权益
+                    String microTask = bo.get(15) == null ? "" : bo.get(15);
+                    String report    = bo.get(16) == null ? "" : bo.get(16);
+                    String face      = bo.get(17) == null ? "" : bo.get(17);
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(microTask).append(report).append(face);
+                }
+
+                //获取Excel中的 平台+账户id+资源报价+权益 （唯一标识）
+                String no = MD5Util.getMD5(sb.toString());
+                WorkOrderData workOrderDatum = workOrderDataMap.get(no);
+                if(workOrderDatum == null) {
+                    continue;
                 }
                 reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
-                WorkOrderDataUpdateReq updateReq = null;
-                for(WorkOrderData workOrderDatum : workOrderData) {
-                    updateReq = new WorkOrderDataUpdateReq();
+                WorkOrderDataUpdateReq updateReq = new WorkOrderDataUpdateReq();
                     updateReq.setData(workOrderDatum.getData());
                     updateReq.setId(workOrderDatum.getId());
                     workOrderDataUpdateReqList.add(updateReq);
-                }
             }
             reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
             reqAgain.setList(workOrderDataUpdateReqList);
@@ -1979,26 +2038,78 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             //重新询价的工单数据集合
             List<WorkOrderData> reList = list(new LambdaQueryWrapper<>(WorkOrderData.class).eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId()));
 
+            StringBuilder sb = new StringBuilder();
 
             Map<String, WorkOrderData> workOrderDataMap = reList.stream().collect(Collectors.toMap(x -> {
                 Map<String, String> map = GsonUtils.gson.fromJson(x.getData(), new TypeToken<Map<String, String>>() {
                 }.getType());
-                String actorSn = map.get(Constants.ACTOR_DATA_SN);
-                return actorSn;
+                //平台+账户id+资源报价
+                String media     = map.get("media");
+                String IDorLink  = map.get("IDorLink");
+                String address   = map.get("address");
+                String at        = map.get("at") == null ? "" : map.get("at");
+                String topic     = map.get("topic") == null ? "" : map.get("topic");
+                String linkPrice = map.get("linkPrice") == null ? "" : map.get("linkPrice");
+                String shareAuth = map.get("shareAuth") == null ? "" : map.get("shareAuth");
+                String storeAuth = map.get("storeAuth") == null ? "" : map.get("storeAuth");
+                String msgAuth   = map.get("msgAuth") == null ? "" : map.get("msgAuth");
+                String face      = map.get("face") == null ? "" : map.get("face");
+
+                if("1".equals(req.getExcelType())) {
+                    sb.delete(0, sb.length());
+                    //@+话题+电商链接+双微转发+电商肖像授权+信息流授权+星图/快接单+线下探店      ====>抖音快手权益
+                    String star = map.get("star") == null ? "" : map.get("star");
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(star).append(face);
+                    return MD5Util.getMD5(sb.toString());
+                } else {
+                    sb.delete(0, sb.length());
+                    //@+话题+电商链接+双微转发+电商肖像授权+信息流授权+微任务（微博）+报备（小红书）+线下探店      ====>非 抖音快手权益
+                    String microTask = map.get("microTask") == null ? "" : map.get("microTask");
+                    String report    = map.get("report") == null ? "" : map.get("report");
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(microTask).append(report).append(face);
+                    return MD5Util.getMD5(sb.toString());
+                }
+
             }, a -> a, (k1, k2) -> k1));
 
-//            List<String> workOrderDataIds = Arrays.asList(req.getWorkOrderDataIds().split(","));
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
-                //actorNo = 平台+账号ID+资源 + MD5   0 +3 +5
-//                if(bo.get(0) == null || bo.get(3) == null || bo.get(5) == null) {
-//                   continue;
-//                }
-                //获取Excel中的 达人编号（唯一）
-                String actorNo = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(5));
 
-                if(workOrderDataMap.containsKey(actorNo)) {
-                    WorkOrderData workOrderData = workOrderDataMap.get(actorNo);
+                String media     = bo.get(0) == null ? "" : bo.get(0);
+                String IDorLink  = bo.get(3) == null ? "" : bo.get(3);
+                String address   = bo.get(5) == null ? "" : bo.get(5);
+                String at        = bo.get(9) == null ? "" : bo.get(9);
+                String topic     = bo.get(10) == null ? "" : bo.get(10);
+                String linkPrice = bo.get(11) == null ? "" : bo.get(11);
+                String shareAuth = bo.get(12) == null ? "" : bo.get(12);
+                String storeAuth = bo.get(13) == null ? "" : bo.get(13);
+                String msgAuth   = bo.get(14) == null ? "" : bo.get(14);
+
+                if("1".equals(req.getExcelType())) {
+                    sb.delete(0, sb.length());
+                    String star = bo.get(15) == null ? "" : bo.get(15);
+                    String face = bo.get(16) == null ? "" : bo.get(16);
+
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(star).append(face);
+                } else {
+                    sb.delete(0, sb.length());
+                    //@+话题+电商链接+双微转发+电商肖像授权+信息流授权+微任务（微博）+报备（小红书）+线下探店      ====>非 抖音快手权益
+                    String microTask = bo.get(15) == null ? "" : bo.get(15);
+                    String report    = bo.get(16) == null ? "" : bo.get(16);
+                    String face      = bo.get(17) == null ? "" : bo.get(17);
+                    sb.append(media).append(IDorLink).append(address).append(at)
+                            .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(microTask).append(report).append(face);
+                }
+
+                //获取Excel中的 平台+账户id+资源报价+权益 （唯一标识）
+                String no = MD5Util.getMD5(sb.toString());
+
+
+                if(workOrderDataMap.containsKey(no)) {
+                    WorkOrderData workOrderData = workOrderDataMap.get(no);
                     Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
                     }.getType());
 
