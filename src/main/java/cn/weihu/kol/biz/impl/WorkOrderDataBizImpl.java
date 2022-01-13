@@ -1902,7 +1902,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             //重新询价
             WorkOrderBatchUpdateReq      reqAgain                   = new WorkOrderBatchUpdateReq();
-            List<WorkOrderDataUpdateReq> workOrderDataUpdateReqList = new ArrayList<>();
+            Set<WorkOrderDataUpdateReq> workOrderDataUpdateReqSet = new HashSet<>();
 
             //找到父工单id
             List<WorkOrder> workOrderList = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
@@ -1917,7 +1917,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             }
             StringBuilder sb = new StringBuilder();
 
-            Map<String, WorkOrderData> workOrderDataMap = workOrderData.stream().collect(Collectors.toMap(x -> {
+
+            Map<String, List<WorkOrderData>> workOrderDataMap = workOrderData.stream().collect(Collectors.groupingBy(x -> {
                 Map<String, String> map = GsonUtils.gson.fromJson(x.getData(), new TypeToken<Map<String, String>>() {
                 }.getType());
                 //平台+账户id+资源报价
@@ -1948,8 +1949,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                             .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(microTask).append(report).append(face);
                     return MD5Util.getMD5(sb.toString());
                 }
+            }, Collectors.mapping(x -> x, Collectors.toList())));
 
-            }, a -> a, (k1, k2) -> k1));
 
 
             for(int x = 10; x < data.size(); x++) {
@@ -1983,19 +1984,24 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 }
 
                 //获取Excel中的 平台+账户id+资源报价+权益 （唯一标识）
-                String no = MD5Util.getMD5(sb.toString());
-                WorkOrderData workOrderDatum = workOrderDataMap.get(no);
+                String        no             = MD5Util.getMD5(sb.toString());
+                List<WorkOrderData> workOrderDatum = workOrderDataMap.get(no);
                 if(workOrderDatum == null) {
                     continue;
                 }
+                WorkOrderDataUpdateReq updateReq = null;
+
                 reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
-                WorkOrderDataUpdateReq updateReq = new WorkOrderDataUpdateReq();
-                    updateReq.setData(workOrderDatum.getData());
-                    updateReq.setId(workOrderDatum.getId());
-                    workOrderDataUpdateReqList.add(updateReq);
+                for(WorkOrderData orderData : workOrderDatum) {
+                    updateReq= new WorkOrderDataUpdateReq();
+                    updateReq.setData(orderData.getData());
+                    updateReq.setId(orderData.getId());
+                    workOrderDataUpdateReqSet.add(updateReq);
+                }
+
             }
             reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
-            reqAgain.setList(workOrderDataUpdateReqList);
+            reqAgain.setList(workOrderDataUpdateReqSet.stream().collect(Collectors.toList()));
             again(reqAgain);
         }
         return null;
@@ -2040,7 +2046,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             StringBuilder sb = new StringBuilder();
 
-            Map<String, WorkOrderData> workOrderDataMap = reList.stream().collect(Collectors.toMap(x -> {
+            Map<String, List<WorkOrderData>> workOrderDataMap = reList.stream().collect(Collectors.groupingBy(x -> {
                 Map<String, String> map = GsonUtils.gson.fromJson(x.getData(), new TypeToken<Map<String, String>>() {
                 }.getType());
                 //平台+账户id+资源报价
@@ -2071,8 +2077,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                             .append(topic).append(linkPrice).append(shareAuth).append(storeAuth).append(msgAuth).append(microTask).append(report).append(face);
                     return MD5Util.getMD5(sb.toString());
                 }
-
-            }, a -> a, (k1, k2) -> k1));
+            }, Collectors.mapping(x -> x, Collectors.toList())));
 
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
@@ -2109,112 +2114,51 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
 
                 if(workOrderDataMap.containsKey(no)) {
-                    WorkOrderData workOrderData = workOrderDataMap.get(no);
-                    Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
-                    }.getType());
-
-                    if("1".equals(req.getExcelType())) {
-                        if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
-                            bo.put(25, "0");
-                        }
-                        map.put("img", bo.get(20));
-                        map.put("imgTime", bo.get(21));
-                        map.put("platPrice", bo.get(22));
-                        map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
-                        map.put("price", bo.get(24));
-                        map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
-                        map.put("fansCount", bo.get(26));
-                        map.put("scheduleStartTime", bo.get(27));
-                        map.put("scheduleEndTime", bo.get(28));
-                        map.put("priceOnlyDay", bo.get(29));
-                        map.put("remark", bo.get(30));
-                    } else {
-                        if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
-                            bo.put(22, "0");
-                        }
-                        map.put("price", bo.get(21));
-                        map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
-                        map.put("fansCount", bo.get(23));
-                        map.put("scheduleStartTime", bo.get(24));
-                        map.put("scheduleEndTime", bo.get(25));
-                        map.put("priceOnlyDay", bo.get(26));
-                        map.put("remark", bo.get(27));
-
+                    List<WorkOrderData> workOrderDatas = workOrderDataMap.get(no);
+                    if(workOrderDatas == null) {
+                        continue;
                     }
 
-                    workOrderData.setData(GsonUtils.gson.toJson(map));
-                    workOrderData.setId(workOrderData.getId());
-                    workOrderData.setUtime(new Date());
-                    workOrderData.setUpdateUserId(UserInfoContext.getUserId());
-                    workOrderDataList.add(workOrderData);
+                    for(WorkOrderData workOrderData : workOrderDatas) {
+                        Map<String, String> map = GsonUtils.gson.fromJson(workOrderData.getData(), new TypeToken<Map<String, String>>() {
+                        }.getType());
+
+                        if("1".equals(req.getExcelType())) {
+                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
+                                bo.put(25, "0");
+                            }
+                            map.put("img", bo.get(20));
+                            map.put("imgTime", bo.get(21));
+                            map.put("platPrice", bo.get(22));
+                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
+                            map.put("price", bo.get(24));
+                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
+                            map.put("fansCount", bo.get(26));
+                            map.put("scheduleStartTime", bo.get(27));
+                            map.put("scheduleEndTime", bo.get(28));
+                            map.put("priceOnlyDay", bo.get(29));
+                            map.put("remark", bo.get(30));
+                        } else {
+                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
+                                bo.put(22, "0");
+                            }
+                            map.put("price", bo.get(21));
+                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
+                            map.put("fansCount", bo.get(23));
+                            map.put("scheduleStartTime", bo.get(24));
+                            map.put("scheduleEndTime", bo.get(25));
+                            map.put("priceOnlyDay", bo.get(26));
+                            map.put("remark", bo.get(27));
+
+                        }
+                        workOrderData.setData(GsonUtils.gson.toJson(map));
+                        workOrderData.setId(workOrderData.getId());
+                        workOrderData.setUtime(new Date());
+                        workOrderData.setUpdateUserId(UserInfoContext.getUserId());
+                        workOrderDataList.add(workOrderData);
+                    }
+
                 }
-
-//                else {
-//                    continue;
-////                    throw  new CheckException("达人信息数据不一致,请勿修改数据");
-//                }
-
-//                for(String workOrderDataId : workOrderDataIds) {
-//                    WorkOrderData orderData = getById(workOrderDataId);
-//                    if(orderData == null)
-//                        continue;
-//
-//                    Map<String, String> map = GsonUtils.gson.fromJson(orderData.getData(), new TypeToken<Map<String, String>>() {
-//                    }.getType());
-//
-//                    String actorSn = map.get(Constants.ACTOR_DATA_SN);
-//                    if(actorNo.equalsIgnoreCase(actorSn)) {
-//                        if("1".equals(req.getExcelType())) {
-//                            if(bo.get(25) == null || bo.get(25).startsWith("不涉及")) {
-//                                bo.put(25, "0");
-//                            }
-//                            map.put("img", bo.get(20));
-//                            map.put("imgTime", bo.get(21));
-//                            map.put("platPrice", bo.get(22));
-//                            map.put("sale", bo.get(23) == null ? "0" : bo.get(23).endsWith("%") ? bo.get(23).substring(0, bo.get(23).indexOf("%")) : bo.get(23));
-//                            map.put("price", bo.get(24));
-//                            map.put("commission", bo.get(25).endsWith("%") ? bo.get(25).substring(0, bo.get(25).indexOf("%")) : bo.get(25));
-//                            map.put("fansCount", bo.get(26));
-//                            map.put("scheduleStartTime", bo.get(27));
-//                            map.put("scheduleEndTime", bo.get(28));
-//                            map.put("priceOnlyDay", bo.get(29));
-//                            map.put("remark", bo.get(30));
-//                        } else {
-//                            if(bo.get(22) == null || bo.get(22).startsWith("不涉及")) {
-//                                bo.put(22, "0");
-//                            }
-//                            map.put("price", bo.get(21));
-//                            map.put("commission", bo.get(22).endsWith("%") ? bo.get(22).substring(0, bo.get(22).indexOf("%")) : bo.get(22));
-//                            map.put("fansCount", bo.get(23));
-//                            map.put("scheduleStartTime", bo.get(24));
-//                            map.put("scheduleEndTime", bo.get(25));
-//                            map.put("priceOnlyDay", bo.get(26));
-//                            map.put("remark", bo.get(27));
-//
-//                        }
-//
-//                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
-//
-//                        if(!workOrderDataOptional.isPresent()) {
-//                            orderData.setData(GsonUtils.gson.toJson(map));
-//                            orderData.setId(Long.parseLong(workOrderDataId));
-//                            orderData.setUtime(new Date());
-//                            orderData.setUpdateUserId(UserInfoContext.getUserId());
-//                            workOrderDataList.add(orderData);
-//                        } else {
-//                            WorkOrderData work = workOrderDataOptional.get();
-//                            work.setData(GsonUtils.gson.toJson(map));
-//                            work.setUtime(new Date());
-//                            work.setUpdateUserId(UserInfoContext.getUserId());
-//                        }
-//                        break;
-//                    } else {
-//                        Optional<WorkOrderData> workOrderDataOptional = workOrderDataList.stream().filter(a -> workOrderDataId.equals(a.getId().toString())).findFirst();
-//                        if(!workOrderDataOptional.isPresent()) {
-//                            workOrderDataList.add(orderData);
-//                        }
-//                    }
-//                }
 
             }
             //供应商报价修改
