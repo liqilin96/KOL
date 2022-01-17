@@ -62,4 +62,7 @@ public class WorkOrderData implements Serializable {
     @ApiModelProperty(value = "逻辑删除")
     @TableLogic
     private String isDelete;
+
+    @ApiModelProperty(value = "虚拟列，账户")
+    private String account;
 }

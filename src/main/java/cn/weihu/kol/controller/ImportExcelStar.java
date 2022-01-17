@@ -49,6 +49,8 @@ public class ImportExcelStar {
     @Autowired
     private UserBiz userBiz;
 
+    private List<String> starList = new ArrayList<>();
+
 
     @ApiOperation(value = "初始化达人数据导入", httpMethod = "POST", notes = "初始化达人数据导入")
     @PostMapping("/import")
@@ -96,6 +98,14 @@ public class ImportExcelStar {
 
         for(int x = 1; x < data.size(); x++) {
             LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
+
+            String md5 = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(6));
+            if(starList.contains(md5)) {
+                continue;
+            } else {
+                starList.add(md5);
+            }
+
             if(!"重新制作".equals(bo.get(6)) && !"违约费用".equals(bo.get(6))) {
                 prices = new Prices();
                 String provider = bo.get(22);
@@ -225,7 +235,7 @@ public class ImportExcelStar {
             pricesBiz.savePrices(prices);
         }
 
-        return new ResultBean<>("导入OK了");
+        return new ResultBean<>("导入OK了,导入数据共：" + starList.size());
     }
 
 

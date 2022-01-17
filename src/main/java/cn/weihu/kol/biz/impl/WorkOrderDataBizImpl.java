@@ -96,7 +96,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         if(StringUtils.isNotBlank(req.getSupplier())) {
             wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
         }
-        wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(data, \"$.account\"))");
+        wrapper.groupBy(WorkOrderData::getAccount);
+//        wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(data, \"$.account\"))");
 
         List<WorkOrderData> list = list(wrapper);
         //拼凑违约记录数据

@@ -16,6 +16,7 @@
         <result column="update_user_id" property="updateUserId" />
         <result column="price_only_day" property="priceOnlyDay" />
         <result column="is_delete" property="isDelete" />
+        <result column="account" property="account" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
