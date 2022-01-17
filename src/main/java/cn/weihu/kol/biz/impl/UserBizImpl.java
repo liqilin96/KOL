@@ -183,7 +183,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 //        }
         UserInfo             userInfo = redisUtils.getUserInfoByUsername(req.getUsername());
         User                 user;
-        List<String>         roles    = null;
+        List<Integer>        roles    = null;
         List<PermissionResp> permissionResps;
         if(Objects.isNull(userInfo)) {
             user = baseMapper.selectOne(new LambdaQueryWrapper<>(User.class).eq(User::getUsername, req.getUsername()));
@@ -201,7 +201,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
                 permissionResps = PermissionConverter.list2BoList(permissions);
                 userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
                                         user.getPassword(), user.getName(), permissionResps);
-                userInfo.setRoleIds(roles);
+                userInfo.setRoleIds(roles.stream().map(x -> x + "").collect(Collectors.toList()));
                 // 是否超级管理员
                 userInfo.setIsAdmin("admin".equalsIgnoreCase(req.getUsername()));
             }
@@ -220,7 +220,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         redisUtils.setUserInfoByToken(auth, userInfo);
         log.info(">>> 用户登录:{}", req.getUsername());
         request.getSession().setAttribute("userInfo", userInfo);
-        return new LoginResp(userInfo.getUserId(),req.getUsername(), userInfo.getRoleIds(), auth, msgKey, permissionResps);
+        return new LoginResp(req.getUsername(), userInfo.getRoleIds(), auth, msgKey, permissionResps);
     }
 
     @Override
