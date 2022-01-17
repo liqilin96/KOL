@@ -235,7 +235,8 @@ public class ImportExcelStar {
             pricesBiz.savePrices(prices);
         }
 
-        return new ResultBean<>("导入OK了,导入数据共：" + starList.size());
+        starList.clear();
+        return new ResultBean<>("导入OK了");
     }
 
 

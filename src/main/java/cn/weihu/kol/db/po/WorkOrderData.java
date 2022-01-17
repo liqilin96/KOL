@@ -1,9 +1,6 @@
 package cn.weihu.kol.db.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -64,5 +61,6 @@ public class WorkOrderData implements Serializable {
     private String isDelete;
 
     @ApiModelProperty(value = "虚拟列，账户")
+    @TableField(exist = false)
     private String account;
 }
