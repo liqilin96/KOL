@@ -220,7 +220,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         redisUtils.setUserInfoByToken(auth, userInfo);
         log.info(">>> 用户登录:{}", req.getUsername());
         request.getSession().setAttribute("userInfo", userInfo);
-        return new LoginResp(req.getUsername(), userInfo.getRoleIds(), auth, msgKey, permissionResps);
+        return new LoginResp(userInfo.getUserId(),req.getUsername(), userInfo.getRoleIds(), auth, msgKey, permissionResps);
     }
 
     @Override

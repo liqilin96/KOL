@@ -14,6 +14,9 @@ import java.util.List;
 public class LoginResp {
 
 
+    @ApiModelProperty(value = "用户id")
+    private Long id;
+
     @ApiModelProperty(value = "用户名")
     private String userName;
 
