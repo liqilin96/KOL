@@ -48,7 +48,7 @@ public class ImportExcelStar {
 
     @Autowired
     private UserBiz userBiz;
-
+    //去重使用
     private List<String> starList = new ArrayList<>();
 
 
@@ -58,6 +58,7 @@ public class ImportExcelStar {
 
         List<Object> data = EasyExcelUtil.readExcel(file.getInputStream());
 
+        List<Prices> all = new ArrayList<>();
         Prices prices = null;
                         /*
                              0  ---> "平台",
@@ -123,15 +124,15 @@ public class ImportExcelStar {
                     if(time.compareTo(DateUtil.offsetMonth(DateUtil.date(), 6)) < 0) {
 //                        prices.setInsureEndtime(user.getContractTime());
                         prices.setInsureEndtime(DateUtil.offsetMonth(time, 0));
+                        bo.put(21, DateToStr(time,0));
                     } else {
-//                        bo.put(21, DateToStr(new Date()));
                         prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
+                        bo.put(21, DateToStr(new Date(),6));
                     }
                 } else {
-                    prices.setInsureEndtime(DateUtil.offsetMonth(DateUtil.date(), 6));
-//                    bo.put(21, DateToStr(new Date()));
+                    prices.setInsureEndtime(strToDate(bo.get(21)));
                 }
-//                bo.put(21, DateToStr(new Date()));
+
                 switch(bo.get(0)) {
 
                     case "小红书": {
@@ -232,9 +233,9 @@ public class ImportExcelStar {
             prices.setUtime(new Date());
             prices.setCreateUserId(-1L);
             prices.setUpdateUserId(-1L);
-            pricesBiz.savePrices(prices);
+            all.add(prices);
         }
-
+        pricesBiz.saveOrUpdateBatch(all,all.size());
         starList.clear();
         return new ResultBean<>("导入OK了");
     }
@@ -256,12 +257,12 @@ public class ImportExcelStar {
     }
 
 
-    //返回6个月后的日子
-    private String DateToStr(Date date) throws Exception {
+    //返回指定月后的日子
+    private String DateToStr(Date date,int month) throws Exception {
         Calendar         c   = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         c.setTime(date);
-        c.add(Calendar.MONTH, 6);
+        c.add(Calendar.MONTH, month);
         String format = sdf.format(c.getTime());
         return format;
     }

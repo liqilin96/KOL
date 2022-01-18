@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @author lql
@@ -19,9 +19,17 @@ public class ProjectResp {
 
     private Long id;
 
+    @ApiModelProperty(value = "项目名")
     private String name;
 
+    @ApiModelProperty(value = "项目描述")
     private String descs;
 
-    private LocalDateTime ctime;
+    @ApiModelProperty(value = "预算")
+    private Double budget;
+
+    @ApiModelProperty(value = "立项单")
+    private String projectImg;
+
+    private Date ctime;
 }

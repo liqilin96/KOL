@@ -99,7 +99,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         User user = UserConverter.userSaveReq2Entity(req);
         user.setPassword(MD5Util.password("123456"));
         user.setCtime(DateUtil.date());
-        user.setContractTime(new Date(req.getContractTime()));
+        user.setContractTime(req.getContractTime() == null ? null : new Date(req.getContractTime()));
         save(user);
 
         List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());

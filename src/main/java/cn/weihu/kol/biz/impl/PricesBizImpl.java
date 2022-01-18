@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
-import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -179,7 +178,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 //                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
-                hashMap.put("priceTime",DateTimeUtils.dateToString(prices.getInsureEndtime(), "yyyy/MM/dd"));
+                hashMap.put("priceTime", DateTimeUtils.dateToString(prices.getInsureEndtime(), "yyyy/MM/dd"));
 
                 //手动赋值 入库时间
                 hashMap.put("inTime", DateTimeUtils.dateToString(prices.getCtime(), "yyyy/MM/dd"));
@@ -195,7 +194,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
 //                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
-                hashMap.put("priceTime",DateTimeUtils.dateToString(prices.getInsureEndtime(), "yyyy/MM/dd"));
+                hashMap.put("priceTime", DateTimeUtils.dateToString(prices.getInsureEndtime(), "yyyy/MM/dd"));
                 //手动赋值 入库时间
                 hashMap.put("inTime", DateTimeUtils.dateToString(prices.getCtime(), "yyyy/MM/dd"));
                 addExportData(exprotData, data, hashMap, fieldsBos);
@@ -307,11 +306,6 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         }
 
 
-    }
-
-    @Override
-    public void savePrices(Prices prices) {
-        this.baseMapper.insert(prices);
     }
 
     /**

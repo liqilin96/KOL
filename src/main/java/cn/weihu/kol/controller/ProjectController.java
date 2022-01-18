@@ -67,7 +67,7 @@ public class ProjectController {
     @ApiOperation(value = "删除项目", httpMethod = "PATCH", notes = "修改项目名")
     @PatchMapping(value = "/update/{id}")
     public ResultBean<String> delete(@PathVariable("id") String id) {
-        CheckUtil.notEmpty(id, "要删除的项目id不能为空");
+        CheckUtil.notEmpty(id, "项目id不能为空");
         return new ResultBean<>(projectBiz.deleteProject(id));
     }
 

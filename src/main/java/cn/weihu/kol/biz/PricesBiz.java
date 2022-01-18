@@ -9,7 +9,6 @@ import cn.weihu.kol.http.resp.PricesLogsResp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +38,6 @@ public interface PricesBiz extends IService<Prices> {
     PageResult<PricesLogsResp> expirtPrices(PricesLogsReq req);
 
     void expirtPricesExport(PricesLogsReq req, HttpServletResponse response);
-
-    void savePrices(Prices prices);
 
     void addExportData(List<List<String>> exprotData, List<String> data, Map<String, String> hashMap, List<FieldsBo> newList);
 }
