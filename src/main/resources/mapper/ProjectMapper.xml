@@ -9,13 +9,16 @@
         <result column="descs" property="descs" />
         <result column="ctime" property="ctime" />
         <result column="utime" property="utime" />
+        <result column="budget" property="budget" />
+        <result column="project_img" property="projectImg" />
         <result column="create_user_id" property="createUserId" />
         <result column="update_user_id" property="updateUserId" />
     </resultMap>
 
+
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, name, descs, ctime, utime, create_user_id, update_user_id
+        id, name, descs, ctime, utime, create_user_id, update_user_id,budget,project_img
     </sql>
 
 </mapper>

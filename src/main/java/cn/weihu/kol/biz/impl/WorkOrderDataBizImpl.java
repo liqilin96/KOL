@@ -660,8 +660,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             project = new Project();
             project.setName(name);
             project.setDescs("保价即将到期项目");
-            project.setCtime(LocalDateTime.now());
-            project.setUtime(LocalDateTime.now());
+            project.setCtime(new Date());
+            project.setUtime(new Date());
             projectDao.insert(project);
         }
         log.info(">>> 保价即将到期项目已生成...");

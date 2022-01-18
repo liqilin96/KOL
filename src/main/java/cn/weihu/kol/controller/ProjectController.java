@@ -38,25 +38,22 @@ public class ProjectController {
     public ResultBean<String> create(@RequestBody ProjectReq req) {
         CheckUtil.notEmpty(req.getName(), "项目名不能为空");
         CheckUtil.notEmpty(req.getDesc(), "项目描述不能为空");
-        CheckUtil.notNull(req.getBudget(), "项目预算不能为空");
+        CheckUtil.notEmpty(req.getBudget(), "项目预算不能为空");
         CheckUtil.notEmpty(req.getProjectImg(), "项目立项单不能为空");
         return new ResultBean<>(projectBiz.create(req));
     }
 
-    @ApiOperation(value = "修改项目名", httpMethod = "PATCH", notes = "修改项目名")
+    @ApiOperation(value = "修改项目", httpMethod = "PATCH", notes = "修改项目名")
     @PatchMapping(value = "/update")
     public ResultBean<String> update(@RequestBody ProjectReq req) {
         CheckUtil.notEmpty(req.getId(), "要修改的项目id不能为空");
-//        CheckUtil.notEmpty(req.getNewName(), "要修改的项目名不能为空");
-        return new ResultBean<>(projectBiz.updateProjectName(req));
+        return new ResultBean<>(projectBiz.updateProject(req));
     }
-
 
     @ApiOperation(value = "上传立项单", httpMethod = "POST", notes = "上传立项单")
     @PostMapping(value = "/import")
     public ResultBean<String> importProjectImg(@RequestParam("file") MultipartFile file,ProjectReq req) {
         CheckUtil.notNull(file, "立项单不能为空");
-        CheckUtil.notEmpty(req.getName(), "项目名不能为空");
         return new ResultBean<>(projectBiz.importProjectImg(file,req.getName()));
     }
 
@@ -67,7 +64,7 @@ public class ProjectController {
         projectBiz.downloadProjectImg(path, response);
     }
 
-    @ApiOperation(value = "删除项目名", httpMethod = "PATCH", notes = "修改项目名")
+    @ApiOperation(value = "删除项目", httpMethod = "PATCH", notes = "修改项目名")
     @PatchMapping(value = "/update/{id}")
     public ResultBean<String> delete(@PathVariable("id") String id) {
         CheckUtil.notEmpty(id, "要删除的项目id不能为空");

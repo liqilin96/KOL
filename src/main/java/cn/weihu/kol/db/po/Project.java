@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * <p>
@@ -35,10 +36,10 @@ public class Project implements Serializable {
     private String descs;
 
     @ApiModelProperty(value = "插入时间")
-    private LocalDateTime ctime;
+    private Date ctime;
 
     @ApiModelProperty(value = "更新时间")
-    private LocalDateTime utime;
+    private Date utime;
 
     @ApiModelProperty(value = "创建人id")
     private Long createUserId;
@@ -46,5 +47,10 @@ public class Project implements Serializable {
     @ApiModelProperty(value = "更新人id")
     private Long updateUserId;
 
+    @ApiModelProperty(value = "预算")
+    private Double budget;
+
+    @ApiModelProperty(value = "立项单")
+    private String projectImg;
 
 }

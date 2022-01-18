@@ -25,7 +25,7 @@ public class ProjectReq {
     private String desc;
 
     @ApiModelProperty(value = "预算")
-    private Double budget;
+    private String budget;
 
     @ApiModelProperty(value = "项目立项单")
     private String projectImg;

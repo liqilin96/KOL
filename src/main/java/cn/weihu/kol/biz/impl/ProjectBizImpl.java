@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -51,31 +51,37 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
     @Override
     public String create(ProjectReq req) {
 
+        if(!req.getBudget().matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || req.getBudget().length() > 18) {
+            throw new CheckException("预算输入有误或者超出最大范围");
+        }
+
         Project project = new Project();
         project.setName(req.getName());
         project.setDescs(req.getDesc());
-        project.setCtime(LocalDateTime.now());
-        project.setUtime(LocalDateTime.now());
+        project.setBudget(Double.parseDouble(req.getBudget()));
+        project.setProjectImg(req.getProjectImg());
+        project.setCtime(new Date());
+        project.setUtime(new Date());
         project.setCreateUserId(UserInfoContext.getUserId());
         project.setUpdateUserId(UserInfoContext.getUserId());
         this.baseMapper.insert(project);
-
-        return null;
+        return project.getId() + "";
     }
 
     @Override
-    public String updateProjectName(ProjectReq req) {
-//        LambdaQueryWrapper<Project> wrapper = new LambdaQueryWrapper<>();
-//        wrapper.eq(Project::getName,req.getName());
-        Project project = this.baseMapper.selectOne(new LambdaQueryWrapper<Project>().eq(Project::getName, req.getName()));
-        if(project != null) {
-            throw new CheckException("修改失败，项目名已经存在");
+    public String updateProject(ProjectReq req) {
+        Project project = getById(req.getId());
+        if(project == null) {
+            throw new CheckException("修改失败，项目不存在");
         }
-
-        project = new Project();
-
-        project.setId(Long.parseLong(req.getId()));
-        project.setName(req.getName());
+        if(req.getBudget() != null && (!req.getBudget().matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || req.getBudget().length() > 18)) {
+            throw new CheckException("预算输入有误或者超出最大范围");
+        }
+        project.setDescs(req.getDesc());
+        project.setProjectImg(req.getProjectImg());
+        project.setBudget(req.getBudget() == null ? null : Double.parseDouble(req.getBudget()));
+        project.setUtime(new Date());
+        project.setUpdateUserId(UserInfoContext.getUserId());
         this.baseMapper.updateById(project);
         return null;
     }
@@ -106,7 +112,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         }
 
         wrapper.ne(Project::getName, "保价即将到期")
-                .orderByDesc(Project::getCtime);
+                .orderByDesc(Project::getUtime);
 
         Page<Project> projectPage = this.baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
         List<ProjectResp> resps = projectPage.getRecords().stream().map(x -> {
@@ -126,7 +132,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
 //        if(!contentType.equalsIgnoreCase("jpg") && !contentType.equalsIgnoreCase("png")) {
 //            throw new CheckException("图片格式上传错误");
 //        }
-        String filePath    = projectName + File.separator + DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
+        String filePath    = DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
         String newFileName = UUID.randomUUID() + "." + contentType;
         String path        = null;
         try {
@@ -134,7 +140,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
             path = (filePath + newFileName).replace("\\", "/");
         } catch(Exception e) {
             e.printStackTrace();
-            throw new CheckException("上传图片失败");
+            throw new CheckException("上传立项单失败");
         }
         return path;
     }

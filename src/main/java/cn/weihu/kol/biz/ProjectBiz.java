@@ -21,7 +21,7 @@ public interface ProjectBiz extends IService<Project> {
 
     String create(ProjectReq req);
 
-    String updateProjectName(ProjectReq req);
+    String updateProject(ProjectReq req);
 
     String deleteProject(String id);
 
