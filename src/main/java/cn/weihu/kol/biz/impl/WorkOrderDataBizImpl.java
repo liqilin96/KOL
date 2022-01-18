@@ -94,10 +94,10 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
 
         if(StringUtils.isNotBlank(req.getSupplier())) {
-            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}", req.getSupplier());
+            wrapper.apply("JSON_UNQUOTE(JSON_EXTRACT(data,\"$.supplier\")) = {0}1", req.getSupplier());
         }
-        wrapper.groupBy(WorkOrderData::getAccount);
-//        wrapper.last("ORDER BY JSON_UNQUOTE(JSON_EXTRACT(data, \"$.account\"))");
+//        wrapper.groupBy(WorkOrderData::getAccount);
+        wrapper.last("ORDER BY account");
 
         List<WorkOrderData> list = list(wrapper);
         //拼凑违约记录数据
@@ -1163,7 +1163,9 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             pricesLogsBiz.saveBatch(pricesLogsList, pricesLogsList.size());
         }
         if(!CollectionUtils.isEmpty(quoteList)) {
-            quoteBiz.batchSaveOrUpdate(quoteList);
+            threadPool.execute(() -> {
+                quoteBiz.batchSaveOrUpdate(quoteList);
+            });
         }
         // 更新工单状态 -> 已下单
         workOrder.setStatus(Constants.WORK_ORDER_ORDER);

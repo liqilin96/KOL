@@ -301,11 +301,11 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
                 }
             }
             if(!CollectionUtils.isEmpty(insertList)) {
-                saveBatch(insertList);
+                saveBatch(insertList,insertList.size());
                 log.info(">>> 报价库插入数据完成...size:{}", insertList.size());
             }
             if(!CollectionUtils.isEmpty(updateList)) {
-                updateBatchById(updateList);
+                updateBatchById(updateList,insertList.size());
                 log.info(">>> 报价库更新数据完成...size:{}", updateList.size());
             }
         }
