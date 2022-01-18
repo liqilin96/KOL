@@ -1777,7 +1777,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
 
         prices.setActorSn(map.get("actorSn"));
-        if(map.get("commission") != null) {
+        if(map.get("commission") != null && !"".equals(map.get("commission"))) {
             prices.setCommission(Integer.parseInt(map.get("commission")));
         }
 
