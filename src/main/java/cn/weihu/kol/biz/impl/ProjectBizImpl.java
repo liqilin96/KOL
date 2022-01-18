@@ -54,18 +54,6 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         project.setUpdateUserId(UserInfoContext.getUserId());
         this.baseMapper.insert(project);
 
-        //创建工单
-        if(req.getWorkOrderReq() != null) {
-            insertDBExecutors.execute(() -> {
-
-                WorkOrder workOrder = new WorkOrder();
-
-                //TODO  创建工单和工单详情
-                workOrder.setProjectId(project.getId());
-                workOrderBiz.save(workOrder);
-            });
-
-        }
         return null;
     }
 

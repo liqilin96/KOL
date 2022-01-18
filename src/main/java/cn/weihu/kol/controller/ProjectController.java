@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -34,6 +35,9 @@ public class ProjectController {
     @PostMapping(value = "/create")
     public ResultBean<String> create(@RequestBody ProjectReq req) {
         CheckUtil.notEmpty(req.getName(), "项目名不能为空");
+        CheckUtil.notEmpty(req.getDesc(), "项目描述不能为空");
+        CheckUtil.notNull(req.getBudget(), "项目预算不能为空");
+        CheckUtil.notEmpty(req.getProjectImg(), "项目立项单不能为空");
         return new ResultBean<>(projectBiz.create(req));
     }
 
@@ -44,6 +48,14 @@ public class ProjectController {
 //        CheckUtil.notEmpty(req.getNewName(), "要修改的项目名不能为空");
         return new ResultBean<>(projectBiz.updateProjectName(req));
     }
+
+
+//    @ApiOperation(value = "上传立项单", httpMethod = "POST", notes = "上传立项单")
+//    @PostMapping(value = "/import/projectImg")
+//    public ResultBean<String> importProjectImg(@RequestParam("file") MultipartFile file) {
+//        CheckUtil.notNull(file, "上传文件不能为空");
+//        return new ResultBean<>(projectBiz.importProjectImg(file));
+//    }
 
 
     @ApiOperation(value = "删除项目名", httpMethod = "PATCH", notes = "修改项目名")
