@@ -5,6 +5,9 @@ import cn.weihu.kol.db.po.Project;
 import cn.weihu.kol.http.req.ProjectReq;
 import cn.weihu.kol.http.resp.ProjectResp;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -23,4 +26,8 @@ public interface ProjectBiz extends IService<Project> {
     String deleteProject(String id);
 
     PageResult<ProjectResp> pages(ProjectReq req);
+
+    String importProjectImg(MultipartFile file, String projectName);
+
+    void downloadProjectImg(String path, HttpServletResponse response);
 }

@@ -1,5 +1,6 @@
 package cn.weihu.kol.biz.impl;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.weihu.base.exception.CheckException;
 import cn.weihu.base.result.PageResult;
@@ -11,6 +12,7 @@ import cn.weihu.kol.db.po.WorkOrder;
 import cn.weihu.kol.http.req.ProjectReq;
 import cn.weihu.kol.http.resp.ProjectResp;
 import cn.weihu.kol.userinfo.UserInfoContext;
+import cn.weihu.kol.util.FileUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -19,9 +21,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -110,5 +116,31 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         }).collect(Collectors.toList());
 
         return new PageResult<>(projectPage.getTotal(), resps);
+    }
+
+    @Override
+    public String importProjectImg(MultipartFile file, String projectName) {
+        String fileName    = file.getOriginalFilename();
+        String contentType = StringUtils.substringAfterLast(fileName, ".");
+        //对立项单不校验
+//        if(!contentType.equalsIgnoreCase("jpg") && !contentType.equalsIgnoreCase("png")) {
+//            throw new CheckException("图片格式上传错误");
+//        }
+        String filePath    = projectName + File.separator + DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN) + File.separator;
+        String newFileName = UUID.randomUUID() + "." + contentType;
+        String path        = null;
+        try {
+            FileUtil.uploadFile(file.getBytes(), filePath, newFileName);
+            path = (filePath + newFileName).replace("\\", "/");
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new CheckException("上传图片失败");
+        }
+        return path;
+    }
+
+    @Override
+    public void downloadProjectImg(String path, HttpServletResponse response) {
+        FileUtil.download(response, path, false);
     }
 }

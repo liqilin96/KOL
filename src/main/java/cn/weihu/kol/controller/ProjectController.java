@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+
 
 /**
  * <p>
@@ -50,13 +52,20 @@ public class ProjectController {
     }
 
 
-//    @ApiOperation(value = "上传立项单", httpMethod = "POST", notes = "上传立项单")
-//    @PostMapping(value = "/import/projectImg")
-//    public ResultBean<String> importProjectImg(@RequestParam("file") MultipartFile file) {
-//        CheckUtil.notNull(file, "上传文件不能为空");
-//        return new ResultBean<>(projectBiz.importProjectImg(file));
-//    }
+    @ApiOperation(value = "上传立项单", httpMethod = "POST", notes = "上传立项单")
+    @PostMapping(value = "/import")
+    public ResultBean<String> importProjectImg(@RequestParam("file") MultipartFile file,ProjectReq req) {
+        CheckUtil.notNull(file, "立项单不能为空");
+        CheckUtil.notEmpty(req.getName(), "项目名不能为空");
+        return new ResultBean<>(projectBiz.importProjectImg(file,req.getName()));
+    }
 
+    @ApiOperation(value = "下载立项单", httpMethod = "GET", notes = "下载立项单")
+    @GetMapping(value = "/download")
+    public void downloadPDF(String path, HttpServletResponse response) {
+        CheckUtil.notNull(path, "立项单文件地址不能为空");
+        projectBiz.downloadProjectImg(path, response);
+    }
 
     @ApiOperation(value = "删除项目名", httpMethod = "PATCH", notes = "修改项目名")
     @PatchMapping(value = "/update/{id}")
