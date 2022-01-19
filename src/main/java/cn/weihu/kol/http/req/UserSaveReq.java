@@ -41,4 +41,7 @@ public class UserSaveReq {
     @ApiModelProperty(value = "合同到期时间")
     private Long contractTime;
 
+    @ApiModelProperty(value = "媒介id")
+    private String mediumId;
+
 }

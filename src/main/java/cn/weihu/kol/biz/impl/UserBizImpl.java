@@ -137,6 +137,11 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 
         List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());
         roleUserDao.saveBatch(roleUsers);
+
+        //TODO 为品牌方添加媒介
+        if(roleUsers.stream().filter(x -> "6".equals(x.getRoleId())).count() > 0 && StringUtils.isNotBlank(req.getMediumId())) {
+
+        }
         List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId());
         List<PermissionResp> permissionResps = PermissionConverter.list2BoList(permissions);
         UserInfo userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
