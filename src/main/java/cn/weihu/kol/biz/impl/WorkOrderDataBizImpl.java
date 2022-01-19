@@ -1764,8 +1764,8 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             throw new CheckException("违约数据无法被重新制作");
         }
 
-        map.put("price", "");
-        map.put("commission", "");
+//        map.put("price", "");
+//        map.put("commission", "");
         map.put("img", "");
         map.put("imgTime", "");
         map.put("platPrice", "");
