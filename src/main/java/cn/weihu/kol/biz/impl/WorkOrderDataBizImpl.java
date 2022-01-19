@@ -1770,7 +1770,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         map.put("imgTime", "");
         map.put("platPrice", "");
         workOrderData.setData(GsonUtils.gson.toJson(map));
-        //修改违约工单 =》报价、佣金清零
         updateById(workOrderData);
 
         Prices prices = new Prices();
