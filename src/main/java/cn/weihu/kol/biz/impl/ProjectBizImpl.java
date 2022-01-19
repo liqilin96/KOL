@@ -46,7 +46,6 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
     @Autowired
     private WorkOrderBiz workOrderBiz;
 
-    ExecutorService insertDBExecutors = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 
     @Override
     public String create(ProjectReq req) {
@@ -58,6 +57,8 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
         Project project = new Project();
         project.setName(req.getName());
         project.setDescs(req.getDesc());
+        //品牌方创建
+        project.setBrandId(UserInfoContext.getUserId() + "");
         project.setBudget(Double.parseDouble(req.getBudget()));
         project.setProjectImg(req.getProjectImg());
         project.setCtime(new Date());

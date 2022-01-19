@@ -2,10 +2,7 @@ package cn.weihu.kol.biz;
 
 import cn.weihu.base.result.PageResult;
 import cn.weihu.kol.db.po.User;
-import cn.weihu.kol.http.req.LoginReq;
-import cn.weihu.kol.http.req.ModifyPasswordReq;
-import cn.weihu.kol.http.req.UserListReq;
-import cn.weihu.kol.http.req.UserSaveReq;
+import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.LoginResp;
 import cn.weihu.kol.http.resp.UserResp;
 
@@ -40,4 +37,8 @@ public interface UserBiz extends Biz<User> {
     Map<String, Object> token(String accessKeyId, String accessKeySecret);
 
     void delToken(HttpServletRequest request);
+
+    List<UserResp> mediums();
+
+    String receiveMediums(MediumReq req);
 }

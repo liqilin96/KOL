@@ -69,4 +69,7 @@ public class UserResp {
 
     @ApiModelProperty(value = "合同到期时间")
     private Date contractTime;
+
+    @ApiModelProperty(value = "品牌方的媒介id")
+    private String mediumId;
 }

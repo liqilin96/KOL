@@ -15,10 +15,7 @@ import cn.weihu.kol.db.po.Permission;
 import cn.weihu.kol.db.po.Role;
 import cn.weihu.kol.db.po.RoleUser;
 import cn.weihu.kol.db.po.User;
-import cn.weihu.kol.http.req.LoginReq;
-import cn.weihu.kol.http.req.ModifyPasswordReq;
-import cn.weihu.kol.http.req.UserListReq;
-import cn.weihu.kol.http.req.UserSaveReq;
+import cn.weihu.kol.http.req.*;
 import cn.weihu.kol.http.resp.LoginResp;
 import cn.weihu.kol.http.resp.PermissionResp;
 import cn.weihu.kol.http.resp.UserResp;
@@ -32,6 +29,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -63,6 +61,41 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
     @Resource
     private PermissionDao permissionDao;
 
+
+    @Override
+    public List<UserResp> mediums() {
+
+        List<RoleUser> roleUsers = roleUserDao.selectList(new LambdaQueryWrapper<>(RoleUser.class).eq(RoleUser::getRoleId, 6));
+        if(roleUsers == null || roleUsers.size() == 0) {
+            log.info(">>> 配置中没有媒介");
+            return null;
+        }
+        List<User> users = listByIds(roleUsers.stream().map(RoleUser::getUserId).collect(Collectors.toList()));
+
+        List<UserResp> userResps = users.stream().map(x -> {
+            UserResp resp = new UserResp();
+            BeanUtils.copyProperties(x, resp);
+            resp.setId(x.getId() + "");
+            return resp;
+        }).collect(Collectors.toList());
+        return userResps;
+    }
+
+    @Override
+    public String receiveMediums(MediumReq req) {
+
+        User brand = getById(req.getBrandId());
+        if(brand == null)
+            throw new CheckException("品牌方不存在");
+        if(brand.getMediumId() != null)
+            throw new CheckException("品牌方已经存在媒介");
+
+        brand.setMediumId(req.getMediumId());
+        brand.setUtime(new Date());
+        brand.setUpdateUserId(UserInfoContext.getUserId());
+        updateById(brand);
+        return null;
+    }
 
     @Override
     public PageResult<UserResp> userPage(UserListReq req) {
@@ -220,7 +253,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         redisUtils.setUserInfoByToken(auth, userInfo);
         log.info(">>> 用户登录:{}", req.getUsername());
         request.getSession().setAttribute("userInfo", userInfo);
-        return new LoginResp(req.getUsername(), userInfo.getRoleIds(), auth, msgKey, permissionResps);
+        return new LoginResp(userInfo.getUserId(), req.getUsername(), userInfo.getRoleIds(), auth, msgKey, permissionResps);
     }
 
     @Override

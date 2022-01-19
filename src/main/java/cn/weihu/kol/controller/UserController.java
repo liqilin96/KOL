@@ -5,6 +5,7 @@ import cn.weihu.base.result.CheckUtil;
 import cn.weihu.base.result.ResultBean;
 import cn.weihu.kol.biz.UserBiz;
 import cn.weihu.kol.http.req.LoginReq;
+import cn.weihu.kol.http.req.MediumReq;
 import cn.weihu.kol.http.req.ModifyPasswordReq;
 import cn.weihu.kol.http.resp.LoginResp;
 import cn.weihu.kol.http.resp.UserResp;
@@ -59,6 +60,21 @@ public class UserController {
     @GetMapping(value = "/user/list")
     public ResultBean<List<UserResp>> userList() {
         return new ResultBean<>(userBiz.userList());
+    }
+
+
+    @ApiOperation(value = "获取所有未分配媒介", httpMethod = "GET", notes = "获取所有未分配媒介")
+    @GetMapping(value = "/mediums")
+    public ResultBean<List<UserResp>> medium() {
+        return new ResultBean<>(userBiz.mediums());
+    }
+
+    @ApiOperation(value = "分配媒介", httpMethod = "PUT", notes = "分配媒介")
+    @PutMapping(value = "/receive/mediums")
+    public ResultBean<String> receiveMediums(@RequestBody MediumReq req) {
+        CheckUtil.notEmpty(req.getMediumId(), "媒介id不能为空");
+        CheckUtil.notEmpty(req.getBrandId(), "品牌方Id不能为空");
+        return new ResultBean<>(userBiz.receiveMediums(req));
     }
 
 

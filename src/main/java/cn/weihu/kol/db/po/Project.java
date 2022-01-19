@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -52,5 +51,8 @@ public class Project implements Serializable {
 
     @ApiModelProperty(value = "立项单")
     private String projectImg;
+
+    @ApiModelProperty(value = "品牌方id")
+    private String brandId;
 
 }

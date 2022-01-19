@@ -69,4 +69,9 @@ public class User implements Serializable {
      * 合同到期时间（供应商填写）
      */
     private Date contractTime;
+
+    /**
+     * 管理的媒介id(品牌方填写)
+     */
+    private String mediumId;
 }
