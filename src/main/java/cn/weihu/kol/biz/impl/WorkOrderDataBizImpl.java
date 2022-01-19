@@ -1764,20 +1764,19 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             throw new CheckException("违约数据无法被重新制作");
         }
 
-        map.put("price", "");
-        map.put("commission", "");
+//        map.put("price", "");
+//        map.put("commission", "");
         map.put("img", "");
         map.put("imgTime", "");
         map.put("platPrice", "");
         workOrderData.setData(GsonUtils.gson.toJson(map));
-        //修改违约工单 =》报价、佣金清零
         updateById(workOrderData);
 
         Prices prices = new Prices();
 
 
         prices.setActorSn(map.get("actorSn"));
-        if(map.get("commission") != null) {
+        if(map.get("commission") != null && !"".equals(map.get("commission"))) {
             prices.setCommission(Integer.parseInt(map.get("commission")));
         }
 
