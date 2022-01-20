@@ -102,10 +102,10 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
 
         LambdaQueryWrapper<User> wrapper = Wrappers.lambdaQuery(User.class);
         if(StringUtils.isNotBlank(req.getName())) {
-            wrapper.like(User::getName, req.getName() + "%");
+            wrapper.like(User::getName, req.getName());
         }
         if(StringUtils.isNotBlank(req.getUsername())) {
-            wrapper.like(User::getUsername, req.getUsername() + "%");
+            wrapper.like(User::getUsername, req.getUsername());
         }
 
         Page<User> page = baseMapper.selectPage(new Page<>(req.getPageNo(), req.getPageSize()), wrapper);
@@ -132,17 +132,17 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         User user = UserConverter.userSaveReq2Entity(req);
         user.setPassword(MD5Util.password("123456"));
         user.setCtime(DateUtil.date());
+        user.setUtime(DateUtil.date());
+        //为品牌方添加媒介
+        if(StringUtils.isNotBlank(req.getMediumId())) {
+            user.setMediumId(req.getMediumId());
+        }
         user.setContractTime(req.getContractTime() == null ? null : new Date(req.getContractTime()));
         save(user);
 
         List<RoleUser> roleUsers = convert(req.getRoleIds(), user.getId().toString());
         roleUserDao.saveBatch(roleUsers);
 
-        //为品牌方添加媒介
-        if(roleUsers.stream().filter(x -> "6".equals(x.getRoleId())).count() > 0 && StringUtils.isNotBlank(req.getMediumId())) {
-            user.setMediumId(req.getMediumId());
-            updateById(user);
-        }
         List<Permission>     permissions     = permissionDao.getPermissionsByUserId(user.getId());
         List<PermissionResp> permissionResps = PermissionConverter.list2BoList(permissions);
         UserInfo userInfo = new UserInfo(UserInfoContext.getCompanyId(), user.getId(), user.getUsername(),
@@ -165,6 +165,9 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         user.setUtime(DateUtil.date());
         if(req.getContractTime() != null && req.getContractTime() > 0) {
             user.setContractTime(new Date(req.getContractTime()));
+        }
+        if(StringUtils.isNotBlank(req.getMediumId())) {
+            user.setMediumId(req.getMediumId());
         }
         updateById(user);
 

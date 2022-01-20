@@ -18,6 +18,7 @@ public class UserConverter {
         resp.setCreateUserId(user.getCreateUserId());
         resp.setUpdateUserId(user.getUpdateUserId());
         resp.setContractTime(user.getContractTime());
+        resp.setMediumId(user.getMediumId());
         return resp;
     }
 

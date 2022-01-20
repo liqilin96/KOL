@@ -28,8 +28,6 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +48,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
     @Override
     public String create(ProjectReq req) {
 
+        //对预算做输入校验
         if(!req.getBudget().matches("[1-9]{1}[0-9]{0,}|[1-9]{1}[0-9]{0,}\\.[0-9]{2}") || req.getBudget().length() > 18) {
             throw new CheckException("预算输入有误或者超出最大范围");
         }
@@ -129,7 +128,7 @@ public class ProjectBizImpl extends ServiceImpl<ProjectDao, Project> implements 
     public String importProjectImg(MultipartFile file, String projectName) {
         String fileName    = file.getOriginalFilename();
         String contentType = StringUtils.substringAfterLast(fileName, ".");
-        //对立项单不校验
+        //对立项单不做格式格式校验
 //        if(!contentType.equalsIgnoreCase("jpg") && !contentType.equalsIgnoreCase("png")) {
 //            throw new CheckException("图片格式上传错误");
 //        }
