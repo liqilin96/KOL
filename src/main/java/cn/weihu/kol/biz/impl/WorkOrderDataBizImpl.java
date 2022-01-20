@@ -1873,7 +1873,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             WorkOrderData   workOrderData   = orderData.get(i);
             WorkOrderDataBo workOrderDataBo = GsonUtils.gson.fromJson(workOrderData.getData(), WorkOrderDataBo.class);
             //Double => int
-            Double price = Double.parseDouble(workOrderDataBo.getPrice() == null ? "0.0" : workOrderDataBo.getPrice());
+            Double price = Double.parseDouble(StringUtils.isBlank(workOrderDataBo.getPrice()) ? "0.0" : workOrderDataBo.getPrice());
             workOrderDataBo.setPrice(price.intValue() + "");
             excelList.add(workOrderDataBo);
         }
