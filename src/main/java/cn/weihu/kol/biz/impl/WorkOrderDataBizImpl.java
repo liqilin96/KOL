@@ -621,6 +621,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDao.update(workOrder, new LambdaUpdateWrapper<>(WorkOrder.class)
                     .eq(WorkOrder::getParentId, req.getWorkOrderId())
                     .eq(WorkOrder::getToUser, StartupRunner.SUPPLIER_USER_XIN_YI));
+        } else {
+            //修改对应父工单状态
+            if(xinyiId != 0) {
+                workOrder = new WorkOrder();
+                workOrder.setId(xinyiId);
+                workOrder.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
+                workOrderDao.updateById(workOrder);
+            }
         }
         if(existWeiGe) {
             workOrder = new WorkOrder();
@@ -631,6 +639,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             workOrderDao.update(workOrder, new LambdaUpdateWrapper<>(WorkOrder.class)
                     .eq(WorkOrder::getParentId, req.getWorkOrderId())
                     .eq(WorkOrder::getToUser, StartupRunner.SUPPLIER_USER_WEI_GE));
+        } else {
+            //修改对应父工单状态
+            if(weigeiId != 0) {
+                workOrder = new WorkOrder();
+                workOrder.setId(weigeiId);
+                workOrder.setStatus(Constants.WORK_ORDER_DATA_QUOTE);
+                workOrderDao.updateById(workOrder);
+            }
         }
         updateBatchById(list);
         // 更新工单状态
@@ -1605,8 +1621,11 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
     @Override
     public void workOrderDataListExport(WorkOrderDataReq req, HttpServletResponse response) {
+
+        List<WorkOrder> workOrders = workOrderDao.selectList(new LambdaQueryWrapper<>(WorkOrder.class).eq(WorkOrder::getParentId, req.getWorkOrderId()));
+
         LambdaQueryWrapper<WorkOrderData> wrapper = Wrappers.lambdaQuery(WorkOrderData.class);
-        wrapper.eq(WorkOrderData::getWorkOrderId, req.getWorkOrderId())
+        wrapper.in(WorkOrderData::getWorkOrderId, workOrders.stream().map(WorkOrder::getId).collect(Collectors.toList()))
 //                .eq(WorkOrderData::getStatus, Constants.WORK_ORDER_DATA_REVIEW_PASS);
                 .eq(WorkOrderData::getStatus, req.getStatus());
 
@@ -1854,7 +1873,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             WorkOrderData   workOrderData   = orderData.get(i);
             WorkOrderDataBo workOrderDataBo = GsonUtils.gson.fromJson(workOrderData.getData(), WorkOrderDataBo.class);
             //Double => int
-            Double price = Double.parseDouble(workOrderDataBo.getPrice() == null ? "0.0" : workOrderDataBo.getPrice());
+            Double price = Double.parseDouble(StringUtils.isBlank(workOrderDataBo.getPrice()) ? "0.0" : workOrderDataBo.getPrice());
             workOrderDataBo.setPrice(price.intValue() + "");
             excelList.add(workOrderDataBo);
         }
@@ -1903,7 +1922,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             LambdaQueryWrapper<WorkOrderData> wrapper = new LambdaQueryWrapper<>();
 
             //重新询价
-            WorkOrderBatchUpdateReq      reqAgain                   = new WorkOrderBatchUpdateReq();
+            WorkOrderBatchUpdateReq     reqAgain                  = new WorkOrderBatchUpdateReq();
             Set<WorkOrderDataUpdateReq> workOrderDataUpdateReqSet = new HashSet<>();
 
             //找到父工单id
@@ -1954,7 +1973,6 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             }, Collectors.mapping(x -> x, Collectors.toList())));
 
 
-
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
 
@@ -1986,7 +2004,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
                 }
 
                 //获取Excel中的 平台+账户id+资源报价+权益 （唯一标识）
-                String        no             = MD5Util.getMD5(sb.toString());
+                String              no             = MD5Util.getMD5(sb.toString());
                 List<WorkOrderData> workOrderDatum = workOrderDataMap.get(no);
                 if(workOrderDatum == null) {
                     continue;
@@ -1995,7 +2013,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
                 reqAgain.setWorkOrderId(Long.parseLong(req.getWorkOrderId()));
                 for(WorkOrderData orderData : workOrderDatum) {
-                    updateReq= new WorkOrderDataUpdateReq();
+                    updateReq = new WorkOrderDataUpdateReq();
                     updateReq.setData(orderData.getData());
                     updateReq.setId(orderData.getId());
                     workOrderDataUpdateReqSet.add(updateReq);
