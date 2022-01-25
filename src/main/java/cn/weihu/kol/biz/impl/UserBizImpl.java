@@ -133,7 +133,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         user.setPassword(MD5Util.password("123456"));
         user.setCtime(DateUtil.date());
         user.setUtime(DateUtil.date());
-        //为品牌方添加媒介
+        //为品牌方指定媒介
         if(StringUtils.isNotBlank(req.getMediumId())) {
             user.setMediumId(req.getMediumId());
         }
@@ -166,6 +166,7 @@ public class UserBizImpl extends BaseBiz<UserDao, User> implements UserBiz {
         if(req.getContractTime() != null && req.getContractTime() > 0) {
             user.setContractTime(new Date(req.getContractTime()));
         }
+        //为品牌方指定媒介
         if(StringUtils.isNotBlank(req.getMediumId())) {
             user.setMediumId(req.getMediumId());
         }

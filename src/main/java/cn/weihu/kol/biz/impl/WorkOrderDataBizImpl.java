@@ -1895,13 +1895,14 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
         }
         List<Object> data = null;
         try {
+            //读取了excel的全部数据
             data = EasyExcelUtil.readExcelOnlySheet1(file.getInputStream());
         } catch(Exception e) {
             log.error(">>> Excel读取失败:{}", e);
             throw new CheckException("Excel读取失败,请联系管理员");
         }
         List<String> selfTitle = workOrderBiz.excelTitle(req.getExcelType());
-
+        //获取模板表头（非读取）
         selfTitle.addAll(excelTitle(req.getExcelType()));
 
         if(null != data) {
@@ -1936,6 +1937,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
             if(workOrderData == null || workOrderData.size() == 0) {
                 return null;
             }
+            //sb用于链接下面唯一标识使用，保证顺序性
             StringBuilder sb = new StringBuilder();
 
 
@@ -1975,7 +1977,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             for(int x = 10; x < data.size(); x++) {
                 LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
-
+                //bo.get(0) 的序号0 都是以excel的下标获取的值，以下统一
                 String media     = bo.get(0) == null ? "" : bo.get(0);
                 String IDorLink  = bo.get(3) == null ? "" : bo.get(3);
                 String address   = bo.get(5) == null ? "" : bo.get(5);
@@ -2066,6 +2068,7 @@ public class WorkOrderDataBizImpl extends ServiceImpl<WorkOrderDataDao, WorkOrde
 
             StringBuilder sb = new StringBuilder();
 
+            //将工单数据转成map<唯一标识，工单数据集合>形式，用于查询
             Map<String, List<WorkOrderData>> workOrderDataMap = reList.stream().collect(Collectors.groupingBy(x -> {
                 Map<String, String> map = GsonUtils.gson.fromJson(x.getData(), new TypeToken<Map<String, String>>() {
                 }.getType());

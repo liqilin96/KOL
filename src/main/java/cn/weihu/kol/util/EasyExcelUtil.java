@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * @author lql
  * @date 2021/11/16 9:55
- * Description：
+ * Description：只针对蒙牛此项目工具
  */
 @Slf4j
 public class EasyExcelUtil {
@@ -97,6 +97,14 @@ public class EasyExcelUtil {
         }
     }
 
+    /**
+     *
+     * @param response
+     * @param excelList 数据
+     * @param fileName 文件名
+     * @param templateType 模板类型
+     * @param isSupplier 是否供应商（true or false,有单独供应商导出模板）
+     */
     public static void writeExcelSheet(HttpServletResponse response, List<WorkOrderDataBo> excelList, String fileName, String templateType, String isSupplier) {
         ExcelWriter excelWriter = null;
         try {
@@ -135,6 +143,7 @@ public class EasyExcelUtil {
             Map<String, String> fillData = new HashMap<>();
 
             for(WorkOrderDataBo wb : excelList) {
+                //佣金和折扣的特殊处理 + %
                 if(wb.getCommission() != null && wb.getCommission().matches("\\d+")) {
                     wb.setCommission(wb.getCommission() + "%");
                 }
@@ -157,6 +166,8 @@ public class EasyExcelUtil {
         }
     }
 
+
+    //不需要指定模板的导出函数
     public static void writeExcelSheet(HttpServletResponse response, List<?> list, String fileName, List<String> sheetNames) {
         ExcelWriter excelWriter = null;
         try {

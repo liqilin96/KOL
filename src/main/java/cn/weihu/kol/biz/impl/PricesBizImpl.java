@@ -269,7 +269,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
         List<FieldsBo> newList = fieldsBos.stream().filter(x -> x.isEffect()).collect(Collectors.toList());
         //获取中文表头
         List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
-
+        //导出添加标题
         exprotData.add(titleCN);
         if(StringUtils.isBlank(req.getIds())) {
             List<PricesLogsResp> records = this.expirtPrices(req).getRecords();
@@ -281,18 +281,17 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
             //导出所有数据
             for(Prices prices : pricesList) {
                 List<String> data = new ArrayList<>();
-//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
                 addExportData(exprotData, data, hashMap, newList);
             }
         } else {
+            //选中导出
             String[] split = req.getIds().split(",");
             for(int i = 0; i < split.length; i++) {
                 List<String> data   = new ArrayList<>();
                 String       id     = split[i];
                 Prices       prices = getById(id);
-//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(prices.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
                 addExportData(exprotData, data, hashMap, newList);
@@ -336,6 +335,7 @@ public class PricesBizImpl extends ServiceImpl<PricesDao, Prices> implements Pri
                 }
             }
             if(flag) {
+                //没有的值赋""占位
                 data.add("");
             }
         }

@@ -146,7 +146,7 @@ public class WorkOrderBizImpl extends ServiceImpl<WorkOrderDao, WorkOrder> imple
 //                }
                 //非空字段
                 long count = bo.values().stream().filter(y -> y != null).count();
-                //简单校验
+                //简单的读取数据校验
                 if("1".equals(req.getExcelType())) {
                     if(!("抖音".equals(bo.get(0)) || "快手".equals(bo.get(0)))) {
                         continue;

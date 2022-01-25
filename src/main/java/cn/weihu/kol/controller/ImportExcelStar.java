@@ -60,6 +60,7 @@ public class ImportExcelStar {
 
         List<Prices> all = new ArrayList<>();
         Prices prices = null;
+        //以下序号参考如下列表，如 map.get(0)就是获取平台的数值，列表随导入模板的改动而有所改动
                         /*
                              0  ---> "平台",
                              1  ---> "序号",
@@ -88,6 +89,7 @@ public class ImportExcelStar {
         Date xinyiTime = null;
         Date weigeTime = null;
 
+        //获取供应商合同到期时间
         User xinyi = userBiz.getOne(new LambdaQueryWrapper<>(User.class).eq(User::getName, "xinyi"));
         if(xinyi != null && xinyi.getContractTime() != null) {
             xinyiTime = xinyi.getContractTime();
@@ -101,6 +103,7 @@ public class ImportExcelStar {
             LinkedHashMap<Integer, String> bo = (LinkedHashMap<Integer, String>) data.get(x);
 
             String md5 = MD5Util.getMD5(bo.get(0) + bo.get(3) + bo.get(6));
+            //去重处理，耗时，可以优化
             if(starList.contains(md5)) {
                 continue;
             } else {
@@ -134,7 +137,7 @@ public class ImportExcelStar {
                 }
 
                 switch(bo.get(0)) {
-
+                    //权益赋值
                     case "小红书": {
                         bo.put(7, "是");
                         bo.put(8, "是");
@@ -236,6 +239,7 @@ public class ImportExcelStar {
             all.add(prices);
         }
         pricesBiz.saveOrUpdateBatch(all,all.size());
+        //清空数据，保证下次导入数据的准确性
         starList.clear();
         return new ResultBean<>("导入OK了");
     }

@@ -226,7 +226,6 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
         List<List<String>> exprotData = new ArrayList<>();
         //获取中文表头
         List<String> titleCN = ImportExcelStar.kolTitle();
-//        List<String> titleCN = newList.stream().map(FieldsBo::getTitle).collect(Collectors.toList());
 
         //添加额外多余表头
         List<String> list = ImportExcelStar.list2Title(newList, titleCN);
@@ -239,9 +238,9 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
             //导出所有数据
             for(Quote quote : quotes) {
                 List<String>            data    = new ArrayList<>();
-//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
+                //添加需要导出的数据
                 pricesBiz.addExportData(exprotData, data, hashMap, fieldsBos);
             }
         } else {
@@ -251,9 +250,9 @@ public class QuoteBizImpl extends BaseBiz<QuoteDao, Quote> implements QuoteBiz {
                 List<String>            data    = new ArrayList<>();
                 String                  id      = split[i];
                 Quote                   quote   = getById(id);
-//                HashMap<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), HashMap.class);
                 Map<String, String> hashMap = GsonUtils.gson.fromJson(quote.getActorData(), new TypeToken<Map<String, String>>() {
                 }.getType());
+                //添加需要导出的数据
                 pricesBiz.addExportData(exprotData, data, hashMap, fieldsBos);
             }
         }

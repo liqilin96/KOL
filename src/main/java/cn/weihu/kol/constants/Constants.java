@@ -13,9 +13,10 @@ public interface Constants {
 
     /**
      * 工单状态
-     * 新建、询价中、已报价、审核中、已下单
+     * 新建,新建工单审核,询价中、已报价、审核中、已下单
      */
     String WORK_ORDER_NEW    = "NEW";
+    String WORK_ORDER_REVIEW_NEW = "REVIEW_NEW";
     String WORK_ORDER_ASK    = "ASK";
     String WORK_ORDER_QUOTE  = "QUOTE";
     String WORK_ORDER_REVIEW = "REVIEW";
